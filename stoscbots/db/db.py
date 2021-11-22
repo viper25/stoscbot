@@ -39,7 +39,7 @@ def __db_executeQuery(sql, db, prepared=False, *args):
             # Get Cursor 
             with conn.cursor(prepared=True) as cursor:
                 cursor.execute(sql, args)
-                _result=cursor.fetchall()            
+                _result=cursor.fetchall()
         else:
             # Get Cursor 
             with conn.cursor() as cursor:
