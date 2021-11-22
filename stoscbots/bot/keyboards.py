@@ -5,53 +5,53 @@ from datetime import datetime, date
 """
 InlineKeyboardButton = Buttons that belong to a Keyboard
 """
-__back_to_main_button = InlineKeyboardButton("🔙 Return to Main menu", callback_data="Main Menu")
-__main_services_button = InlineKeyboardButton("✝ Services", callback_data="Services Menu")
-__main_members_button = InlineKeyboardButton("👨‍👩‍👦 Members", callback_data="Members Menu")
-__main_prayer_groups_button = InlineKeyboardButton("🤲🏻 Prayer Groups", callback_data="Prayer Groups Menu")
-__main_finance_button = InlineKeyboardButton("💲 Finance", callback_data="Finance Menu")
-__main_my_details_button = InlineKeyboardButton("👨🏻 My Details 👩🏻", callback_data="My Details Menu")
-__main_my_harvest_button = InlineKeyboardButton("My Harvest Festival 🌽", callback_data="My Harvest Festival Menu")
-__main_paynow_button = InlineKeyboardButton("💵 PayNow", callback_data="PayNow Menu")
+__BACK_TO_MAIN_BUTTON = InlineKeyboardButton("🔙 Return to Main menu", callback_data="Main Menu")
+__MAIN_SERVICES_BUTTON = InlineKeyboardButton("✝ Services", callback_data="Services Menu")
+__MAIN_MEMBERS_BUTTON = InlineKeyboardButton("👨‍👩‍👦 Members", callback_data="Members Menu")
+__MAIN_PRAYER_GROUPS_BUTTON = InlineKeyboardButton("🤲🏻 Prayer Groups", callback_data="Prayer Groups Menu")
+__MAIN_FINANCE_BUTTON = InlineKeyboardButton("💲 Finance", callback_data="Finance Menu")
+__MAIN_MY_DETAILS_BUTTON = InlineKeyboardButton("👨🏻 My Details 👩🏻", callback_data="My Details Menu")
+__MAIN_MY_HARVEST_BUTTON = InlineKeyboardButton("My Harvest Festival 🌽", callback_data="My Harvest Festival Menu")
+__MAIN_PAYNOW_BUTTON = InlineKeyboardButton("💵 PayNow", callback_data="PayNow Menu")
 
-__members_details_button = InlineKeyboardButton("Member Details", callback_data="Member Details Button")
-__members_bday_today_button = InlineKeyboardButton("🎂 Birthdays today", callback_data="Member Birthday Today Button")
-__members_bday_week_button = InlineKeyboardButton("🎂 Birthdays this week", callback_data="Member Birthday Week Button")
-__members_anniversary_today_button = InlineKeyboardButton("💍 Anniversaries today", callback_data="Member Anniversary Today Button")
-__members_anniversary_week_button = InlineKeyboardButton("💍 Anniversaries this week", callback_data="Member Anniversary Week Button")
+__MEMBERS_DETAILS_BUTTON = InlineKeyboardButton("Member Details", callback_data="Member Details Button")
+__MEMBERS_BDAY_TODAY_BUTTON = InlineKeyboardButton("🎂 Birthdays today", callback_data="Member Birthday Today Button")
+__MEMBERS_BDAY_WEEK_BUTTON = InlineKeyboardButton("🎂 Birthdays this week", callback_data="Member Birthday Week Button")
+__MEMBERS_ANNIVERSARY_TODAY_BUTTON = InlineKeyboardButton("💍 Anniversaries today", callback_data="Member Anniversary Today Button")
+__MEMBERS_ANNIVERSARY_WEEK_BUTTON = InlineKeyboardButton("💍 Anniversaries this week", callback_data="Member Anniversary Week Button")
 
-__finance_exec_summary_button = InlineKeyboardButton("Executive Summary", callback_data="Finance Executive Summary Button")
-__finance_bank_summary_button = InlineKeyboardButton("Bank Summary", callback_data="Finance Bank Summary Button")
-__finance_trial_bal_button = InlineKeyboardButton("Trial Balance", callback_data="Finance Trial Balance Button")
-__finance_payments_wtd_button = InlineKeyboardButton("Payments WTD", callback_data="Finance Payments WTD Button")
-__finance_latest_tx_button = InlineKeyboardButton("Latest Transactions", callback_data="Finance Latest Transactions Button")
-__finance_member_bal_button = InlineKeyboardButton("ℹ Help", callback_data="Finance Help Button")
+__FINANCE_EXEC_SUMMARY_BUTTON = InlineKeyboardButton("Executive Summary", callback_data="Finance Executive Summary Button")
+__FINANCE_BANK_SUMMARY_BUTTON = InlineKeyboardButton("Bank Summary", callback_data="Finance Bank Summary Button")
+__FINANCE_TRIAL_BAL_BUTTON = InlineKeyboardButton("Trial Balance", callback_data="Finance Trial Balance Button")
+__FINANCE_PAYMENTS_WTD_BUTTON = InlineKeyboardButton("Payments WTD", callback_data="Finance Payments WTD Button")
+__FINANCE_LATEST_TX_BUTTON = InlineKeyboardButton("Latest Transactions", callback_data="Finance Latest Transactions Button")
+__FINANCE_MEMBER_BAL_BUTTON = InlineKeyboardButton("ℹ Help", callback_data="Finance Help Button")
 
-__mydetails_my_profile_button = InlineKeyboardButton("🧾 My Profile", callback_data="My Profile")
-__mydetails_my_contributions_button = InlineKeyboardButton("💳 My Contributions", callback_data="My Contributions")
-__mydetails_my_subscriptions_button = InlineKeyboardButton("📜 My Subscriptions", callback_data="My Subscriptions")
-__mydetails_help_button = InlineKeyboardButton("ℹ Help", callback_data="Help")
-__mydetails_list_of_accounts_button = InlineKeyboardButton("ℹ List of Accounts", callback_data="List of Accounts")
+__MYDETAILS_MY_PROFILE_BUTTON = InlineKeyboardButton("🧾 My Profile", callback_data="My Profile")
+__MYDETAILS_MY_CONTRIBUTIONS_BUTTON = InlineKeyboardButton("💳 My Contributions", callback_data="My Contributions")
+__MYDETAILS_MY_SUBSCRIPTIONS_BUTTON = InlineKeyboardButton("📜 My Subscriptions", callback_data="My Subscriptions")
+__MYDETAILS_HELP_BUTTON = InlineKeyboardButton("ℹ Help", callback_data="Help")
+__MYDETAILS_LIST_OF_ACCOUNTS_BUTTON = InlineKeyboardButton("ℹ List of Accounts", callback_data="List of Accounts")
 
 # ---------------------------------------------------------------------------------------------------
 '''
 Assemble the Buttons above to create Keyboards
 '''
 back_to_main_keyboard = InlineKeyboardMarkup([
-    [__back_to_main_button]
+    [__BACK_TO_MAIN_BUTTON]
 ])
 
 members_menu_keyboard = InlineKeyboardMarkup([
-    [__members_bday_today_button, __members_anniversary_today_button],
-    [__members_bday_week_button, __members_anniversary_week_button],
-    [__back_to_main_button]
+    [__MEMBERS_BDAY_TODAY_BUTTON, __MEMBERS_ANNIVERSARY_TODAY_BUTTON],
+    [__MEMBERS_BDAY_WEEK_BUTTON, __MEMBERS_ANNIVERSARY_WEEK_BUTTON],
+    [__BACK_TO_MAIN_BUTTON]
 ])
 
 finance_menu_keyboard = InlineKeyboardMarkup([
-    [__finance_exec_summary_button, __finance_bank_summary_button],
-    [__finance_trial_bal_button, __finance_payments_wtd_button],
-    [__finance_latest_tx_button, __finance_member_bal_button],
-    [__back_to_main_button]
+    [__FINANCE_EXEC_SUMMARY_BUTTON, __FINANCE_BANK_SUMMARY_BUTTON],
+    [__FINANCE_TRIAL_BAL_BUTTON, __FINANCE_PAYMENTS_WTD_BUTTON],
+    [__FINANCE_LATEST_TX_BUTTON, __FINANCE_MEMBER_BAL_BUTTON],
+    [__BACK_TO_MAIN_BUTTON]
 ])
 
 area_prayer_groups_keyboard=InlineKeyboardMarkup([
@@ -69,15 +69,15 @@ area_prayer_groups_keyboard=InlineKeyboardMarkup([
         ],
         [
             InlineKeyboardButton("Church Area", callback_data="Area Prayer Group 7"),
-            __back_to_main_button
+            __BACK_TO_MAIN_BUTTON
         ]
     ])
 
 my_details_menu_keyboard = InlineKeyboardMarkup([
-    [__mydetails_my_profile_button],
-    [__mydetails_my_contributions_button, __mydetails_my_subscriptions_button],
-    [__mydetails_help_button, __mydetails_list_of_accounts_button],
-    [__back_to_main_button]
+    [__MYDETAILS_MY_PROFILE_BUTTON],
+    [__MYDETAILS_MY_CONTRIBUTIONS_BUTTON, __MYDETAILS_MY_SUBSCRIPTIONS_BUTTON],
+    [__MYDETAILS_HELP_BUTTON, __MYDETAILS_LIST_OF_ACCOUNTS_BUTTON],
+    [__BACK_TO_MAIN_BUTTON]
 ])
 # ---------------------------------------------------------------------------------------------------
 """
@@ -87,18 +87,18 @@ Dynamic keyboards that have to be created at runtime:
 def get_main_keyboard(telegram_id):
     if bot_auth.is_mgmt_member(telegram_id):
         keyboard_main = InlineKeyboardMarkup([
-            [__main_services_button],
-            [__main_members_button,__main_prayer_groups_button],
-            [__main_finance_button],
-            [__main_my_details_button,__main_my_harvest_button],
-            [__main_paynow_button]
+            [__MAIN_SERVICES_BUTTON],
+            [__MAIN_MEMBERS_BUTTON,__MAIN_PRAYER_GROUPS_BUTTON],
+            [__MAIN_FINANCE_BUTTON],
+            [__MAIN_MY_DETAILS_BUTTON,__MAIN_MY_HARVEST_BUTTON],
+            [__MAIN_PAYNOW_BUTTON]
             ])
     else:
         # Normal members
         keyboard_main = InlineKeyboardMarkup([
-            [__main_services_button,__main_prayer_groups_button],
-            [__main_my_details_button,__main_my_harvest_button],
-            [__main_paynow_button]
+            [__MAIN_SERVICES_BUTTON,__MAIN_PRAYER_GROUPS_BUTTON],
+            [__MAIN_MY_DETAILS_BUTTON,__MAIN_MY_HARVEST_BUTTON],
+            [__MAIN_PAYNOW_BUTTON]
             ])
     return keyboard_main
 
@@ -129,9 +129,9 @@ def get_services_keyboard(next_services):
             keyboard.append(_keyboard_rows)
             # Reinitialize the row
             _keyboard_rows=[]
-    _keyboard_rows.append(__main_services_button)
+    _keyboard_rows.append(__MAIN_SERVICES_BUTTON)
     keyboard.append(_keyboard_rows)
-    keyboard.append([__back_to_main_button])    
+    keyboard.append([__BACK_TO_MAIN_BUTTON])    
     return InlineKeyboardMarkup(keyboard)
 
 # Generate a Keyboard of member search results
@@ -185,6 +185,6 @@ def get_member_listing_keyboard(results):
             keyboard.append(_keyboard_rows)
             # Reinitialize the row
             _keyboard_rows=[]
-    _keyboard_rows.append(__back_to_main_button)
+    _keyboard_rows.append(__BACK_TO_MAIN_BUTTON)
     keyboard.append(_keyboard_rows)
     return InlineKeyboardMarkup(keyboard)
