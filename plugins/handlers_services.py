@@ -34,6 +34,6 @@ def get_service_registrations(client, query):
     msg += f"\n Attendees: **{total}**"
     # Show this keyboard only to SMO
     if bot_auth.is_smo_member(query.from_user.id):
-        utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard(db.getNextServices()))
+        utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard(db.get_next_services()))
     else:
         utils.edit_and_send_msg(query, msg)

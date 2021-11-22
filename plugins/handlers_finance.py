@@ -23,7 +23,7 @@ def finance_search_member_payments(client, message):
     # Match member codes such as V019. One char followed by 2 or 3 digits
     if (re.match('[A-Za-z]\d{2,3}', member_code) is not None):
         #A member code has been sent
-        result=db.get_member_details(member_code,'code')
+        result=db.get_member_details(member_code, 'code')
         if len(result) == 0:
             message.reply("No such Member")
             return  
@@ -155,10 +155,7 @@ def get_finance_trial_balance(client, query):
                 debit_ytd_value=_section['Cells'][3]['Value'] if _section['Cells'][3]['Value'] != '' else 0
                 credit_ytd_value=_section['Cells'][4]['Value'] if _section['Cells'][4]['Value'] != '' else 0
 
-                if section.startswith('DBS FD'):
-                    # Don't display DBS Fixed Deposit
-                    continue
-                else:
+                if not section.startswith('DBS FD'):
                     msg += "〰〰〰〰〰\n"
                     msg += f"**{section}**\n"
                     if float(debit_ytd_value) != 0.0:
@@ -175,7 +172,7 @@ def get_finance_trial_balance(client, query):
 @loggers.log_access
 def get_finance_payments_wtd_balance(client, query):
     query.answer()
-    payments=xero_utils.xero_get_Payments()
+    payments=xero_utils.xero_get_payments()
     msg="➖**INVOICE/BILL PAYMENTS**➖\n\n"
     
     for payment in payments['Payments']:

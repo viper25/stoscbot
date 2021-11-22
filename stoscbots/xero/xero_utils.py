@@ -1,7 +1,7 @@
+import os
 import requests
 import boto3
 from boto3.dynamodb.conditions import Key
-import os
 from datetime import datetime
 from stoscbots.util import utils
 
@@ -9,7 +9,12 @@ XERO_TENANT_ID=os.environ.get('STOSC_XERO_STOSC_TENANT_ID')
 XERO_CLIENT_ID=os.environ.get('STOSC_XERO_CLIENT_ID')
 REFRESH_TOKEN_KEY="stosc-bot"
 
-resource=boto3.resource('dynamodb', aws_access_key_id=os.environ.get('STOSC_DDB_ACCESS_KEY_ID'), aws_secret_access_key=os.environ.get('STOSC_DDB_SECRET_ACCESS_KEY'), region_name='ap-southeast-1')
+resource = boto3.resource(
+    "dynamodb",
+    aws_access_key_id=os.environ.get("STOSC_DDB_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
+    region_name="ap-southeast-1",
+)
 table=resource.Table('stosc_xero_tokens')
 
 # Refresh access_token. Use the refresh_token to keep the access_token "fresh" every 30 mins. 
@@ -83,7 +88,7 @@ def xero_get_trial_balance():
     url=f'https://api.xero.com/api.xro/2.0/Reports/TrialBalance?date={utils.todays_date()}'
     return __xero_get(url)
 # ----------------------------------------------------------------------------------------------------------------------
-def xero_get_Payments():
+def xero_get_payments():
     _week_ago=utils.a_week_ago()
     url=f"https://api.xero.com/api.xro/2.0/Payments?where=Date>DateTime({_week_ago.year}, {_week_ago.month}, {_week_ago.day})&order=Date"
     return __xero_get(url)

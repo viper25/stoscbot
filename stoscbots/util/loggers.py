@@ -1,8 +1,8 @@
+import os
 from functools import wraps
 import logging
 import boto3
 import datetime
-import os
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger=logging.getLogger(__name__)
@@ -51,7 +51,7 @@ def error(e):
     logger.error(e)
 
 def warn(e):
-    logger.warn(e)
+    logger.warning(e)
 
 def debug(e):
     logger.debug(e)

@@ -1,16 +1,20 @@
+import os
 import boto3
 from boto3.dynamodb.conditions import Key
-from pyrogram.filters import caption_filter
 from stoscbots.db import db
 from stoscbots.xero import xero_utils
 from stoscbots.util import loggers
-import os
 from datetime import date
 import datetime
 from datetime import timedelta
 import requests
 
-resource=boto3.resource('dynamodb', aws_access_key_id=os.environ.get('STOSC_DDB_ACCESS_KEY_ID'), aws_secret_access_key=os.environ.get('STOSC_DDB_SECRET_ACCESS_KEY'), region_name='ap-southeast-1')
+resource = boto3.resource(
+    "dynamodb",
+    aws_access_key_id=os.environ.get("STOSC_DDB_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
+    region_name="ap-southeast-1",
+)
 table_stosc_bot_member_telegram=resource.Table('stosc_bot_member_telegram')
 table_member_payments=resource.Table('member_payments')
 table_members=resource.Table('member_payments')
@@ -27,9 +31,9 @@ def getMemberCode_from_TelegramID(telegram_id):
     else:
         return None
 # ----------------------------------------------------------------------------------------------------------------------
-def get_address_details(zip):
+def get_address_details(_zip):
     try:
-        result=requests.get(f'https://developers.onemap.sg//commonapi/search?searchVal={zip}&returnGeom=Y&getAddrDetails=Y').json()
+        result=requests.get(f'https://developers.onemap.sg//commonapi/search?searchVal={_zip}&returnGeom=Y&getAddrDetails=Y').json()
         if len(result['results'])>0:
             return result['results'][0]['LATITUDE'], result['results'][0]['LONGITUDE']
         else:
@@ -97,11 +101,10 @@ def generate_msg_xero_member_invoices(_member_code, _year):
                 icon='🟠'
             elif invoice['Status'] == 'VOIDED':
                 icon='🔴'
-                # Don't show VOIDED invoicescontinue
             elif invoice['Status'] == 'DRAFT':
                 icon='🟠'
             elif invoice['Status'] == 'DELETED':
-                            # Don't show DELETED invoices
+                # Don't show DELETED invoices
                 continue
             msg += f"**{invoice['InvoiceNumber']} - **" if (invoice['InvoiceNumber'] != '' and invoice['InvoiceNumber'] is not None) else ''
             msg += f"{invoice['Status']} {icon}\n"
@@ -121,10 +124,8 @@ def edit_and_send_msg(query, msg, keyboard=None):
     except Exception as e:
         if e.ID == 'MESSAGE_NOT_MODIFIED':  
             loggers.warn(e.MESSAGE)
-            pass
         else:
             loggers.error(e.MESSAGE)
-            pass
 # ----------------------------------------------------------------------------------------------------------------------
 # Return Jan 1 of current year. For Xero accounting methods
 def year_start():

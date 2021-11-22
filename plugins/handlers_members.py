@@ -18,7 +18,7 @@ def dynamic_data_filter(data):
 @loggers.log_access
 def get_today_bdays(client, query):
     query.answer()
-    start, end, result=db.getBday('d')
+    start, end, result=db.get_bday('d')
     if len(result) ==0:
         msg="No Birthdays today"
     elif len(result) > 0:
@@ -31,7 +31,7 @@ def get_today_bdays(client, query):
 @loggers.log_access
 def get_today_anniversaries(client, query):
     query.answer()
-    start, end, result=db.getAnniversaries('d')
+    start, end, result=db.get_anniversaries('d')
     if len(result) ==0:
         msg="No Wedding Anniversary today"
     else:
@@ -44,7 +44,7 @@ def get_today_anniversaries(client, query):
 @loggers.log_access
 def get_weeks_bdays(client, query):
     query.answer()
-    start, end, result=db.getBday('w')
+    start, end, result=db.get_bday('w')
     if len(result) ==0:
         msg=" No Birthdays this week"
     else:
@@ -58,7 +58,7 @@ def get_weeks_bdays(client, query):
 @loggers.log_access
 def get_weeks_anniversaries(client, query):
     query.answer()
-    start, end, result=db.getAnniversaries('w')
+    start, end, result=db.get_anniversaries('w')
     if len(result) ==0:
         msg=" No Wedding Anniversaries this week"
     else:

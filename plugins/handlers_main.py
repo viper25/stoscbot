@@ -65,15 +65,15 @@ def dynamic_data_filter2(data):
 def show_main_menu(client, query):
     query.answer()
     msg = "➖➖**Main Menu**➖➖"
-    query.message.reply(msg,reply_markup=keyboards.get_main_keyboard(query.from_user.id))
+    query.message.reply(msg, reply_markup=keyboards.get_main_keyboard(query.from_user.id))
 # -------------------------------------------------
 # Callback Handlers (for Buttons)
 @Client.on_callback_query(dynamic_data_filter1("Services Menu"))
 @loggers.log_access
 def show_services_menu(client, query):
     query.answer()
-    result=db.getNextServices()
-    if len(result) ==0:
+    result=db.get_next_services()
+    if len(result) == 0:
         msg="No Services"
     else:
         msg="**Upcoming Services**\n➖➖➖➖➖➖➖\n\n"
@@ -103,7 +103,7 @@ def show_services_menu(client, query):
                     msg += f'{_counter}. {_item[1]} on {_item[2].strftime("%b %d %I:%M %p")} `({_item[4]}/{_item[3]})`\n'
     # Show this keyboard only to SMO
     if bot_auth.is_smo_member(query.from_user.id):
-        utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard(db.getNextServices()))
+        utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard(db.get_next_services()))
     else:
         utils.edit_and_send_msg(query, msg)
 # --------------------------------------------------

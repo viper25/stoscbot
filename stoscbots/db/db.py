@@ -1,34 +1,34 @@
+import os
 import mysql.connector
 import pendulum
 import enum
 import logging
 from dotenv import load_dotenv
-import os
 
 
 load_dotenv()
 
-_user="stosc_ro"
-_password=os.environ.get('STOSC_DB_PWD')
-_host=os.environ.get('STOSC_DB_HOST')
-_port=3306
+USER="stosc_ro"
+PASSWORD=os.environ.get('STOSC_DB_PWD')
+HOST=os.environ.get('STOSC_DB_HOST')
+PORT=3306
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger=logging.getLogger(__name__)
 
 class Databases(enum.Enum):
-   CRM='stosc_churchcrm'
-   FORMS='forms_db'
+    CRM='stosc_churchcrm'
+    FORMS='forms_db'
 
 # Execute Query and return data
 def __db_executeQuery(sql, db, prepared=False, *args):
     # Connect to MariaDB Platform
     try:
         conn=mysql.connector.connect( 
-            user=_user, 
-            password=_password, 
-            host=_host, 
-            port=_port, 
+            user=USER, 
+            password=PASSWORD, 
+            host=HOST, 
+            port=PORT, 
             database=db.value
         )
     except Exception as e:
@@ -39,7 +39,7 @@ def __db_executeQuery(sql, db, prepared=False, *args):
             # Get Cursor 
             with conn.cursor(prepared=True) as cursor:
                 cursor.execute(sql, args)
-                _result=cursor.fetchall()            
+                _result=cursor.fetchall()
         else:
             # Get Cursor 
             with conn.cursor() as cursor:
@@ -53,13 +53,13 @@ def __db_executeQuery(sql, db, prepared=False, *args):
         conn.close()   
 
 # ----------------------------------------------------------------------------------------------------------------------
-def getNextServices():
+def get_next_services():
     sql="select s.service_ID, s.service_Name, s.service_Date, s.attendees_Limit, sum(r.people_Count) as registered, s.group_ID from services s, registrations r where s.service_ID=r.service_ID and r.cancelled is null and s.service_Date > DATE_ADD(now(), INTERVAL -7 DAY) group by 1,2,3,4 order by s.service_Date, s.group_ID asc limit 8;"
 
     _result=__db_executeQuery(sql, Databases.FORMS)
     return _result
 # ----------------------------------------------------------------------------------------------------------------------
-def getBday(duration='w'):
+def get_bday(duration='w'):
     today=pendulum.now()
     if (duration.lower()) == "d":
         start=today.strftime("%Y%m%d")
@@ -73,7 +73,7 @@ def getBday(duration='w'):
     _result=__db_executeQuery(sql, Databases.CRM)
     return today.start_of('week').strftime("%b %d"), today.end_of('week').strftime("%b %d"), _result
 # ----------------------------------------------------------------------------------------------------------------------
-def getAnniversaries(duration='w'):
+def get_anniversaries(duration='w'):
     today=pendulum.now()
     if (duration.lower()) == "d":
         start=today.strftime("%Y%m%d")
@@ -87,7 +87,7 @@ def getAnniversaries(duration='w'):
     _result=__db_executeQuery(sql, Databases.CRM)
     return today.start_of('week').strftime("%b %d"), today.end_of('week').strftime("%b %d"),_result
 # ----------------------------------------------------------------------------------------------------------------------
-def getMembersForArea(area_code):
+def get_members_for_area(area_code):
     sql="select f.fam_Name from family_fam f, family_custom fc where f.fam_ID=fc.fam_ID and fc.c8=%s order by fam_Name"
     _result_members=__db_executeQuery(sql, Databases.CRM, True, area_code)
 
@@ -112,10 +112,10 @@ def get_booking_GUID(memberCode):
     return _result
 # ----------------------------------------------------------------------------------------------------------------------
 def get_members_for_serviceID(service_ID):
-    sql_next_service=f"select service_Name ,service_Date from services where service_ID =%s"
+    sql_next_service="select service_Name ,service_Date from services where service_ID =%s"
     _result1=__db_executeQuery(sql_next_service, Databases.FORMS,True,service_ID)
 
-    sql=f"SELECT r.fam_code, f.fam_name, r .people_count, r.modified registered from registrations r inner JOIN services s on s.service_id=r.service_id inner JOIN family_fam f on f.fam_code=r.fam_code where r.cancelled IS null and r.service_id=%s ORDER BY r.modified ASC;"
+    sql="SELECT r.fam_code, f.fam_name, r .people_count, r.modified registered from registrations r inner JOIN services s on s.service_id=r.service_id inner JOIN family_fam f on f.fam_code=r.fam_code where r.cancelled IS null and r.service_id=%s ORDER BY r.modified ASC;"
     _result2=__db_executeQuery(sql, Databases.FORMS,True,service_ID)
 
     sql_count_of_kids = "SELECT count(1) from forms_db.registrations r inner JOIN forms_db.services s on s.service_id=r.service_id inner JOIN forms_db.family_fam f on f.fam_code=r.fam_code left OUTER join stosc_churchcrm.family_custom crm_family_custom on crm_family_custom.c7 = r.fam_code left OUTER JOIN stosc_churchcrm.family_fam crm_family_fam on crm_family_fam.fam_ID = crm_family_custom.fam_ID left outer JOIN stosc_churchcrm.person_per crm_person_per ON crm_person_per.per_fam_ID = crm_family_fam.fam_ID where r.cancelled IS null and r.service_id=%s AND DATE_ADD(CONCAT(crm_person_per.per_BirthYear,'-',crm_person_per.per_BirthMonth,'-',crm_person_per.per_BirthDay),INTERVAL(12) YEAR) > CURDATE() and crm_family_fam.fam_DateDeactivated is null"

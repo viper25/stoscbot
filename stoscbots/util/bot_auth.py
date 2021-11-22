@@ -1,6 +1,6 @@
+import os
 from functools import wraps
 from stoscbots.util import loggers
-import os
 import boto3
 from boto3.dynamodb.conditions import Key
 
@@ -25,7 +25,7 @@ def send_access_denied_msg(client, msg_or_query):
         #Button callback
         msg_or_query.answer()
         client.send_sticker(chat_id=msg_or_query.from_user.id, sticker='CAACAgIAAxkBAAIFJV-X6UKaAAEDx4Nqup6acSBW6DlThgACoAMAAvoLtgj5yjtMiAXK4hsE')
-        client.send_message(chat_id=msg_or_query.from_user.id, text=ACCESS_DENIED_MEMBERS_TEXT,disable_web_page_preview=True)
+        client.send_message(chat_id=msg_or_query.from_user.id, text=ACCESS_DENIED_MEMBERS_TEXT, disable_web_page_preview=True)
         # The Callback text for the Button
         arg_msg=f"'{msg_or_query.data}'"
         loggers.warn(f"Unauthorized Access by [{msg_or_query.from_user.id}:{msg_or_query.from_user.username}:{msg_or_query.from_user.first_name}]. Button clicked: {arg_msg}")
@@ -66,6 +66,8 @@ def is_mgmt_member(telegram_id):
     if len(response['Items']) == 1:
         if 'auth' in response['Items'][0] and 'mc' in response['Items'][0]['auth']:
             return True
+        else:
+            return False
     else:
         return False 
 # --------------------------------------------------
@@ -74,6 +76,8 @@ def is_smo_member(telegram_id):
     if len(response['Items']) == 1:
         if 'auth' in response['Items'][0] and ('smo' in response['Items'][0]['auth'] or 'mc' in response['Items'][0]['auth']):
             return True
+        else:
+            return False
     else:
         return False 
 # --------------------------------------------------
@@ -82,5 +86,7 @@ def is_area_prayer_coordinator_member(telegram_id):
     if len(response['Items']) == 1:
         if 'auth' in response['Items'][0] and ('apc' in response['Items'][0]['auth'] or 'mc' in response['Items'][0]['auth']):
             return True
+        else:
+            return False
     else:
         return False 
