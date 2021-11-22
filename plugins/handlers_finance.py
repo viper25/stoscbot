@@ -155,10 +155,7 @@ def get_finance_trial_balance(client, query):
                 debit_ytd_value=_section['Cells'][3]['Value'] if _section['Cells'][3]['Value'] != '' else 0
                 credit_ytd_value=_section['Cells'][4]['Value'] if _section['Cells'][4]['Value'] != '' else 0
 
-                if section.startswith('DBS FD'):
-                    # Don't display DBS Fixed Deposit
-                    continue
-                else:
+                if not section.startswith('DBS FD'):
                     msg += "〰〰〰〰〰\n"
                     msg += f"**{section}**\n"
                     if float(debit_ytd_value) != 0.0:
