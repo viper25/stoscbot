@@ -124,10 +124,8 @@ def edit_and_send_msg(query, msg, keyboard=None):
     except Exception as e:
         if e.ID == 'MESSAGE_NOT_MODIFIED':  
             loggers.warn(e.MESSAGE)
-            pass
         else:
             loggers.error(e.MESSAGE)
-            pass
 # ----------------------------------------------------------------------------------------------------------------------
 # Return Jan 1 of current year. For Xero accounting methods
 def year_start():
