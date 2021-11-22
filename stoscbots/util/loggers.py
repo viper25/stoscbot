@@ -51,7 +51,7 @@ def error(e):
     logger.error(e)
 
 def warn(e):
-    logger.warn(e)
+    logger.warning(e)
 
 def debug(e):
     logger.debug(e)
