@@ -10,7 +10,12 @@ import datetime
 from datetime import timedelta
 import requests
 
-resource=boto3.resource('dynamodb', aws_access_key_id=os.environ.get('STOSC_DDB_ACCESS_KEY_ID'), aws_secret_access_key=os.environ.get('STOSC_DDB_SECRET_ACCESS_KEY'), region_name='ap-southeast-1')
+resource = boto3.resource(
+    "dynamodb",
+    aws_access_key_id=os.environ.get("STOSC_DDB_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
+    region_name="ap-southeast-1",
+)
 table_stosc_bot_member_telegram=resource.Table('stosc_bot_member_telegram')
 table_member_payments=resource.Table('member_payments')
 table_members=resource.Table('member_payments')
