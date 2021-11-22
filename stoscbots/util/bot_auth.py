@@ -66,6 +66,8 @@ def is_mgmt_member(telegram_id):
     if len(response['Items']) == 1:
         if 'auth' in response['Items'][0] and 'mc' in response['Items'][0]['auth']:
             return True
+        else:
+            return False
     else:
         return False 
 # --------------------------------------------------
@@ -74,6 +76,8 @@ def is_smo_member(telegram_id):
     if len(response['Items']) == 1:
         if 'auth' in response['Items'][0] and ('smo' in response['Items'][0]['auth'] or 'mc' in response['Items'][0]['auth']):
             return True
+        else:
+            return False
     else:
         return False 
 # --------------------------------------------------
