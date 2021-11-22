@@ -1,6 +1,5 @@
 import boto3
 from boto3.dynamodb.conditions import Key
-from pyrogram.filters import caption_filter
 from stoscbots.db import db
 from stoscbots.xero import xero_utils
 from stoscbots.util import loggers
@@ -32,9 +31,9 @@ def getMemberCode_from_TelegramID(telegram_id):
     else:
         return None
 # ----------------------------------------------------------------------------------------------------------------------
-def get_address_details(zip):
+def get_address_details(_zip):
     try:
-        result=requests.get(f'https://developers.onemap.sg//commonapi/search?searchVal={zip}&returnGeom=Y&getAddrDetails=Y').json()
+        result=requests.get(f'https://developers.onemap.sg//commonapi/search?searchVal={_zip}&returnGeom=Y&getAddrDetails=Y').json()
         if len(result['results'])>0:
             return result['results'][0]['LATITUDE'], result['results'][0]['LONGITUDE']
         else:
