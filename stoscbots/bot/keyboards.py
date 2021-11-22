@@ -56,19 +56,19 @@ finance_menu_keyboard = InlineKeyboardMarkup([
 
 area_prayer_groups_keyboard=InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("East Coast", callback_data=f"Area Prayer Group 1"),
-            InlineKeyboardButton("Houg|Seng|Pung", callback_data=f"Area Prayer Group 2")
+            InlineKeyboardButton("East Coast", callback_data="Area Prayer Group 1"),
+            InlineKeyboardButton("Houg|Seng|Pung", callback_data="Area Prayer Group 2")
         ],
         [
-            InlineKeyboardButton("Choa Chu Kang", callback_data=f"Area Prayer Group 3"),
-            InlineKeyboardButton("Jurong", callback_data=f"Area Prayer Group 4")
+            InlineKeyboardButton("Choa Chu Kang", callback_data="Area Prayer Group 3"),
+            InlineKeyboardButton("Jurong", callback_data="Area Prayer Group 4")
         ],
         [
-            InlineKeyboardButton("Woodlands", callback_data=f"Area Prayer Group 5"),
-            InlineKeyboardButton("Central", callback_data=f"Area Prayer Group 6")
+            InlineKeyboardButton("Woodlands", callback_data="Area Prayer Group 5"),
+            InlineKeyboardButton("Central", callback_data="Area Prayer Group 6")
         ],
         [
-            InlineKeyboardButton("Church Area", callback_data=f"Area Prayer Group 7"),
+            InlineKeyboardButton("Church Area", callback_data="Area Prayer Group 7"),
             __back_to_main_button
         ]
     ])
