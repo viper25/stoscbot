@@ -8,10 +8,10 @@ import os
 
 load_dotenv()
 
-_user="stosc_ro"
-_password=os.environ.get('STOSC_DB_PWD')
-_host=os.environ.get('STOSC_DB_HOST')
-_port=3306
+USER="stosc_ro"
+PASSWORD=os.environ.get('STOSC_DB_PWD')
+HOST=os.environ.get('STOSC_DB_HOST')
+PORT=3306
 
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger=logging.getLogger(__name__)
@@ -25,10 +25,10 @@ def __db_executeQuery(sql, db, prepared=False, *args):
     # Connect to MariaDB Platform
     try:
         conn=mysql.connector.connect( 
-            user=_user, 
-            password=_password, 
-            host=_host, 
-            port=_port, 
+            user=USER, 
+            password=PASSWORD, 
+            host=HOST, 
+            port=PORT, 
             database=db.value
         )
     except Exception as e:
