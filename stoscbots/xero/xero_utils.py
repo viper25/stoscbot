@@ -9,7 +9,12 @@ XERO_TENANT_ID=os.environ.get('STOSC_XERO_STOSC_TENANT_ID')
 XERO_CLIENT_ID=os.environ.get('STOSC_XERO_CLIENT_ID')
 REFRESH_TOKEN_KEY="stosc-bot"
 
-resource=boto3.resource('dynamodb', aws_access_key_id=os.environ.get('STOSC_DDB_ACCESS_KEY_ID'), aws_secret_access_key=os.environ.get('STOSC_DDB_SECRET_ACCESS_KEY'), region_name='ap-southeast-1')
+resource = boto3.resource(
+    "dynamodb",
+    aws_access_key_id=os.environ.get("STOSC_DDB_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
+    region_name="ap-southeast-1",
+)
 table=resource.Table('stosc_xero_tokens')
 
 # Refresh access_token. Use the refresh_token to keep the access_token "fresh" every 30 mins. 
