@@ -1,7 +1,7 @@
+import os
 import requests
 import boto3
 from boto3.dynamodb.conditions import Key
-import os
 from datetime import datetime
 from stoscbots.util import utils
 

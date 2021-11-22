@@ -1,9 +1,9 @@
+import os
 import mysql.connector
 import pendulum
 import enum
 import logging
 from dotenv import load_dotenv
-import os
 
 
 load_dotenv()
