@@ -42,15 +42,15 @@ back_to_main_keyboard = InlineKeyboardMarkup([
 ])
 
 members_menu_keyboard = InlineKeyboardMarkup([
-    [__members_bday_today_button,__members_anniversary_today_button],
-    [__members_bday_week_button,__members_anniversary_week_button],
+    [__members_bday_today_button, __members_anniversary_today_button],
+    [__members_bday_week_button, __members_anniversary_week_button],
     [__back_to_main_button]
 ])
 
 finance_menu_keyboard = InlineKeyboardMarkup([
-    [__finance_exec_summary_button,__finance_bank_summary_button],
-    [__finance_trial_bal_button,__finance_payments_wtd_button],
-    [__finance_latest_tx_button,__finance_member_bal_button],
+    [__finance_exec_summary_button, __finance_bank_summary_button],
+    [__finance_trial_bal_button, __finance_payments_wtd_button],
+    [__finance_latest_tx_button, __finance_member_bal_button],
     [__back_to_main_button]
 ])
 
@@ -75,8 +75,8 @@ area_prayer_groups_keyboard=InlineKeyboardMarkup([
 
 my_details_menu_keyboard = InlineKeyboardMarkup([
     [__mydetails_my_profile_button],
-    [__mydetails_my_contributions_button,__mydetails_my_subscriptions_button],
-    [__mydetails_help_button,__mydetails_list_of_accounts_button],
+    [__mydetails_my_contributions_button, __mydetails_my_subscriptions_button],
+    [__mydetails_help_button, __mydetails_list_of_accounts_button],
     [__back_to_main_button]
 ])
 # ---------------------------------------------------------------------------------------------------

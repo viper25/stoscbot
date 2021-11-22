@@ -23,7 +23,7 @@ def finance_search_member_payments(client, message):
     # Match member codes such as V019. One char followed by 2 or 3 digits
     if (re.match('[A-Za-z]\d{2,3}', member_code) is not None):
         #A member code has been sent
-        result=db.get_member_details(member_code,'code')
+        result=db.get_member_details(member_code, 'code')
         if len(result) == 0:
             message.reply("No such Member")
             return  

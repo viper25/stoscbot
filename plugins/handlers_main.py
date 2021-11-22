@@ -65,7 +65,7 @@ def dynamic_data_filter2(data):
 def show_main_menu(client, query):
     query.answer()
     msg = "➖➖**Main Menu**➖➖"
-    query.message.reply(msg,reply_markup=keyboards.get_main_keyboard(query.from_user.id))
+    query.message.reply(msg, reply_markup=keyboards.get_main_keyboard(query.from_user.id))
 # -------------------------------------------------
 # Callback Handlers (for Buttons)
 @Client.on_callback_query(dynamic_data_filter1("Services Menu"))
@@ -73,7 +73,7 @@ def show_main_menu(client, query):
 def show_services_menu(client, query):
     query.answer()
     result=db.get_next_services()
-    if len(result) ==0:
+    if len(result) == 0:
         msg="No Services"
     else:
         msg="**Upcoming Services**\n➖➖➖➖➖➖➖\n\n"
