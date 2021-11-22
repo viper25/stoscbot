@@ -112,7 +112,7 @@ def get_booking_GUID(memberCode):
     return _result
 # ----------------------------------------------------------------------------------------------------------------------
 def get_members_for_serviceID(service_ID):
-    sql_next_service=f"select service_Name ,service_Date from services where service_ID =%s"
+    sql_next_service="select service_Name ,service_Date from services where service_ID =%s"
     _result1=__db_executeQuery(sql_next_service, Databases.FORMS,True,service_ID)
 
     sql=f"SELECT r.fam_code, f.fam_name, r .people_count, r.modified registered from registrations r inner JOIN services s on s.service_id=r.service_id inner JOIN family_fam f on f.fam_code=r.fam_code where r.cancelled IS null and r.service_id=%s ORDER BY r.modified ASC;"
