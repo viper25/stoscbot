@@ -88,7 +88,7 @@ def xero_get_trial_balance():
     url=f'https://api.xero.com/api.xro/2.0/Reports/TrialBalance?date={utils.todays_date()}'
     return __xero_get(url)
 # ----------------------------------------------------------------------------------------------------------------------
-def xero_get_Payments():
+def xero_get_payments():
     _week_ago=utils.a_week_ago()
     url=f"https://api.xero.com/api.xro/2.0/Payments?where=Date>DateTime({_week_ago.year}, {_week_ago.month}, {_week_ago.day})&order=Date"
     return __xero_get(url)
