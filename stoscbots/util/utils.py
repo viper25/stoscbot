@@ -101,11 +101,10 @@ def generate_msg_xero_member_invoices(_member_code, _year):
                 icon='🟠'
             elif invoice['Status'] == 'VOIDED':
                 icon='🔴'
-                # Don't show VOIDED invoicescontinue
             elif invoice['Status'] == 'DRAFT':
                 icon='🟠'
             elif invoice['Status'] == 'DELETED':
-                            # Don't show DELETED invoices
+                # Don't show DELETED invoices
                 continue
             msg += f"**{invoice['InvoiceNumber']} - **" if (invoice['InvoiceNumber'] != '' and invoice['InvoiceNumber'] is not None) else ''
             msg += f"{invoice['Status']} {icon}\n"
