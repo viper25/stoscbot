@@ -172,7 +172,7 @@ def get_finance_trial_balance(client, query):
 @loggers.log_access
 def get_finance_payments_wtd_balance(client, query):
     query.answer()
-    payments=xero_utils.xero_get_Payments()
+    payments=xero_utils.xero_get_payments()
     msg="➖**INVOICE/BILL PAYMENTS**➖\n\n"
     
     for payment in payments['Payments']:

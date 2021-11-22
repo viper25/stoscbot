@@ -19,7 +19,7 @@ def dynamic_data_filter(data):
 def get_area_prayer_group_members(client, query):
     query.answer()
     _area = query.data.split(' ')[3]
-    _memberlist,area_name=db.getMembersForArea(_area)
+    _memberlist,area_name=db.get_members_for_area(_area)
     if len(_memberlist) ==0:
         msg="No members in this area"
     else:

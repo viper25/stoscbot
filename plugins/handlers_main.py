@@ -72,7 +72,7 @@ def show_main_menu(client, query):
 @loggers.log_access
 def show_services_menu(client, query):
     query.answer()
-    result=db.getNextServices()
+    result=db.get_next_services()
     if len(result) ==0:
         msg="No Services"
     else:
@@ -103,7 +103,7 @@ def show_services_menu(client, query):
                     msg += f'{_counter}. {_item[1]} on {_item[2].strftime("%b %d %I:%M %p")} `({_item[4]}/{_item[3]})`\n'
     # Show this keyboard only to SMO
     if bot_auth.is_smo_member(query.from_user.id):
-        utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard(db.getNextServices()))
+        utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard(db.get_next_services()))
     else:
         utils.edit_and_send_msg(query, msg)
 # --------------------------------------------------

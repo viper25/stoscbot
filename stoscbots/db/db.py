@@ -53,13 +53,13 @@ def __db_executeQuery(sql, db, prepared=False, *args):
         conn.close()   
 
 # ----------------------------------------------------------------------------------------------------------------------
-def getNextServices():
+def get_next_services():
     sql="select s.service_ID, s.service_Name, s.service_Date, s.attendees_Limit, sum(r.people_Count) as registered, s.group_ID from services s, registrations r where s.service_ID=r.service_ID and r.cancelled is null and s.service_Date > DATE_ADD(now(), INTERVAL -7 DAY) group by 1,2,3,4 order by s.service_Date, s.group_ID asc limit 8;"
 
     _result=__db_executeQuery(sql, Databases.FORMS)
     return _result
 # ----------------------------------------------------------------------------------------------------------------------
-def getBday(duration='w'):
+def get_bday(duration='w'):
     today=pendulum.now()
     if (duration.lower()) == "d":
         start=today.strftime("%Y%m%d")
@@ -73,7 +73,7 @@ def getBday(duration='w'):
     _result=__db_executeQuery(sql, Databases.CRM)
     return today.start_of('week').strftime("%b %d"), today.end_of('week').strftime("%b %d"), _result
 # ----------------------------------------------------------------------------------------------------------------------
-def getAnniversaries(duration='w'):
+def get_anniversaries(duration='w'):
     today=pendulum.now()
     if (duration.lower()) == "d":
         start=today.strftime("%Y%m%d")
@@ -87,7 +87,7 @@ def getAnniversaries(duration='w'):
     _result=__db_executeQuery(sql, Databases.CRM)
     return today.start_of('week').strftime("%b %d"), today.end_of('week').strftime("%b %d"),_result
 # ----------------------------------------------------------------------------------------------------------------------
-def getMembersForArea(area_code):
+def get_members_for_area(area_code):
     sql="select f.fam_Name from family_fam f, family_custom fc where f.fam_ID=fc.fam_ID and fc.c8=%s order by fam_Name"
     _result_members=__db_executeQuery(sql, Databases.CRM, True, area_code)
 
