@@ -115,7 +115,7 @@ def get_members_for_serviceID(service_ID):
     sql_next_service="select service_Name ,service_Date from services where service_ID =%s"
     _result1=__db_executeQuery(sql_next_service, Databases.FORMS,True,service_ID)
 
-    sql=f"SELECT r.fam_code, f.fam_name, r .people_count, r.modified registered from registrations r inner JOIN services s on s.service_id=r.service_id inner JOIN family_fam f on f.fam_code=r.fam_code where r.cancelled IS null and r.service_id=%s ORDER BY r.modified ASC;"
+    sql="SELECT r.fam_code, f.fam_name, r .people_count, r.modified registered from registrations r inner JOIN services s on s.service_id=r.service_id inner JOIN family_fam f on f.fam_code=r.fam_code where r.cancelled IS null and r.service_id=%s ORDER BY r.modified ASC;"
     _result2=__db_executeQuery(sql, Databases.FORMS,True,service_ID)
 
     sql_count_of_kids = "SELECT count(1) from forms_db.registrations r inner JOIN forms_db.services s on s.service_id=r.service_id inner JOIN forms_db.family_fam f on f.fam_code=r.fam_code left OUTER join stosc_churchcrm.family_custom crm_family_custom on crm_family_custom.c7 = r.fam_code left OUTER JOIN stosc_churchcrm.family_fam crm_family_fam on crm_family_fam.fam_ID = crm_family_custom.fam_ID left outer JOIN stosc_churchcrm.person_per crm_person_per ON crm_person_per.per_fam_ID = crm_family_fam.fam_ID where r.cancelled IS null and r.service_id=%s AND DATE_ADD(CONCAT(crm_person_per.per_BirthYear,'-',crm_person_per.per_BirthMonth,'-',crm_person_per.per_BirthDay),INTERVAL(12) YEAR) > CURDATE() and crm_family_fam.fam_DateDeactivated is null"
