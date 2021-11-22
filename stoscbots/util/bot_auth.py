@@ -82,5 +82,7 @@ def is_area_prayer_coordinator_member(telegram_id):
     if len(response['Items']) == 1:
         if 'auth' in response['Items'][0] and ('apc' in response['Items'][0]['auth'] or 'mc' in response['Items'][0]['auth']):
             return True
+        else:
+            return False
     else:
         return False 
