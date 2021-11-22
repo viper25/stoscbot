@@ -17,8 +17,8 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger=logging.getLogger(__name__)
 
 class Databases(enum.Enum):
-   CRM='stosc_churchcrm'
-   FORMS='forms_db'
+    CRM='stosc_churchcrm'
+    FORMS='forms_db'
 
 # Execute Query and return data
 def __db_executeQuery(sql, db, prepared=False, *args):
