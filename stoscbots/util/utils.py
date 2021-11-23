@@ -28,19 +28,14 @@ def getMemberCode_from_TelegramID(telegram_id):
     response=table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))
     if len(response['Items']) == 1:
         return response['Items'][0]['member_code']
-    else:
-        return None
 # ----------------------------------------------------------------------------------------------------------------------
 def get_address_details(_zip):
     try:
         result=requests.get(f'https://developers.onemap.sg//commonapi/search?searchVal={_zip}&returnGeom=Y&getAddrDetails=Y').json()
         if len(result['results'])>0:
             return result['results'][0]['LATITUDE'], result['results'][0]['LONGITUDE']
-        else:
-            return None, None
     except Exception as e:
         loggers.error(f"Exception in onemap API: {e}")
-        return None, None
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate a Member Profile msg
 def generate_profile_msg(result):
@@ -149,8 +144,6 @@ def __get_winning_bid(_itemCode):
     response = table_harvest_items.query(KeyConditionExpression=Key("itemCode").eq(int(_itemCode)))
     if "winning_bid" in response["Items"][0].keys():
         return response["Items"][0]["winning_bid"]
-    else:
-        return None
 # ----------------------------------------------------------------------------------------------------------------------
 def generate_msg_member_auction_purchases(_member_code):
     response = table_harvest_metrics.query(KeyConditionExpression=Key("pk").eq("user") & Key("sk").begins_with(_member_code))
