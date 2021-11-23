@@ -92,7 +92,7 @@ def generate_msg_xero_member_invoices(_member_code, _year):
         icon='🟠' 
         for invoice in _invoices['Invoices']:
             if invoice['InvoiceNumber'].endswith('-VOID'):
-                            # Skip invoices that were VOIDED manually in FY21. These have a -VOID at the end
+                # Skip invoices that were VOIDED manually in FY21. These have a -VOID at the end
                 continue
             loggers.debug(f"Invoice No: {invoice['InvoiceNumber']} for amount: {invoice['AmountDue']}")
             if invoice['Status'] == 'PAID':
@@ -106,11 +106,11 @@ def generate_msg_xero_member_invoices(_member_code, _year):
             elif invoice['Status'] == 'DELETED':
                 # Don't show DELETED invoices
                 continue
-            msg += f"**{invoice['InvoiceNumber']} - **" if (invoice['InvoiceNumber'] != '' and invoice['InvoiceNumber'] is not None) else ''
+            msg += f"**[{invoice['InvoiceNumber']}] - **" if (invoice['InvoiceNumber'] != '' and invoice['InvoiceNumber'] is not None) else '[`-NA-`] - '
             msg += f"{invoice['Status']} {icon}\n"
             for line in invoice['LineItems']:
                             #msg += "−−−−\n"
-                msg += f"  `{line['Description']} (${line['UnitAmount']:,.2f})`\n"
+                msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
             msg += "––––————————————————\n"
         return msg
     else:
