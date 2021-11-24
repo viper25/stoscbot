@@ -19,6 +19,10 @@ def dynamic_data_filter(data):
 @loggers.log_access
 @bot_auth.management_only
 def finance_search_member_payments(client, message):
+    if len(message.command) != 2:
+        msg="Please enter a Member Code to search"
+        message.reply(msg,quote=True)
+        return
     member_code = message.command[1]
     # Match member codes such as V019. One char followed by 2 or 3 digits
     if (re.match('[A-Za-z]\d{2,3}', member_code) is not None):
@@ -44,6 +48,10 @@ def finance_search_member_payments(client, message):
 @loggers.log_access
 @bot_auth.management_only
 def finance_search_member_sub(client, message):
+    if len(message.command) != 2:
+        msg="Please enter a Member Code to search"
+        message.reply(msg,quote=True)
+        return
     member_code = message.command[1].upper()
     # Match member codes such as V019. One char followed by 2 or 3 digits
     if (re.match('[A-Za-z]\d{2,3}', member_code) is not None):

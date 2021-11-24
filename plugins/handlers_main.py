@@ -32,32 +32,32 @@ def help_handler(client, message):
 @loggers.log_access
 @bot_auth.area_prayer_coordinator_only
 def member_search_cmd_handler(client, message):
-    if len(message.command) == 2:
-        # Match member codes such as V019. One char followed by 2 or 3 digits
-        if (re.match('[A-Za-z]\d{2,3}', message.command[1]) is not None):
-            #A member code has been sent
-            result=db.get_member_details(message.command[1],'code')
-            if len(result) == 0:
-                message.reply("No such Member")
-                return  
-            elif len(result) >= 1:  
-                msg = utils.generate_profile_msg(result)   
-                utils.send_profile_address_and_pic(client, message, msg,result)
-        else:
-            # A search string and not member code
-            result=db.get_member_details(message.command[1],'free_text')
-            if not result or len(result) == 0:
-                message.reply("No such Member")
-            elif len(result) >= 1:
-                msg = f'🔎 Search results for "`{message.command[1]}`"\n--------------------------------------------'
-                msg += '`\n⚡ = Head of Family`'
-                msg += '`\n👦🏻 = Boy   👧🏻 = Girl`'
-                msg += '`\n🧔🏻 = Man   👩🏻 = Woman`'
-                message.reply(msg,reply_markup=keyboards.get_member_listing_keyboard(result))
-    else:
+    if len(message.command) != 2:
         msg="Please enter a Member Code or Name to search"
         message.reply(msg,quote=True)
         return
+    # Match member codes such as V019. One char followed by 2 or 3 digits
+    if (re.match('[A-Za-z]\d{2,3}', message.command[1]) is not None):
+        #A member code has been sent
+        result=db.get_member_details(message.command[1],'code')
+        if len(result) == 0:
+            message.reply("No such Member")
+            return  
+        elif len(result) >= 1:  
+            msg = utils.generate_profile_msg(result)   
+            utils.send_profile_address_and_pic(client, message, msg,result)
+    else:
+        # A search string and not member code
+        result=db.get_member_details(message.command[1],'free_text')
+        if not result or len(result) == 0:
+            message.reply("No such Member")
+        elif len(result) >= 1:
+            msg = f'🔎 Search results for "`{message.command[1]}`"\n--------------------------------------------'
+            msg += '`\n⚡ = Head of Family`'
+            msg += '`\n👦🏻 = Boy   👧🏻 = Girl`'
+            msg += '`\n🧔🏻 = Man   👩🏻 = Woman`'
+            message.reply(msg,reply_markup=keyboards.get_member_listing_keyboard(result))
+        
 # ==================================================
 '''
 Handle multiple callback queries data and return filter for each
