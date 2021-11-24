@@ -7,11 +7,25 @@ import re
 
 # ==================================================
 # Command Handlers
-@Client.on_message(filters.command(["start", "help"]))
+@Client.on_message(filters.command(["start"]))
 @loggers.log_access
 def start_handler(client, message):
     msg="What would you like to do?\n Select an option:"
     message.reply(msg, reply_markup=keyboards.get_main_keyboard(message.from_user.id))
+# -------------------------------------------------
+@Client.on_message(filters.command(["help"]))
+@loggers.log_access
+def help_handler(client, message):
+    msg="**Help**\n➖➖"
+    msg+="\nI can help you use STOSC Bot. If you're new to the Bot, please see /help\n"
+    msg+="\nYou can control me by sending these commands or clicking the buttons at /start:\n"
+    msg+="\n/help - Show this help message"
+    msg+="\n/start - Start the bot\n"
+    msg+="\n** The below commands are restricted use:**\n"
+    msg+="\n/u [member code or name] - Search for a member by member code or Name"
+    msg+="\n/x [member code] - Show member contributions"
+    msg+="\n/xs [member code] - Show member subscriptions"
+    message.reply(msg, reply_markup=keyboards.back_to_main_keyboard)
 # -------------------------------------------------
 # Command Handlers
 @Client.on_message(filters.command(["u"]))
