@@ -50,7 +50,7 @@ Pyrogram uses persistent connections via TCP sockets to interact with the server
 <details>
 <summary>Deploy on a VM</summary>
 
-1. It is best create a new session file when deploying to a new instance. To do so, delete any existing `.session` file and run `python3 run_stoscbot.py` and enter the bot ID to create new `*.session` files
+1. Create a new session file when deploying to a new instance. To do so, delete any existing `.session` file and run `python3 run_stoscbot.py` and enter the bot ID to create new `*.session` files. Ensure [config.ini](https://docs.pyrogram.org/topics/config-file#the-config-ini-file) is present.
 2. Subsequently run headless as ` nohup python3 run_stoscbot.py &`
 </details>
 
