@@ -55,7 +55,7 @@ jobs:
         script: |
           ps -ef | grep 'run_stoscbot' | grep -v grep | awk '{print $2}' | xargs kill -9 2> /dev/null
           cd /home/vibinjk/stoscbot_pro/workspace
-          rm -rf !(.venv)
+          rm -rf !\(.venv\)
 
     # Alternative: rsync -av -e ssh --delete --exclude='.git' --exclude='.session' --exclude='.session-journal' --exclude='.venv' --exclude='*.sh' --exclude='**/__pycache__' --exclude='.gitignore' --exclude='.env' --exclude='.vscode' . vibinjk@xxxx:/home/vibinjk/stoscbot          
     - name: Copy Files to Azure VM
