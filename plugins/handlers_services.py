@@ -47,14 +47,15 @@ def get_prayer_requests(client, query):
     import gspread
 
     # Credentials are at %APPDATA%\gspread\service_account.json or
-    # ~/.config/gspread/credentials.json
+    # ~/.config/gspread/service_account.json
     gc = gspread.service_account()
     sh = gc.open("Prayer Request (Responses)")
     list_requests = sh.sheet1.get_all_values()
     # Remove header
     list_requests.pop(0)
     start_of_week = utils.week_start_from_service_time()
-    
+
+    # Check if there is any prayer request for this week submitted after current service starts at 7.45
     prayer_requests_for_the_week = [_request for _request in list_requests if (parser.parse(_request[0]) - start_of_week).total_seconds() > 0]
     departed_requests = [[_request[1],_request[2],_request[3]] for _request in prayer_requests_for_the_week if _request[3] != '']
     sick_requests = [[_request[1],_request[2],_request[4]] for _request in prayer_requests_for_the_week if _request[4] != '']
