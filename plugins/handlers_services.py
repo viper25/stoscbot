@@ -3,6 +3,7 @@ from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
 from stoscbots.bot import keyboards
 from dateutil import parser
+import gspread
 # ==================================================
 '''
 Handle multiple callback queries data and return filter for each
@@ -44,7 +45,6 @@ def get_service_registrations(client, query):
 # Check if there is any prayer request for this week submitted after current service starts at 7.45
 def get_prayer_requests(client, query):
     query.answer()
-    import gspread
 
     # Credentials are at %APPDATA%\gspread\service_account.json or
     # ~/.config/gspread/service_account.json
