@@ -36,6 +36,20 @@ def send_access_denied_msg(client, msg_or_query):
 
 # =================================================
 # To decorate functions that serves /u and /x commands
+def member_only(func):
+    # Can see ALL the buttons
+    @wraps(func)
+    # If used for other functions with diff signature, change parameters to *args, **kwargs
+    # Msg for commands such as /start and Query for Button callbacks
+    def wrapped(client, msg_or_query):
+        if not is_member(msg_or_query.from_user.id):
+            send_access_denied_msg(client, msg_or_query)
+            return
+        return func(client, msg_or_query)
+    return wrapped
+
+# =================================================
+# To decorate functions that serves /u and /x commands
 def management_only(func):
     # Can see ALL the buttons
     @wraps(func)
@@ -61,6 +75,11 @@ def area_prayer_coordinator_only(func):
         return func(client, msg_or_query)
     return wrapped
 # =================================================
+def is_member(telegram_id):
+    response=table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))
+    if len(response['Items']) == 1:
+        return True
+# --------------------------------------------------
 def is_mgmt_member(telegram_id):
     response=table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))
     if len(response['Items']) == 1:

@@ -9,12 +9,14 @@ import re
 # Command Handlers
 @Client.on_message(filters.command(["start"]))
 @loggers.log_access
+@bot_auth.member_only
 def start_handler(client, message):
     msg="What would you like to do?\n Select an option:"
     message.reply(msg, reply_markup=keyboards.get_main_keyboard(message.from_user.id))
 # -------------------------------------------------
 @Client.on_message(filters.command(["help"]))
 @loggers.log_access
+@bot_auth.member_only
 def help_handler(client, message):
     msg="**Help**\n➖➖"
     msg+="\nI can help you use STOSC Bot. If you're new to the Bot, please see /help\n"
