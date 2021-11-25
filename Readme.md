@@ -51,7 +51,8 @@ Pyrogram uses persistent connections via TCP sockets to interact with the server
 <summary>Deploy on a VM</summary>
 
 1. Create a new session file when deploying to a new instance. To do so, delete any existing `.session` file and run `python3 run_stoscbot.py` and enter the bot ID to create new `*.session` files. Ensure [config.ini](https://docs.pyrogram.org/topics/config-file#the-config-ini-file) is present.
-2. Subsequently run headless as ` nohup python3 run_stoscbot.py &`
+2. Copy the [Google API keys](https://console.cloud.google.com/iam-admin/serviceaccounts/details/104130143367587513093;edit=true/keys?project=api-project-57990973458) to `~/.config/gspread/credentials.json`
+3. Subsequently run headless as ` nohup python3 run_stoscbot.py &`
 </details>
 
 <details>

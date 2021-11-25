@@ -33,6 +33,8 @@ __MYDETAILS_MY_SUBSCRIPTIONS_BUTTON = InlineKeyboardButton("📜 My Subscription
 __MYDETAILS_HELP_BUTTON = InlineKeyboardButton("ℹ Help", callback_data="Help")
 __MYDETAILS_LIST_OF_ACCOUNTS_BUTTON = InlineKeyboardButton("ℹ List of Accounts", callback_data="List of Accounts")
 
+__PRAYER_REQUESTS_BUTTON = InlineKeyboardButton("📿 Prayer Requests", callback_data="Prayer Requests")
+
 # ---------------------------------------------------------------------------------------------------
 '''
 Assemble the Buttons above to create Keyboards
@@ -103,7 +105,7 @@ def get_main_keyboard(telegram_id):
     return keyboard_main
 
 
-# Dynamically generate a keyboard with upcoming services
+# Dynamically generate a keyboard with upcoming services and prayer requests
 def get_services_keyboard(next_services):
     _counter=0
     # Kerboard is a double List
@@ -131,7 +133,7 @@ def get_services_keyboard(next_services):
             _keyboard_rows=[]
     _keyboard_rows.append(__MAIN_SERVICES_BUTTON)
     keyboard.append(_keyboard_rows)
-    keyboard.append([__BACK_TO_MAIN_BUTTON])    
+    keyboard.append([__BACK_TO_MAIN_BUTTON, __PRAYER_REQUESTS_BUTTON])    
     return InlineKeyboardMarkup(keyboard)
 
 # Generate a Keyboard of member search results

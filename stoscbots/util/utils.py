@@ -126,7 +126,14 @@ def edit_and_send_msg(query, msg, keyboard=None):
 def year_start():
     return date(date.today().year, 1, 1).strftime("%Y-%m-%d")\
 # ----------------------------------------------------------------------------------------------------------------------
-# Return current date
+# Return the start of the week (from Sunday 7.45 AM onwards)
+def week_start_from_service_time():
+    # Set to Sunday at current time
+    start_of_week = datetime.datetime.today() - timedelta(days=datetime.datetime.today().weekday()+1) 
+    # Set to 7.45 AM (because we start accepting new prayers at 7.45 AM)
+    return start_of_week.replace(hour=7, minute=45)
+# ----------------------------------------------------------------------------------------------------------------------
+# # Return current date
 def todays_date():
     return date.today().strftime("%Y-%m-%d")
 #-----------------------------------------------------------------------------------    
