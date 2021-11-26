@@ -80,7 +80,3 @@ Pyrogram uses persistent connections via TCP sockets to interact with the server
 3. Set a startup script in Azure Console under `Startup Command`. This is what will be used to start the bot (do not ignore the `.session` file). 
 4. It is expected the app provide an application running at port 8000. If not, the Azure App Service container will stop after a while (and our bot process will be killed). 
 </details>
-
-## TODO
-* Add year functionality to `/xs v019` at `generate_msg_xero_member_invoices`
-* Once [WebJobs](https://docs.microsoft.com/en-us/azure/app-service/webjobs-create#overview) is supported for Linux, remove web app for Azure App Service

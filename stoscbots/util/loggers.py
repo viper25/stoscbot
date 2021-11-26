@@ -4,14 +4,27 @@ import logging
 import boto3
 import datetime
 import hashlib
+from logging.handlers import RotatingFileHandler
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-logger=logging.getLogger(__name__)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+rfh = RotatingFileHandler(os.environ.get("STOSC_LOGS"), maxBytes=1000000, backupCount=5)
+rfh.setLevel(level=logging.INFO)
+rfh.setFormatter(formatter)
+
+# logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.addHandler(rfh)
+
+resource = boto3.resource(
+    "dynamodb",
+    aws_access_key_id=os.environ.get("STOSC_DDB_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
+    region_name="ap-southeast-1",
+)
+table_telegram_members = resource.Table("stosc_bot_member_telegram")
+
 # Update metrics only if using PRO STOSC Bot Token
-log_metrics = hashlib.md5(os.environ.get('STOSC_TELEGRAM_BOT_TOKEN').encode()).hexdigest() == '4e2626e3e8e0be3245c8fff1a0f72df9'
-
-resource=boto3.resource('dynamodb', aws_access_key_id=os.environ.get('STOSC_DDB_ACCESS_KEY_ID'), aws_secret_access_key=os.environ.get('STOSC_DDB_SECRET_ACCESS_KEY'), region_name='ap-southeast-1')
-table_telegram_members=resource.Table('stosc_bot_member_telegram')
+log_metrics = hashlib.md5(os.environ.get("STOSC_TELEGRAM_BOT_TOKEN").encode()).hexdigest() == "4e2626e3e8e0be3245c8fff1a0f72df9"
 
 # Log Bot user access metrics
 def update_access_metrics(telegram_id):
