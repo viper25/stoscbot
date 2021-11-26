@@ -179,7 +179,7 @@ def send_profile_address_and_pic(client, _x, msg,result, keyboard = None):
         client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png", caption=msg, reply_markup=keyboard)
     except Exception as e1:
         if e1.ID == 'MEDIA_EMPTY':
-            loggers.warn(f"No png image for [{result[0][1]}], trying png")
+            loggers.warn(f"No png image for [{result[0][1]}], trying jpg")
         else:
             loggers.error(f"{e1.MESSAGE}: for [{result[0][1]}]")
         try:
