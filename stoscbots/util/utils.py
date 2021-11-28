@@ -102,7 +102,7 @@ def generate_msg_xero_member_invoices(_member_code, _year):
                 # Don't show DELETED invoices
                 continue
             msg += f"**[{invoice['InvoiceNumber']}] - **" if (invoice['InvoiceNumber'] != '' and invoice['InvoiceNumber'] is not None) else '[`-NA-`] - '
-            msg += f"{invoice['Status']} {icon}\n"
+            msg += f"**${invoice['Total']:,.2f}** - {invoice['Status']} {icon}\n"
             for line in invoice['LineItems']:
                             #msg += "−−−−\n"
                 msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
