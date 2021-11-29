@@ -21,7 +21,7 @@ def dynamic_data_filter(data):
 def finance_search_member_payments(client, message):
     member_code = None
     if len(message.command) >= 2:
-        member_code = message.command[1]
+        member_code = message.command[1].upper()
         # There is atleast a member code sent
         # Match member codes such as V019. One char followed by 2 or 3 digits
         if re.match('[A-Za-z]\d{2,3}', member_code) is None:
@@ -49,22 +49,31 @@ def finance_search_member_payments(client, message):
 @loggers.log_access
 @bot_auth.management_only
 def finance_search_member_sub(client, message):
-    if len(message.command) != 2:
-        msg="Please enter a Member Code to search"
-        message.reply(msg,quote=True)
-        return
-    member_code = message.command[1].upper()
-    # Match member codes such as V019. One char followed by 2 or 3 digits
-    if (re.match('[A-Za-z]\d{2,3}', member_code) is not None):
-        #A member code has been sent
+    member_code = None
+    if len(message.command) >= 2:
+        member_code = message.command[1].upper()
+        # There is atleast a member code sent
+        # Match member codes such as V019. One char followed by 2 or 3 digits
+        if re.match('[A-Za-z]\d{2,3}', member_code) is None:
+            msg="Please enter a Member Code to search"
+            message.reply(msg,quote=True)
+            return
+    #A member code has been sent
+    if member_code:
         result=db.get_member_details(member_code,'code')
         if len(result) == 0:
             message.reply("No such Member")
             return  
-        msg = utils.generate_msg_xero_member_invoices(member_code, '2021')
-        message.reply(msg)
-    else:
-        message.reply("Invalid Member Code")
+        elif len(result) >= 1:
+        # Figure out the year of accounts we want to retrieve 
+        # /xs v019 2020. As of now, we only support current year
+            if len(message.command) == 3:
+                _year=message.command[2]
+            # /x v019
+            elif len(message.command) == 2:
+                _year=str(datetime.now().year)    
+            msg = utils.generate_msg_xero_member_invoices(member_code, _year)
+            message.reply(msg)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Executive Summary Button"))
 @loggers.log_access
