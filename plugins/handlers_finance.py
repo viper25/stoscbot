@@ -19,14 +19,17 @@ def dynamic_data_filter(data):
 @loggers.log_access
 @bot_auth.management_only
 def finance_search_member_payments(client, message):
-    if len(message.command) != 2:
-        msg="Please enter a Member Code to search"
-        message.reply(msg,quote=True)
-        return
-    member_code = message.command[1]
-    # Match member codes such as V019. One char followed by 2 or 3 digits
-    if (re.match('[A-Za-z]\d{2,3}', member_code) is not None):
-        #A member code has been sent
+    member_code = None
+    if len(message.command) >= 2:
+        member_code = message.command[1]
+        # There is atleast a member code sent
+        # Match member codes such as V019. One char followed by 2 or 3 digits
+        if re.match('[A-Za-z]\d{2,3}', member_code) is None:
+            msg="Please enter a Member Code to search"
+            message.reply(msg,quote=True)
+            return
+    #A member code has been sent
+    if member_code:
         result=db.get_member_details(member_code, 'code')
         if len(result) == 0:
             message.reply("No such Member")
@@ -41,8 +44,6 @@ def finance_search_member_payments(client, message):
                 _year=str(datetime.now().year)    
             msg = utils.generate_msg_xero_member_payments(member_code, _year)
             message.reply(msg)
-    else:
-        message.reply("Invalid Member Code")
 # --------------------------------------------------
 @Client.on_message(filters.command(["xs"]))
 @loggers.log_access
