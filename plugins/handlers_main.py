@@ -3,6 +3,7 @@ from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
 from datetime import datetime
+import re
 
 # ==================================================
 # Command Handlers
