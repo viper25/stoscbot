@@ -7,7 +7,7 @@ import hashlib
 from logging.handlers import RotatingFileHandler
 
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-rfh = RotatingFileHandler(os.environ.get("STOSC_LOGS"), maxBytes=1000000, backupCount=5)
+rfh = RotatingFileHandler(os.environ.get("STOSC_LOGS"), maxBytes=1000000, backupCount=5, encoding='utf-8')
 rfh.setLevel(level=logging.INFO)
 rfh.setFormatter(formatter)
 
