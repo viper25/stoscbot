@@ -24,7 +24,7 @@ def finance_search_member_payments(client, message):
         member_code = message.command[1].upper()
         # There is atleast a member code sent
         # Match member codes such as V019. One char followed by 2 or 3 digits
-        if re.match('[A-Za-z]\d{2,3}', member_code) is None:
+        if utils.is_valid_member_code(member_code) is None:
             msg="Please enter a Member Code to search"
             message.reply(msg,quote=True)
             return
@@ -54,7 +54,7 @@ def finance_search_member_sub(client, message):
         member_code = message.command[1].upper()
         # There is atleast a member code sent
         # Match member codes such as V019. One char followed by 2 or 3 digits
-        if re.match('[A-Za-z]\d{2,3}', member_code) is None:
+        if utils.is_valid_member_code(member_code) is None:
             msg="Please enter a Member Code to search"
             message.reply(msg,quote=True)
             return

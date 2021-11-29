@@ -3,7 +3,6 @@ from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
 from datetime import datetime
-import re
 
 # ==================================================
 # Command Handlers
@@ -63,7 +62,7 @@ def member_search_cmd_handler(client, message):
         message.reply(msg,quote=True)
         return
     # Match member codes such as V019. One char followed by 2 or 3 digits
-    if (re.match('[A-Za-z]\d{2,3}', message.command[1]) is not None):
+    if utils.is_valid_member_code(message.command[1]) is not None:
         #A member code has been sent
         result=db.get_member_details(message.command[1],'code')
         if len(result) == 0:

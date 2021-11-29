@@ -8,6 +8,7 @@ from datetime import date
 import datetime
 from datetime import timedelta
 import requests
+import re
 
 resource = boto3.resource(
     "dynamodb",
@@ -193,6 +194,5 @@ def send_profile_address_and_pic(client, _x, msg,result, keyboard = None):
             else:
                 loggers.error(f"{e2.MESSAGE}: for [{result[0][1]}]")
 # ----------------------------------------------------------------------------------------------------------------------
-
-
-        
+def is_valid_member_code(_member_code):
+    return re.match('[A-Za-z]\d{2,3}', _member_code)
