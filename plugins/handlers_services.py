@@ -59,6 +59,7 @@ def get_prayer_requests(client, query):
     prayer_requests_for_the_week = [_request for _request in list_requests if (parser.parse(_request[0]) - start_of_week).total_seconds() > 0]
     departed_requests = [[_request[1],_request[2],_request[3]] for _request in prayer_requests_for_the_week if _request[3] != '']
     sick_requests = [[_request[1],_request[2],_request[4]] for _request in prayer_requests_for_the_week if _request[4] != '']
+    blessings_requests = [[_request[1],_request[2],_request[5]] for _request in prayer_requests_for_the_week if _request[5] != '']
 
     if prayer_requests_for_the_week:
         msg = f"**Prayer Requests**\n`since {start_of_week.strftime('%b %d, %H:%M %p')}`\n"
@@ -77,6 +78,16 @@ def get_prayer_requests(client, query):
         if sick_requests:
             msg += "\n\n--The Sick--"
             for _request in sick_requests:
+                if "\n" in _request[2]:
+                    for _line in _request[2].split("\n"):
+                        msg += f"\n• {_line}"
+                else:
+                    # Only 1 name in the list
+                    msg += f"\n• {_request[2]}"
+
+        if blessings_requests:
+            msg += "\n\n--Blessings--"
+            for _request in blessings_requests:
                 if "\n" in _request[2]:
                     for _line in _request[2].split("\n"):
                         msg += f"\n• {_line}"
