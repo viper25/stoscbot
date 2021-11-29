@@ -122,3 +122,7 @@ def get_members_for_serviceID(service_ID):
     _result_count_kids=__db_executeQuery(sql_count_of_kids, Databases.FORMS,True,service_ID)
 
     return _result1[0][0], _result1[0][1].strftime("%a, %b %d %I:%M %p"), _result2, _result_count_kids
+# ----------------------------------------------------------------------------------------------------------------------
+def get_members_born_on(year):
+    sql="select CONCAT(crm_person_per.per_FirstName,' ', crm_person_per.per_MiddleName,' ', crm_person_per.per_LastName), CONCAT(crm_person_per.per_BirthYear,'-',crm_person_per.per_BirthMonth,'-',crm_person_per.per_BirthDay), fam.fam_Name ,fam.fam_Email, fam.fam_HomePhone, fam.fam_CellPhone from stosc_churchcrm.person_per crm_person_per inner join family_fam fam on crm_person_per.per_fam_ID = fam.fam_ID where fam.fam_DateDeactivated is null and crm_person_per.per_BirthYear = %s"
+    return __db_executeQuery(sql, Databases.CRM,True,year)

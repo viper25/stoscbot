@@ -29,6 +29,30 @@ def help_handler(client, message):
     msg+="\n/xs [member code] - Show member subscriptions"
     message.reply(msg, reply_markup=keyboards.back_to_main_keyboard)
 # -------------------------------------------------
+@Client.on_message(filters.command(["year"]))
+@loggers.log_access
+@bot_auth.management_only
+def help_handler(client, message):
+    year = message.command[1]
+    if (len(year) ==4 and (re.match('\d{4}', year) is not None)):
+        result=db.get_members_born_on(year)
+        msg = f"**Members Born on {year}** ({len(result)})\n➖➖➖➖➖➖➖➖"
+        if result:
+            for member in result:
+                msg+=f"\n**{member[0]}**\n"
+                msg+=f"({member[1]})\n"
+                msg+=f"{member[2]}\n"
+                msg += f"{member[3]}\n" if (member[3] != "" and member[3] is not None) else ""
+                msg += f"{member[4]}\n" if (member[4] != "" and member[4] is not None) else ""
+                msg += f"{member[5]}\n" if (member[2] != "" and member[5] is not None) else ""
+            message.reply(msg, reply_markup=keyboards.back_to_main_keyboard)
+        else:
+            msg = f"No members born on {year}"
+            message.reply(msg)
+    else:
+        msg="Please enter a valid 4 digit year to search"
+        message.reply(msg,quote=True)
+# -------------------------------------------------
 # Command Handlers
 @Client.on_message(filters.command(["u"]))
 @loggers.log_access
@@ -43,7 +67,7 @@ def member_search_cmd_handler(client, message):
         #A member code has been sent
         result=db.get_member_details(message.command[1],'code')
         if len(result) == 0:
-            message.reply("No such Member")
+            message.reply("No such Member", quote=True)
             return  
         elif len(result) >= 1:  
             msg = utils.generate_profile_msg(result)   
@@ -52,7 +76,7 @@ def member_search_cmd_handler(client, message):
         # A search string and not member code
         result=db.get_member_details(message.command[1],'free_text')
         if not result or len(result) == 0:
-            message.reply("No such Member")
+            message.reply("No such Member", quote=True)
         elif len(result) >= 1:
             msg = f'🔎 Search results for "`{message.command[1]}`"\n--------------------------------------------'
             msg += '`\n⚡ = Head of Family`'
