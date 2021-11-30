@@ -6,7 +6,7 @@ from boto3.dynamodb.conditions import Key
 
 ACCESS_DENIED_TEXT = "⛔️**RESTRICTED ACCESS**⛔️"
 ACCESS_DENIED_MEMBERS_TEXT = "⛔️**ACCESS DENIED**⛔️\n➖➖➖➖➖➖➖➖\n If you wish to see your contribution statements, contact [Lay Steward](https://t.me/stosc_accounts) or email accounts@stosc.com for access"
-VIBIN_TELEGRAM_ID = 22541119
+VIBIN_TELEGRAM_ID = os.environ.get('VIBIN_TELEGRAM_ID')
 
 resource=boto3.resource('dynamodb', aws_access_key_id=os.environ.get('STOSC_DDB_ACCESS_KEY_ID'), aws_secret_access_key=os.environ.get('STOSC_DDB_SECRET_ACCESS_KEY'), region_name='ap-southeast-1')
 table_stosc_bot_member_telegram=resource.Table('stosc_bot_member_telegram')
