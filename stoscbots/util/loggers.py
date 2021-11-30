@@ -11,7 +11,6 @@ rfh = RotatingFileHandler(os.environ.get("STOSC_LOGS"), maxBytes=1000000, backup
 rfh.setLevel(level=logging.INFO)
 rfh.setFormatter(formatter)
 
-# logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 logger.addHandler(rfh)
 
