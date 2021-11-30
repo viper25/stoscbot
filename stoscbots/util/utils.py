@@ -94,6 +94,7 @@ def generate_msg_xero_member_invoices(_member_code, _year):
             if invoice['Status'] == 'PAID':
                 icon='🟢'
             elif invoice['Status'] == 'AUTHORISED':
+                invoice['Status'] = 'DUE'
                 icon='🟠'
             elif invoice['Status'] == 'VOIDED':
                 icon='🔴'
