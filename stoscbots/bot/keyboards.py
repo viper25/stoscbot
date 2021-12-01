@@ -19,6 +19,7 @@ __MEMBERS_BDAY_TODAY_BUTTON = InlineKeyboardButton("🎂 Birthdays today", callb
 __MEMBERS_BDAY_WEEK_BUTTON = InlineKeyboardButton("🎂 Birthdays this week", callback_data="Member Birthday Week Button")
 __MEMBERS_ANNIVERSARY_TODAY_BUTTON = InlineKeyboardButton("💍 Anniversaries today", callback_data="Member Anniversary Today Button")
 __MEMBERS_ANNIVERSARY_WEEK_BUTTON = InlineKeyboardButton("💍 Anniversaries this week", callback_data="Member Anniversary Week Button")
+__MEMBERS_GB_INELIGIBLE_BUTTON = InlineKeyboardButton("❎ GB Ineligible", callback_data="GB Ineligible")
 
 __FINANCE_EXEC_SUMMARY_BUTTON = InlineKeyboardButton("Executive Summary", callback_data="Finance Executive Summary Button")
 __FINANCE_BANK_SUMMARY_BUTTON = InlineKeyboardButton("Bank Summary", callback_data="Finance Bank Summary Button")
@@ -46,7 +47,7 @@ back_to_main_keyboard = InlineKeyboardMarkup([
 members_menu_keyboard = InlineKeyboardMarkup([
     [__MEMBERS_BDAY_TODAY_BUTTON, __MEMBERS_ANNIVERSARY_TODAY_BUTTON],
     [__MEMBERS_BDAY_WEEK_BUTTON, __MEMBERS_ANNIVERSARY_WEEK_BUTTON],
-    [__BACK_TO_MAIN_BUTTON]
+    [__BACK_TO_MAIN_BUTTON, __MEMBERS_GB_INELIGIBLE_BUTTON]
 ])
 
 finance_menu_keyboard = InlineKeyboardMarkup([
