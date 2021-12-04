@@ -30,7 +30,7 @@ __FINANCE_MEMBER_BAL_BUTTON = InlineKeyboardButton("ℹ Help", callback_data="Fi
 
 __MYDETAILS_MY_PROFILE_BUTTON = InlineKeyboardButton("🧾 My Profile", callback_data="My Profile")
 __MYDETAILS_MY_CONTRIBUTIONS_BUTTON = InlineKeyboardButton("💳 My Contributions", callback_data="My Contributions")
-__MYDETAILS_MY_SUBSCRIPTIONS_BUTTON = InlineKeyboardButton("📜 My Subscriptions", callback_data="My Subscriptions")
+__MYDETAILS_MY_SUBSCRIPTIONS_BUTTON = InlineKeyboardButton("📜 My Subscription", callback_data="My Subscriptions")
 __MYDETAILS_HELP_BUTTON = InlineKeyboardButton("ℹ Help", callback_data="Help")
 __MYDETAILS_LIST_OF_ACCOUNTS_BUTTON = InlineKeyboardButton("ℹ List of Accounts", callback_data="List of Accounts")
 
