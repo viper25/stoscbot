@@ -27,12 +27,17 @@ def help_handler(client, message):
     msg+="\n/u [member code or name] - Search for a member by member code or Name"
     msg+="\n/x [member code] - Show member contributions"
     msg+="\n/xs [member code] - Show member subscriptions"
+    msg+="\n/year [year in YYYY] - Show members born on this year"
     message.reply(msg, reply_markup=keyboards.back_to_main_keyboard)
 # -------------------------------------------------
 @Client.on_message(filters.command(["year"]))
 @loggers.log_access
 @bot_auth.management_only
-def help_handler(client, message):
+def year_handler(client, message):
+    if len(message.command)==1:
+        msg="Please enter the year you want to view\ne.g. '/year 2020'"
+        message.reply(msg, reply_markup=keyboards.back_to_main_keyboard)
+        return
     year = message.command[1]
     if (len(year) ==4 and (re.match('\d{4}', year) is not None)):
         result=db.get_members_born_on(year)
