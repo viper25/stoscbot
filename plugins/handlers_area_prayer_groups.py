@@ -3,7 +3,7 @@ from stoscbots.db import db
 from stoscbots.util import loggers
 from stoscbots.bot import keyboards
 from stoscbots.util import utils
-# ==================================================
+
 '''
 Handle multiple callback queries data and return filter for each
 '''

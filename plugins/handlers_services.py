@@ -4,7 +4,7 @@ from stoscbots.util import loggers, utils, bot_auth
 from stoscbots.bot import keyboards
 from dateutil import parser
 import gspread
-# ==================================================
+
 '''
 Handle multiple callback queries data and return filter for each
 '''

@@ -76,8 +76,7 @@ def generate_msg_xero_member_payments(_member_code, _year):
         if latest_ts != '':
             msg += f"\n`As of: {latest_ts[:16]}`"
         return msg
-    else:
-        return f"No contactID for {_member_code}"
+    return f"No contactID for {_member_code}"
 # ----------------------------------------------------------------------------------------------------------------------
 # This method can be called from a Telegram button or command such as /xs V019
 # Returns a list of all Invoices paid and due for a member
@@ -111,8 +110,7 @@ def generate_msg_xero_member_invoices(_member_code, _year):
                 msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
             msg += "––––————————————————\n"
         return msg
-    else:
-        return f"No invoices for {_member_code}"
+    return f"No invoices for {_member_code}"
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Send a message to a Telegram user with an optional inline keyboard
@@ -139,7 +137,7 @@ def week_start_from_service_time():
 # # Return current date
 def todays_date():
     return date.today().strftime("%Y-%m-%d")
-#-----------------------------------------------------------------------------------    
+#----------------------------------------------------------------------------------------------------------------------
 # Return date a week ago
 def a_week_ago():
     return datetime.datetime.today() - timedelta(days=7)

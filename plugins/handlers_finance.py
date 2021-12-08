@@ -134,7 +134,7 @@ def get_finance_bank_summary(client, query):
                 cash_recvd_value=_bank_account['Cells'][2]['Value'] if _bank_account['Cells'][2]['Value'] != '' else 0
                 cash_spent_value=_bank_account['Cells'][3]['Value'] if _bank_account['Cells'][3]['Value'] != '' else 0
                 closing_bal_value=_bank_account['Cells'][4]['Value'] if _bank_account['Cells'][4]['Value'] != '' else 0
-                
+
                 if bank_account.startswith('DBS FD'):
                     # Sum up all FDs and skip loop
                     all_fd_sum += float(closing_bal_value)
@@ -226,10 +226,10 @@ def get_finance_latest_tx(client, query):
             icon='🔴'
         elif tx['Type'] == 'SPEND-TRANSFER':
             icon='🔴'
-            _msg=f" `(Transfer Out)`"
+            _msg=" `(Transfer Out)`"
         elif tx['Type'] == 'RECEIVE-TRANSFER':
             icon='🟢'
-            _msg=f" `(Transfer In)`"
+            _msg=" `(Transfer In)`"
         else:
             icon='❓'\
 
@@ -245,7 +245,7 @@ def get_finance_latest_tx(client, query):
             msg += f"\n\n{icon} **{tx['BankAccount']['Name']}** {_msg}\n"
 
         msg += f"`{xero_utils.parse_Xero_Date(tx['Date']):%Y-%m-%d}`\n"
-        msg += f"**${tx['Total']}**\n\n"        
+        msg += f"**${tx['Total']}**\n\n"
     
     # Telegram has a 4096 byte limit for msgs
     msg=(msg[:4076] + '\n`... (truncated)`') if len(msg) > 4096 else msg
