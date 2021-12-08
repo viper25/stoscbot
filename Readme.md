@@ -1,13 +1,18 @@
 [![STOSCBot Build](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml/badge.svg)](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml)
 
 # STOSC Bot
-St. Thomas Orthodox Syrian Cathedral's Telegram Bot
+A Telegram bot (based on [Pyrogram](https://docs.pyrogram.org/)) to manage affairs of the St. Thomas Orthodox Syrian Cathedral, Singapore.
 
 ![image](https://user-images.githubusercontent.com/327990/142089101-04f782d3-0982-4ac0-83d0-899d714bc1cb.png) ![02](https://user-images.githubusercontent.com/327990/142300513-b2cbde04-f695-40f3-92f3-5e56649550f9.png)
 
 
+## Setup 
+<details>
 
-## Setup your virtual environment. 
+<summary>
+Setup virtual environment
+</summary>
+
 ```bash
 python -m venv .venv
 ```
@@ -25,8 +30,16 @@ Change `config.ini` for server.
 source .venv/bin/activate
 nohup python3 run_stoscbot.py &
 ```
+</details>
 
-### Install dependencies
+<details>
+
+<summary>
+Dependencies
+</summary>
+
+## Install dependencies.
+
 
 ```bash
 pip install -r requirements.txt
@@ -37,14 +50,8 @@ pip install -r requirements.txt
 ```bash
 pip install --upgrade -r requirements.txt
 ```
+</details>
 
-
-[Reference](https://docs.pyrogram.org/)
-
-Good Reference on structuring Python project: 
-https://github.com/Fumaz/TTSBot
-
-Pyrogram uses persistent connections via TCP sockets to interact with the server and instead of actively asking for updates every time (polling), Pyrogram will simply sit down and wait for the server to send updates by itself the very moment they are available (server push).
 
 ## Deployment
 <details>
@@ -80,3 +87,8 @@ Pyrogram uses persistent connections via TCP sockets to interact with the server
 3. Set a startup script in Azure Console under `Startup Command`. This is what will be used to start the bot (do not ignore the `.session` file). 
 4. It is expected the app provide an application running at port 8000. If not, the Azure App Service container will stop after a while (and our bot process will be killed). 
 </details>
+
+## Reference
+
+* Good Reference on structuring Python project: 
+https://github.com/Fumaz/TTSBot
