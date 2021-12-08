@@ -23,7 +23,7 @@ def __xero_get_Access_Token():
     response=table.query(KeyConditionExpression=Key('token').eq(REFRESH_TOKEN_KEY))
     old_refresh_token=response['Items'][0]['token_key']
     
-    url='https://identity.xero.com/connect/token'
+    url = 'https://identity.xero.com/connect/token'
     response=requests.post(url,headers={
         'Content-Type' : 'application/x-www-form-urlencoded'},data={
             'grant_type': 'refresh_token',
@@ -55,43 +55,43 @@ def __xero_get(url, **extra_headers):
 
 # ----------------------------------------------------------------------------------------------------------------------    
 def get_xero_ContactID(code=None):
-    url=f'https://api.xero.com/api.xro/2.0/Contacts?where=AccountNumber=="{code}"'
+    url = f'https://api.xero.com/api.xro/2.0/Contacts?where=AccountNumber=="{code}"'
     contacts=__xero_get(url)
     if len(contacts['Contacts'])>0:
         return contacts['Contacts'][0]['ContactID']
-# ----------------------------------------------------------------------------------------------------------------------   
+# ----------------------------------------------------------------------------------------------------------------------
 # Retrieve all AUTHORISED and PAID Invoices for a ContactID
 def get_Invoices(memberID):
     _contactID=get_xero_ContactID(memberID)
     if _contactID:
-        url=f"https://api.xero.com/api.xro/2.0/Invoices?ContactIDs={_contactID}"
+        url = f"https://api.xero.com/api.xro/2.0/Invoices?ContactIDs={_contactID}"
         # Add If-Modified-Since HTTP header to get this year's invoices only
         _header={'If-Modified-Since': utils.year_start()}
         return __xero_get(url,**_header)
 
 # ----------------------------------------------------------------------------------------------------------------------
 def get_executive_summary():
-    url=f'https://api.xero.com/api.xro/2.0/Reports/ExecutiveSummary'
+    url = 'https://api.xero.com/api.xro/2.0/Reports/ExecutiveSummary'
     return __xero_get(url)
 # ----------------------------------------------------------------------------------------------------------------------
 # Returns the balances and cash movements for each bank account
 def get_bank_summary():
-    url=f'https://api.xero.com/api.xro/2.0/Reports/BankSummary?fromDatedate={utils.year_start()}&toDate={utils.todays_date()}'
+    url = f'https://api.xero.com/api.xro/2.0/Reports/BankSummary?fromDatedate={utils.year_start()}&toDate={utils.todays_date()}'
     return __xero_get(url)
 # ----------------------------------------------------------------------------------------------------------------------
 # Returns a trial balance for the current month up to the date specified. YTD values are shown too.
 def xero_get_trial_balance():
-    url=f'https://api.xero.com/api.xro/2.0/Reports/TrialBalance?date={utils.todays_date()}'
+    url = f'https://api.xero.com/api.xro/2.0/Reports/TrialBalance?date={utils.todays_date()}'
     return __xero_get(url)
 # ----------------------------------------------------------------------------------------------------------------------
 def xero_get_payments():
     _week_ago=utils.a_week_ago()
-    url=f"https://api.xero.com/api.xro/2.0/Payments?where=Date>DateTime({_week_ago.year}, {_week_ago.month}, {_week_ago.day})&order=Date"
+    url = f"https://api.xero.com/api.xro/2.0/Payments?where=Date>DateTime({_week_ago.year}, {_week_ago.month}, {_week_ago.day})&order=Date"
     return __xero_get(url)
 #-----------------------------------------------------------------------------------    
 def xero_get_bank_transactions():
     _week_ago=utils.a_week_ago()
-    url=f"https://api.xero.com/api.xro/2.0/BankTransactions?where=Date>DateTime({_week_ago.year}, {_week_ago.month}, {_week_ago.day})&order=Date"
+    url = f"https://api.xero.com/api.xro/2.0/BankTransactions?where=Date>DateTime({_week_ago.year}, {_week_ago.month}, {_week_ago.day})&order=Date"
     return __xero_get(url)    
 #-----------------------------------------------------------------------------------    
 # Xero dates are weird. Parse

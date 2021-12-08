@@ -73,7 +73,7 @@ def member_search_cmd_handler(client, message):
         result=db.get_member_details(message.command[1],'code')
         if len(result) == 0:
             message.reply("No such Member", quote=True)
-            return  
+            return
         elif len(result) >= 1:  
             msg = utils.generate_profile_msg(result)   
             utils.send_profile_address_and_pic(client, message, msg,result)
@@ -177,7 +177,7 @@ def show_finance_menu(client, query):
 @loggers.log_access
 def show_my_details_menu(client, query):
     query.answer()
-    msg = "➖➖**My Details Menu**➖➖"    
+    msg = "➖➖**My Details Menu**➖➖"
     utils.edit_and_send_msg(query, msg, keyboards.my_details_menu_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("My Harvest Festival Menu"))

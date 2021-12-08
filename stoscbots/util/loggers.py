@@ -43,11 +43,11 @@ def update_access_metrics(telegram_id):
         )
     except botocore.exceptions.ClientError as e:
         if e.response['Error']['Code'] == 'ValidationException':
-            logger.warn(f"{telegram_id} is not a member, skipping update of access metrics")  
+            logger.warn("%s is not a member, skipping update of access metrics",telegram_id)
         else:
-            logger.error(f"{telegram_id} update failed with error: {e}") 
+            logger.error("%s update failed with error: %s",telegram_id,e)
     except Exception as e:
-        logger.error(f"{telegram_id} update failed with error: {e}")
+        logger.error("%s update failed with error: %s",telegram_id,e)
 
 
 def log_access(func):
