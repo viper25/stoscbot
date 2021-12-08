@@ -5,8 +5,8 @@ import boto3
 from boto3.dynamodb.conditions import Key
 
 ACCESS_DENIED_TEXT = "⛔️**RESTRICTED ACCESS**⛔️"
-ACCESS_DENIED_MEMBERS_TEXT = "⛔️**ACCESS DENIED**⛔️\n➖➖➖➖➖➖➖➖\n If you wish to see your contribution statements, contact [Lay Steward](https://t.me/stosc_accounts) or email accounts@stosc.com for access"
-VIBIN_TELEGRAM_ID = 22541119
+ACCESS_DENIED_MEMBERS_TEXT = "⛔️**ACCESS DENIED**⛔️\n➖➖➖➖➖➖➖➖\n If you wish to access the bot and see your contribution statements, contact the [Lay Steward](https://t.me/stosc_accounts) or email accounts@stosc.com for access."
+VIBIN_TELEGRAM_ID = os.environ.get('VIBIN_TELEGRAM_ID')
 
 resource=boto3.resource('dynamodb', aws_access_key_id=os.environ.get('STOSC_DDB_ACCESS_KEY_ID'), aws_secret_access_key=os.environ.get('STOSC_DDB_SECRET_ACCESS_KEY'), region_name='ap-southeast-1')
 table_stosc_bot_member_telegram=resource.Table('stosc_bot_member_telegram')
@@ -36,6 +36,20 @@ def send_access_denied_msg(client, msg_or_query):
 
 # =================================================
 # To decorate functions that serves /u and /x commands
+def member_only(func):
+    # Can see ALL the buttons
+    @wraps(func)
+    # If used for other functions with diff signature, change parameters to *args, **kwargs
+    # Msg for commands such as /start and Query for Button callbacks
+    def wrapped(client, msg_or_query):
+        if not is_member(msg_or_query.from_user.id):
+            send_access_denied_msg(client, msg_or_query)
+            return
+        return func(client, msg_or_query)
+    return wrapped
+
+# =================================================
+# To decorate functions that serves /u and /x commands
 def management_only(func):
     # Can see ALL the buttons
     @wraps(func)
@@ -61,32 +75,25 @@ def area_prayer_coordinator_only(func):
         return func(client, msg_or_query)
     return wrapped
 # =================================================
+def is_member(telegram_id):
+    response=table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))
+    if len(response['Items']) == 1:
+        return True
+# --------------------------------------------------
 def is_mgmt_member(telegram_id):
     response=table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))
     if len(response['Items']) == 1:
         if 'auth' in response['Items'][0] and 'mc' in response['Items'][0]['auth']:
             return True
-        else:
-            return False
-    else:
-        return False 
 # --------------------------------------------------
 def is_smo_member(telegram_id):
     response=table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))
     if len(response['Items']) == 1:
         if 'auth' in response['Items'][0] and ('smo' in response['Items'][0]['auth'] or 'mc' in response['Items'][0]['auth']):
             return True
-        else:
-            return False
-    else:
-        return False 
 # --------------------------------------------------
 def is_area_prayer_coordinator_member(telegram_id):
     response=table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))
     if len(response['Items']) == 1:
         if 'auth' in response['Items'][0] and ('apc' in response['Items'][0]['auth'] or 'mc' in response['Items'][0]['auth']):
             return True
-        else:
-            return False
-    else:
-        return False 

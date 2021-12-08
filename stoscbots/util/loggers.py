@@ -3,33 +3,58 @@ from functools import wraps
 import logging
 import boto3
 import datetime
+import hashlib
+from logging.handlers import RotatingFileHandler
+import botocore.exceptions
 
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-logger=logging.getLogger(__name__)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+rfh = RotatingFileHandler(os.environ.get("STOSC_LOGS"), maxBytes=1000000, backupCount=5, encoding='utf-8')
+rfh.setLevel(level=logging.INFO)
+rfh.setFormatter(formatter)
 
-resource=boto3.resource('dynamodb', aws_access_key_id=os.environ.get('STOSC_DDB_ACCESS_KEY_ID'), aws_secret_access_key=os.environ.get('STOSC_DDB_SECRET_ACCESS_KEY'), region_name='ap-southeast-1')
-table_telegram_members=resource.Table('stosc_bot_member_telegram')
+logger = logging.getLogger(__name__)
+logger.addHandler(rfh)
+
+resource = boto3.resource(
+    "dynamodb",
+    aws_access_key_id=os.environ.get("STOSC_DDB_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
+    region_name="ap-southeast-1",
+)
+table_telegram_members = resource.Table("stosc_bot_member_telegram")
+
+# Update metrics only if using PRO STOSC Bot Token
+log_metrics = hashlib.md5(os.environ.get("STOSC_TELEGRAM_BOT_TOKEN").encode()).hexdigest() == "4e2626e3e8e0be3245c8fff1a0f72df9"
 
 # Log Bot user access metrics
 def update_access_metrics(telegram_id):
+    '''
+    If this is a non-member, i.e. a random user who stumbled by this bot, the insert will fail on account of there being no record to
+    update and we capture the exception and move along
+    '''
     try:
         table_telegram_members.update_item(
             Key = {'telegram_id': str(telegram_id)},
-            UpdateExpression = "SET hits = if_not_exists(hits, :start) + :inc, last_seen = :modified_ts_val",
+            UpdateExpression = "SET hits = hits + :inc, last_seen = :modified_ts_val",
             ExpressionAttributeValues = {
                 ':inc': 1,
-                ':start': 0,
                 ":modified_ts_val": datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") 
             }
         )
+    except botocore.exceptions.ClientError as e:
+        if e.response['Error']['Code'] == 'ValidationException':
+            logger.warn(f"{telegram_id} is not a member, skipping update of access metrics")  
+        else:
+            logger.error(f"{telegram_id} update failed with error: {e}") 
     except Exception as e:
-        logger.error(e)
+        logger.error(f"{telegram_id} update failed with error: {e}")
 
 
 def log_access(func):
     @wraps(func)
     def function_wrapper(*args, **kwargs):
-        update_access_metrics(args[1].from_user.id)
+        if  log_metrics:
+            update_access_metrics(args[1].from_user.id)
         arg_msg=""
         if hasattr(args[1], 'text') and args[1].text:
             # For Commands not buttons

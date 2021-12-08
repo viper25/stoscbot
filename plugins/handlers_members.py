@@ -68,3 +68,13 @@ def get_weeks_anniversaries(client, query):
             msg += f"• {_item[1].strip()} `({_item[0].strip()})`\n"
     utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
 # --------------------------------------------------
+@Client.on_callback_query(dynamic_data_filter("GB Ineligible"))
+@loggers.log_access
+def member_gb_ineligible(client, query):
+    query.answer()
+    result=db.get_gb_ineligible()
+    msg = f"**GB Ineligible** `({len(result)})`\n"
+    msg += "➖➖➖➖➖➖\n"
+    for member in result:
+        msg += f"• {member[0].strip()} `({member[1]})`\n"
+    utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)

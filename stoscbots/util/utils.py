@@ -8,6 +8,7 @@ from datetime import date
 import datetime
 from datetime import timedelta
 import requests
+import re
 
 resource = boto3.resource(
     "dynamodb",
@@ -28,19 +29,14 @@ def getMemberCode_from_TelegramID(telegram_id):
     response=table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))
     if len(response['Items']) == 1:
         return response['Items'][0]['member_code']
-    else:
-        return None
 # ----------------------------------------------------------------------------------------------------------------------
 def get_address_details(_zip):
     try:
         result=requests.get(f'https://developers.onemap.sg//commonapi/search?searchVal={_zip}&returnGeom=Y&getAddrDetails=Y').json()
         if len(result['results'])>0:
             return result['results'][0]['LATITUDE'], result['results'][0]['LONGITUDE']
-        else:
-            return None, None
     except Exception as e:
         loggers.error(f"Exception in onemap API: {e}")
-        return None, None
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate a Member Profile msg
 def generate_profile_msg(result):
@@ -92,25 +88,27 @@ def generate_msg_xero_member_invoices(_member_code, _year):
         icon='🟠' 
         for invoice in _invoices['Invoices']:
             if invoice['InvoiceNumber'].endswith('-VOID'):
-                            # Skip invoices that were VOIDED manually in FY21. These have a -VOID at the end
+                # Skip invoices that were VOIDED manually in FY21. These have a -VOID at the end
                 continue
             loggers.debug(f"Invoice No: {invoice['InvoiceNumber']} for amount: {invoice['AmountDue']}")
             if invoice['Status'] == 'PAID':
                 icon='🟢'
             elif invoice['Status'] == 'AUTHORISED':
+                invoice['Status'] = 'DUE'
                 icon='🟠'
             elif invoice['Status'] == 'VOIDED':
-                icon='🔴'
+                # Don't show VOIDED invoices
+                continue
             elif invoice['Status'] == 'DRAFT':
                 icon='🟠'
             elif invoice['Status'] == 'DELETED':
                 # Don't show DELETED invoices
                 continue
-            msg += f"**{invoice['InvoiceNumber']} - **" if (invoice['InvoiceNumber'] != '' and invoice['InvoiceNumber'] is not None) else ''
-            msg += f"{invoice['Status']} {icon}\n"
+            msg += f"**[{invoice['InvoiceNumber']}] - **" if (invoice['InvoiceNumber'] != '' and invoice['InvoiceNumber'] is not None) else '[`-NA-`] - '
+            msg += f"**${invoice['Total']:,.2f}** - {invoice['Status']} {icon}\n"
             for line in invoice['LineItems']:
                             #msg += "−−−−\n"
-                msg += f"  `{line['Description']} (${line['UnitAmount']:,.2f})`\n"
+                msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
             msg += "––––————————————————\n"
         return msg
     else:
@@ -131,7 +129,14 @@ def edit_and_send_msg(query, msg, keyboard=None):
 def year_start():
     return date(date.today().year, 1, 1).strftime("%Y-%m-%d")\
 # ----------------------------------------------------------------------------------------------------------------------
-# Return current date
+# Return the start of the week (from Sunday 7.45 AM onwards)
+def week_start_from_service_time():
+    # Set to Sunday at current time
+    start_of_week = datetime.datetime.today() - timedelta(days=datetime.datetime.today().weekday()+1) 
+    # Set to 7.45 AM (because we start accepting new prayers at 7.45 AM)
+    return start_of_week.replace(hour=7, minute=45)
+# ----------------------------------------------------------------------------------------------------------------------
+# # Return current date
 def todays_date():
     return date.today().strftime("%Y-%m-%d")
 #-----------------------------------------------------------------------------------    
@@ -149,8 +154,6 @@ def __get_winning_bid(_itemCode):
     response = table_harvest_items.query(KeyConditionExpression=Key("itemCode").eq(int(_itemCode)))
     if "winning_bid" in response["Items"][0].keys():
         return response["Items"][0]["winning_bid"]
-    else:
-        return None
 # ----------------------------------------------------------------------------------------------------------------------
 def generate_msg_member_auction_purchases(_member_code):
     response = table_harvest_metrics.query(KeyConditionExpression=Key("pk").eq("user") & Key("sk").begins_with(_member_code))
@@ -179,7 +182,7 @@ def send_profile_address_and_pic(client, _x, msg,result, keyboard = None):
         client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png", caption=msg, reply_markup=keyboard)
     except Exception as e1:
         if e1.ID == 'MEDIA_EMPTY':
-            loggers.warn(f"No png image for [{result[0][1]}], trying png")
+            loggers.warn(f"No png image for [{result[0][1]}], trying jpg")
         else:
             loggers.error(f"{e1.MESSAGE}: for [{result[0][1]}]")
         try:
@@ -193,6 +196,5 @@ def send_profile_address_and_pic(client, _x, msg,result, keyboard = None):
             else:
                 loggers.error(f"{e2.MESSAGE}: for [{result[0][1]}]")
 # ----------------------------------------------------------------------------------------------------------------------
-
-
-        
+def is_valid_member_code(_member_code):
+    return re.match('[A-Za-z]\d{2,3}', _member_code)

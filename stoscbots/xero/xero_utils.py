@@ -59,8 +59,6 @@ def get_xero_ContactID(code=None):
     contacts=__xero_get(url)
     if len(contacts['Contacts'])>0:
         return contacts['Contacts'][0]['ContactID']
-    else:
-        return None
 # ----------------------------------------------------------------------------------------------------------------------   
 # Retrieve all AUTHORISED and PAID Invoices for a ContactID
 def get_Invoices(memberID):
@@ -70,8 +68,6 @@ def get_Invoices(memberID):
         # Add If-Modified-Since HTTP header to get this year's invoices only
         _header={'If-Modified-Since': utils.year_start()}
         return __xero_get(url,**_header)
-    else:
-        return None
 
 # ----------------------------------------------------------------------------------------------------------------------
 def get_executive_summary():

@@ -54,8 +54,8 @@ jobs:
         debug: false
         script: |
           ps -ef | grep 'run_stoscbot' | grep -v grep | awk '{print $2}' | xargs kill -9 2> /dev/null
-          cd /home/vibinjk/stoscbot_pro
-          rm -rf workspace/
+          cd /home/vibinjk/stoscbot_pro/workspace
+          rm -rf !\(.venv\)
 
     # Alternative: rsync -av -e ssh --delete --exclude='.git' --exclude='.session' --exclude='.session-journal' --exclude='.venv' --exclude='*.sh' --exclude='**/__pycache__' --exclude='.gitignore' --exclude='.env' --exclude='.vscode' . vibinjk@xxxx:/home/vibinjk/stoscbot          
     - name: Copy Files to Azure VM
@@ -84,4 +84,4 @@ jobs:
           python3 -m venv .venv
           source .venv/bin/activate
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          nohup python3 run_stoscbot.py > /home/vibinjk/stoscbot_pro/logs/stoscbot.log 2>&1 &
+          nohup python3 run_stoscbot.py > /dev/null 2>&1 &

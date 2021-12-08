@@ -6,3 +6,4 @@ python-dotenv
 pendulum
 boto3
 requests
+gspread
