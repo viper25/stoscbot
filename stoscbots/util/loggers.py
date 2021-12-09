@@ -71,12 +71,16 @@ def log_access(func):
 
 def info(e):
     logger.info(e)
+    print(e)
 
 def error(e):
     logger.error(e)
+    print(e)
 
 def warn(e):
     logger.warning(e)
+    print(e)
 
 def debug(e):
     logger.debug(e)
+    print(e)
