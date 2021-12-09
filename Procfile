@@ -1,1 +1,1 @@
-web: python3 run_stoscbot.py
+web: nohup python3 run_stoscbot.py > /dev/null 2>&1 &
