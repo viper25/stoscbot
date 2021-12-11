@@ -7,7 +7,7 @@ from stoscbots.util import utils, loggers
 
 XERO_TENANT_ID=os.environ.get('STOSC_XERO_STOSC_TENANT_ID')
 XERO_CLIENT_ID=os.environ.get('STOSC_XERO_CLIENT_ID')
-REFRESH_TOKEN_KEY="stosc-bot"
+STOSC_REFRESH_TOKEN_KEY="stosc-bot"
 
 resource = boto3.resource(
     "dynamodb",
@@ -17,11 +17,11 @@ resource = boto3.resource(
 )
 table=resource.Table('stosc_xero_tokens')
 
-# Access tokens are valid for 30 mins and 
+# Access tokens (or Bearer tokens) are valid for 30 mins and 
 # Refresh tokens for 60 days
 def __xero_get_Access_Token():
     # Get refresh token (valid for 60 days)
-    response = table.query(KeyConditionExpression = Key('token').eq(REFRESH_TOKEN_KEY))
+    response = table.query(KeyConditionExpression = Key('token').eq(STOSC_REFRESH_TOKEN_KEY))
     old_refresh_token = response['Items'][0]['refresh_token']
     
     url = 'https://identity.xero.com/connect/token'
@@ -35,7 +35,11 @@ def __xero_get_Access_Token():
     current_refresh_token = response_dict['refresh_token']
 
     # Set new refresh token
-    chunk = {"token":REFRESH_TOKEN_KEY, 'refresh_token':current_refresh_token, 'modfied_ts': datetime.now().strftime("%d/%m/%Y %H:%M:%S")}
+    chunk = {
+        "token": STOSC_REFRESH_TOKEN_KEY,
+        "refresh_token": current_refresh_token,
+        "modfied_ts": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+    }
     table.put_item(Item = chunk)
 
     return response_dict['access_token']
