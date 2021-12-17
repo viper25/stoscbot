@@ -202,7 +202,7 @@ def show_paynow_menu(client, query):
     msg += "    • PayNow to UEN: **S79SS0001L**\n"
     msg += "    • PayNow to QR code shown above\n"
     msg += "    • Bank transfer to DBS: **0480155596**\n"
-    msg += "    • NETS, Cash or Cheque at church office\n"
+    msg += "    • NETS, Cash or Cheque (payable to `St. Thomas Orthodox Syrian Cathedral`) at the church office\n"
     msg += "\n`Please mention your family code and purpose of contribution.`\n"
     msg += "`For multiple payments, you can make one transfer and email the breakdown to` accounts@stosc.com"
     client.send_photo(chat_id=query.from_user.id, photo='https://stosc.com/paynow/img/QR.png',caption=msg,reply_markup = keyboards.back_to_main_keyboard)
