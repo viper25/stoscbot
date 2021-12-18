@@ -121,7 +121,7 @@ def show_services_menu(client, query):
     if len(result) == 0:
         msg="No Services"
     else:
-        msg="**Upcoming Services**\n➖➖➖➖➖➖➖\n\n"
+        msg="**Upcoming Services**\n➖➖➖➖➖➖\n\n"
         _counter=0
         # Get first group in result set and see if it changes
         group=result[0][5]
