@@ -60,23 +60,31 @@ def generate_profile_msg(result):
 
 # ----------------------------------------------------------------------------------------------------------------------
 # This method can be called from a Telegram button or command such as /x V019
-def generate_msg_xero_member_payments(_member_code, _year):
-    result=db.get_member_details(_member_code,'code')
-    _contactID=xero_utils.get_xero_ContactID(_member_code)
-    if _contactID is not None:
-        response=table_member_payments.query(KeyConditionExpression=Key('ContactID').eq(_contactID) & Key('AccountCode').begins_with(_year))
-        msg=f"**{result[0][1]}**\n`For Year {_year}`\n"
+def generate_msg_xero_member_payments(name, _member_code, _year):
+    payments = get_member_payments(_member_code, _year)
+    if payments:
+        msg=f"**{name}**\n`For Year {_year}`\n"
         msg += "➖➖➖➖➖➖➖\n"
-        if len(response['Items']) == 0:
+        if len(payments) == 0:
             msg += "No payments yet"
         latest_ts=''
-        for item in response['Items']:
+        for item in payments:
             msg += f"► {item['Account']}: **${str(item['LineAmount'])}**\n"
             latest_ts=item['modfied_ts'] if (item['modfied_ts'] > latest_ts) else latest_ts
         if latest_ts != '':
             msg += f"\n`As of: {latest_ts[:16]}`"
         return msg
     return f"No contactID for {_member_code}"
+# ----------------------------------------------------------------------------------------------------------------------
+# Return a list of member payments for a year
+def get_member_payments(_member_code, _year) -> list:
+    xero_contactID = xero_utils.get_xero_ContactID(_member_code)
+    if xero_contactID is not None:
+        response=table_member_payments.query(KeyConditionExpression=Key('ContactID').eq(xero_contactID) & Key('AccountCode').begins_with(_year))
+    else:
+        return None
+    return response['Items']
+
 # ----------------------------------------------------------------------------------------------------------------------
 # This method can be called from a Telegram button or command such as /xs V019
 # Returns a list of all Invoices paid and due for a member

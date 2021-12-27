@@ -3,6 +3,9 @@ from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils
 from datetime import datetime
+
+LIST_ACCOUNTS = ['Annual Thanksgiving Auction','Annual Thanksgiving Donation','Catholicate Fund','Metropolitan Fund','Seminary Fund','Resisa Donation','Marriage Assistance Fund','Mission Fund','Sunday School Fund','Self Denial Fund','Birthday Offering','Baptism and Wedding Offering','Christmas Offering','Donations & Gifts','Holy Qurbana (Prayer for deceased)','Holy Week Donation','Member Subscription','Offertory','Tithe','Youth Fellowship Donations','Diocesan Development Fund']
+
 # ==================================================
 '''
 Handle multiple callback queries data and return filter for each
@@ -64,12 +67,17 @@ def show_help(client, query):
 @loggers.log_access
 def show_list_accounts(client, query):
     query.answer()
+    payments = utils.get_member_payments(utils.getMemberCode_from_TelegramID(query.from_user.id), str(datetime.now().year))
     msg="List of Accounts\n"
-    msg += "➖➖➖➖➖\n"
-    msg += "You may contribute towards the following accounts:\n"
-    msg += "    • Catholicate Fund\n    • Metropolitan Fund\n    • Seminary Fund\n    • Resisa Donation\n"
-    msg += "    • Marriage Assistance Fund\n    • Mission Fund\n    • Sunday School Fund\n    • Self Denial Fund\n"
-    msg += "    • Birthday Offering\n    • Baptism and wedding Offering\n    • Christmas Offering\n    • Donations & Gifts\n"
-    msg += "    • Holy Qurbana (Prayer for deceased)\n    • Holy Week Donation\n    • Member Subscription\n    • Offertory\n"
-    msg += "    • Tithe\n    • Youth Fellowship Donations\n"
-    utils.edit_and_send_msg(query, msg, keyboards.my_details_menu_keyboard)    
+    if payments:
+        msg="List of Accounts\n"
+        msg += "➖➖➖➖➖➖\n"
+        msg += "You may contribute towards the following accounts:\n"
+        for account in LIST_ACCOUNTS:
+            if any(payment.get('Account', '').startswith(account) for payment in payments):
+                msg += f"• **{account}**\n"
+            else:
+                msg += f"• {account}\n"
+    msg += "\n* **Bold** `indicates that you have contributed towards this account head`"
+    utils.edit_and_send_msg(query, msg, keyboards.my_details_menu_keyboard)
+
