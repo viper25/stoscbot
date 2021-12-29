@@ -4,7 +4,7 @@ from stoscbots.db import db
 from stoscbots.util import loggers, utils
 from datetime import datetime
 
-LIST_ACCOUNTS = ['Annual Thanksgiving Auction','Annual Thanksgiving Donation','Catholicate Fund','Metropolitan Fund','Seminary Fund','Resisa Donation','Marriage Assistance Fund','Mission Fund','Sunday School Fund','Self Denial Fund','Birthday Offering','Baptism and Wedding Offering','Christmas Offering','Donations & Gifts','Holy Qurbana (Prayer for deceased)','Holy Week Donation','Member Subscription','Offertory','Tithe','Youth Fellowship Donations','Diocesan Development Fund']
+LIST_ACCOUNTS = ['Annual Thanksgiving Auction','Annual Thanksgiving Donation','Catholicate Fund','Metropolitan Fund','Seminary Fund','Resisa Donation','Marriage Assistance Fund','Mission Fund','Sunday School','Self Denial Fund','Birthday Offering','Baptism and Wedding Offering','Christmas Offering','Donations & Gifts','Holy Qurbana','Holy Week Donation','Member Subscription','Offertory','Tithe','Youth Fellowship Donations','Diocesan Development Fund']
 
 # ==================================================
 '''
