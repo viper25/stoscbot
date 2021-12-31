@@ -79,6 +79,6 @@ def show_list_accounts(client, query):
                 msg += f"• **{account}**\n"
             else:
                 msg += f"• {account}\n"
-    msg += "\n* **Bold** `indicates that you have contributed towards this account head`"
+    msg += "\n`*` **Bold** `indicates that you have contributed towards this account head`"
     utils.edit_and_send_msg(query, msg, keyboards.my_details_menu_keyboard)
 
