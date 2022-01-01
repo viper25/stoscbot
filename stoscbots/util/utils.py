@@ -74,7 +74,7 @@ def generate_msg_xero_member_payments(name, _member_code, _year):
         if latest_ts != '':
             msg += f"\n`As of: {latest_ts[:16]}`"
         return msg
-    return f"No contactID for {_member_code}"
+    return f"No contributions for **{_member_code}** for year **{_year}**"
 # ----------------------------------------------------------------------------------------------------------------------
 # Return a list of member payments for a year
 def get_member_payments(_member_code, _year) -> list:
@@ -89,34 +89,38 @@ def get_member_payments(_member_code, _year) -> list:
 # This method can be called from a Telegram button or command such as /xs V019
 # Returns a list of all Invoices paid and due for a member
 def generate_msg_xero_member_invoices(_member_code, _year):
+    if not is_valid_year(_year):
+       return f"Not a valid year: {_year}"
     _invoices=xero_utils.get_Invoices(_member_code)
     if _invoices and len(_invoices['Invoices'])> 0:
         msg=f"--**{_invoices['Invoices'][0]['Contact']['Name']} ({_member_code})**--\n\n"
         icon='🟠' 
         for invoice in _invoices['Invoices']:
-            if invoice['InvoiceNumber'].endswith('-VOID'):
-                # Skip invoices that were VOIDED manually in FY21. These have a -VOID at the end
-                continue
-            loggers.debug(f"Invoice No: {invoice['InvoiceNumber']} for amount: {invoice['AmountDue']}")
-            if invoice['Status'] == 'PAID':
-                icon='🟢'
-            elif invoice['Status'] == 'AUTHORISED':
-                invoice['Status'] = 'DUE'
-                icon='🟠'
-            elif invoice['Status'] == 'VOIDED':
-                # Don't show VOIDED invoices
-                continue
-            elif invoice['Status'] == 'DRAFT':
-                icon='🟠'
-            elif invoice['Status'] == 'DELETED':
-                # Don't show DELETED invoices
-                continue
-            msg += f"**[{invoice['InvoiceNumber']}] - **" if (invoice['InvoiceNumber'] != '' and invoice['InvoiceNumber'] is not None) else '[`-NA-`] - '
-            msg += f"**${invoice['Total']:,.2f}** - {invoice['Status']} {icon}\n"
-            for line in invoice['LineItems']:
-                            #msg += "−−−−\n"
-                msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
-            msg += "––––————————————————\n"
+            # Show only invoices that are INV-<year> or HF-<year> or created in <year>
+            if (invoice['InvoiceNumber'].startswith(f"INV-{_year[2:]}") or invoice['InvoiceNumber'].startswith(f"HF-{_year[2:]}") or invoice['DateString'].startswith(f"{_year}")):
+                if invoice['InvoiceNumber'].endswith('-VOID'):
+                    # Skip invoices that were VOIDED. These have a -VOID at the end
+                    continue
+                loggers.debug(f"Invoice No: {invoice['InvoiceNumber']} for amount: {invoice['AmountDue']}")
+                if invoice['Status'] == 'PAID':
+                    icon='🟢'
+                elif invoice['Status'] == 'AUTHORISED':
+                    invoice['Status'] = 'DUE'
+                    icon='🟠'
+                elif invoice['Status'] == 'VOIDED':
+                    # Don't show VOIDED invoices
+                    continue
+                elif invoice['Status'] == 'DRAFT':
+                    icon='🟠'
+                elif invoice['Status'] == 'DELETED':
+                    # Don't show DELETED invoices
+                    continue
+                msg += f"**[{invoice['InvoiceNumber']}] - **" if (invoice['InvoiceNumber'] != '' and invoice['InvoiceNumber'] is not None) else '[`-NA-`] - '
+                msg += f"**${invoice['Total']:,.2f}** - {invoice['Status']} {icon}\n"
+                for line in invoice['LineItems']:
+                                #msg += "−−−−\n"
+                    msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
+                msg += "––––————————————————\n"
         return msg
     return f"No invoices for {_member_code}"
 
@@ -205,3 +209,6 @@ def send_profile_address_and_pic(client, _x, msg,result, keyboard = None):
 # ----------------------------------------------------------------------------------------------------------------------
 def is_valid_member_code(_member_code):
     return re.match('[A-Za-z]\d{2,3}', _member_code)
+# ----------------------------------------------------------------------------------------------------------------------
+def is_valid_year(year):
+    return len(year) == 4 and (re.match('\d{4}', year) is not None)

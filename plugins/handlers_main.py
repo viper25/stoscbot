@@ -39,7 +39,7 @@ def year_handler(client, message):
         message.reply(msg, reply_markup=keyboards.back_to_main_keyboard)
         return
     year = message.command[1]
-    if (len(year) ==4 and (re.match('\d{4}', year) is not None)):
+    if utils.is_valid_year(year):
         result=db.get_members_born_on(year)
         msg = f"**Members Born on {year}** ({len(result)})\n➖➖➖➖➖➖➖➖"
         if result:
