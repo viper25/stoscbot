@@ -90,7 +90,7 @@ def get_member_payments(_member_code, _year) -> list:
 # Returns a list of all Invoices paid and due for a member
 def generate_msg_xero_member_invoices(_member_code, _year):
     if not is_valid_year(_year):
-       return f"Not a valid year: {_year}"
+       return f"Not a valid year: **{_year}**"
     _invoices=xero_utils.get_Invoices(_member_code)
     if _invoices and len(_invoices['Invoices'])> 0:
         msg=f"--**{_invoices['Invoices'][0]['Contact']['Name']} ({_member_code})**--\n\n"
