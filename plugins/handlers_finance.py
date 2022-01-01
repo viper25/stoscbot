@@ -3,7 +3,6 @@ from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
 from stoscbots.bot import keyboards
 from stoscbots.xero import xero_utils
-import re
 from datetime import datetime
 # ==================================================
 '''
