@@ -60,55 +60,81 @@ def generate_profile_msg(result):
 
 # ----------------------------------------------------------------------------------------------------------------------
 # This method can be called from a Telegram button or command such as /x V019
-def generate_msg_xero_member_payments(_member_code, _year):
-    result=db.get_member_details(_member_code,'code')
-    _contactID=xero_utils.get_xero_ContactID(_member_code)
-    if _contactID is not None:
-        response=table_member_payments.query(KeyConditionExpression=Key('ContactID').eq(_contactID) & Key('AccountCode').begins_with(_year))
-        msg=f"**{result[0][1]}**\n`For Year {_year}`\n"
+def generate_msg_xero_member_payments(name, _member_code, _year):
+    payments = get_member_payments(_member_code, _year)
+    if payments:
+        msg=f"**{name}**\n`For Year {_year}`\n"
         msg += "➖➖➖➖➖➖➖\n"
-        if len(response['Items']) == 0:
+        if len(payments) == 0:
             msg += "No payments yet"
         latest_ts=''
-        for item in response['Items']:
+        for item in payments:
             msg += f"► {item['Account']}: **${str(item['LineAmount'])}**\n"
             latest_ts=item['modfied_ts'] if (item['modfied_ts'] > latest_ts) else latest_ts
         if latest_ts != '':
             msg += f"\n`As of: {latest_ts[:16]}`"
         return msg
-    return f"No contactID for {_member_code}"
+    return f"No contributions for **{_member_code}** for year **{_year}**"
+# ----------------------------------------------------------------------------------------------------------------------
+# Return a list of member payments for a year
+def get_member_payments(_member_code, _year) -> list:
+    xero_contactID = xero_utils.get_xero_ContactID(_member_code)
+    if xero_contactID is not None:
+        response=table_member_payments.query(KeyConditionExpression=Key('ContactID').eq(xero_contactID) & Key('AccountCode').begins_with(_year))
+    else:
+        return None
+    return response['Items']
+
 # ----------------------------------------------------------------------------------------------------------------------
 # This method can be called from a Telegram button or command such as /xs V019
 # Returns a list of all Invoices paid and due for a member
 def generate_msg_xero_member_invoices(_member_code, _year):
+    if not is_valid_year(_year):
+       return f"Not a valid year: **{_year}**"
     _invoices=xero_utils.get_Invoices(_member_code)
     if _invoices and len(_invoices['Invoices'])> 0:
         msg=f"--**{_invoices['Invoices'][0]['Contact']['Name']} ({_member_code})**--\n\n"
         icon='🟠' 
         for invoice in _invoices['Invoices']:
-            if invoice['InvoiceNumber'].endswith('-VOID'):
-                # Skip invoices that were VOIDED manually in FY21. These have a -VOID at the end
-                continue
-            loggers.debug(f"Invoice No: {invoice['InvoiceNumber']} for amount: {invoice['AmountDue']}")
-            if invoice['Status'] == 'PAID':
-                icon='🟢'
-            elif invoice['Status'] == 'AUTHORISED':
-                invoice['Status'] = 'DUE'
-                icon='🟠'
-            elif invoice['Status'] == 'VOIDED':
-                # Don't show VOIDED invoices
-                continue
-            elif invoice['Status'] == 'DRAFT':
-                icon='🟠'
-            elif invoice['Status'] == 'DELETED':
-                # Don't show DELETED invoices
-                continue
-            msg += f"**[{invoice['InvoiceNumber']}] - **" if (invoice['InvoiceNumber'] != '' and invoice['InvoiceNumber'] is not None) else '[`-NA-`] - '
-            msg += f"**${invoice['Total']:,.2f}** - {invoice['Status']} {icon}\n"
-            for line in invoice['LineItems']:
-                            #msg += "−−−−\n"
-                msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
-            msg += "––––————————————————\n"
+            # Show only invoices that are INV-<year> or HF-<year> or created in <year> or status = AUTHORIZED
+            if (
+                invoice["InvoiceNumber"].startswith(f"INV-{_year[2:]}")
+                or invoice["InvoiceNumber"].startswith(f"HF-{_year[2:]}")
+                # Invoice Date: to list invoices that are not subscription or harvest created in that year
+                or (
+                    invoice["DateString"].startswith(f"{_year}")
+                    and not invoice["InvoiceNumber"].startswith("HF-")
+                    and not invoice["InvoiceNumber"].startswith("INV-")
+                )
+                # Show all pending invoices upto <year>
+                or (
+                    invoice["Status"] == "AUTHORISED"
+                    and int(invoice["DateString"].split('-')[0]) <= int(_year)
+                )
+            ):
+                if invoice['InvoiceNumber'].endswith('-VOID'):
+                    # Skip invoices that were VOIDED. These have a -VOID at the end
+                    continue
+                loggers.debug(f"Invoice No: {invoice['InvoiceNumber']} for amount: {invoice['AmountDue']}")
+                if invoice['Status'] == 'PAID':
+                    icon='🟢'
+                elif invoice['Status'] == 'AUTHORISED':
+                    invoice['Status'] = 'DUE'
+                    icon='🟠'
+                elif invoice['Status'] == 'VOIDED':
+                    # Don't show VOIDED invoices
+                    continue
+                elif invoice['Status'] == 'DRAFT':
+                    icon='🟠'
+                elif invoice['Status'] == 'DELETED':
+                    # Don't show DELETED invoices
+                    continue
+                msg += f"**[{invoice['InvoiceNumber']}] - **" if (invoice['InvoiceNumber'] != '' and invoice['InvoiceNumber'] is not None) else '[`-NA-`] - '
+                msg += f"**${invoice['Total']:,.2f}** - {invoice['Status']} {icon}\n"
+                for line in invoice['LineItems']:
+                                #msg += "−−−−\n"
+                    msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
+                msg += "––––————————————————\n"
         return msg
     return f"No invoices for {_member_code}"
 
@@ -173,8 +199,9 @@ def generate_msg_member_auction_purchases(_member_code):
 # ----------------------------------------------------------------------------------------------------------------------
 def send_profile_address_and_pic(client, _x, msg,result, keyboard = None):
     if (result[0][4] != "" and result[0][4] is not None): 
-        lat, lon=get_address_details(result[0][4])
-        client.send_venue(chat_id=_x.from_user.id,latitude=float(lat),longitude=float(lon),title=result[0][1],address=result[0][2],disable_notification=True)
+        if get_address_details(result[0][4]):
+            lat, lon=get_address_details(result[0][4])
+            client.send_venue(chat_id=_x.from_user.id,latitude=float(lat),longitude=float(lon),title=result[0][1],address=result[0][2],disable_notification=True)
     try:
         # Per Simon, all images are png, so try looking that up first   
         client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png", caption=msg, reply_markup=keyboard)
@@ -196,3 +223,6 @@ def send_profile_address_and_pic(client, _x, msg,result, keyboard = None):
 # ----------------------------------------------------------------------------------------------------------------------
 def is_valid_member_code(_member_code):
     return re.match('[A-Za-z]\d{2,3}', _member_code)
+# ----------------------------------------------------------------------------------------------------------------------
+def is_valid_year(year):
+    return len(year) == 4 and (re.match('\d{4}', year) is not None)

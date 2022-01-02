@@ -32,14 +32,14 @@ def help_handler(client, message):
 # -------------------------------------------------
 @Client.on_message(filters.command(["year"]))
 @loggers.log_access
-@bot_auth.management_only
+@bot_auth.area_prayer_coordinator_only
 def year_handler(client, message):
     if len(message.command)==1:
         msg="Please enter the year you want to view\ne.g. '/year 2020'"
         message.reply(msg, reply_markup=keyboards.back_to_main_keyboard)
         return
     year = message.command[1]
-    if (len(year) ==4 and (re.match('\d{4}', year) is not None)):
+    if utils.is_valid_year(year):
         result=db.get_members_born_on(year)
         msg = f"**Members Born on {year}** ({len(result)})\n➖➖➖➖➖➖➖➖"
         if result:
@@ -121,7 +121,7 @@ def show_services_menu(client, query):
     if len(result) == 0:
         msg="No Services"
     else:
-        msg="**Upcoming Services**\n➖➖➖➖➖➖➖\n\n"
+        msg="**Upcoming Services**\n➖➖➖➖➖➖\n\n"
         _counter=0
         # Get first group in result set and see if it changes
         group=result[0][5]
@@ -202,7 +202,7 @@ def show_paynow_menu(client, query):
     msg += "    • PayNow to UEN: **S79SS0001L**\n"
     msg += "    • PayNow to QR code shown above\n"
     msg += "    • Bank transfer to DBS: **0480155596**\n"
-    msg += "    • NETS, Cash or Cheque at church office\n"
+    msg += "    • NETS, Cash or Cheque (payable to `St. Thomas Orthodox Syrian Cathedral`) at the church office\n"
     msg += "\n`Please mention your family code and purpose of contribution.`\n"
     msg += "`For multiple payments, you can make one transfer and email the breakdown to` accounts@stosc.com"
     client.send_photo(chat_id=query.from_user.id, photo='https://stosc.com/paynow/img/QR.png',caption=msg,reply_markup = keyboards.back_to_main_keyboard)
