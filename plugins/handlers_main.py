@@ -32,7 +32,7 @@ def help_handler(client, message):
 # -------------------------------------------------
 @Client.on_message(filters.command(["year"]))
 @loggers.log_access
-@bot_auth.management_only
+@bot_auth.area_prayer_coordinator_only
 def year_handler(client, message):
     if len(message.command)==1:
         msg="Please enter the year you want to view\ne.g. '/year 2020'"
