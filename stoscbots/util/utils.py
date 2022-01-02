@@ -96,8 +96,22 @@ def generate_msg_xero_member_invoices(_member_code, _year):
         msg=f"--**{_invoices['Invoices'][0]['Contact']['Name']} ({_member_code})**--\n\n"
         icon='🟠' 
         for invoice in _invoices['Invoices']:
-            # Show only invoices that are INV-<year> or HF-<year> or created in <year>
-            if (invoice['InvoiceNumber'].startswith(f"INV-{_year[2:]}") or invoice['InvoiceNumber'].startswith(f"HF-{_year[2:]}") or invoice['DateString'].startswith(f"{_year}")):
+            # Show only invoices that are INV-<year> or HF-<year> or created in <year> or status = AUTHORIZED
+            if (
+                invoice["InvoiceNumber"].startswith(f"INV-{_year[2:]}")
+                or invoice["InvoiceNumber"].startswith(f"HF-{_year[2:]}")
+                # Invoice Date: to list invoices that are not subscription or harvest created in that year
+                or (
+                    invoice["DateString"].startswith(f"{_year}")
+                    and not invoice["InvoiceNumber"].startswith("HF-")
+                    and not invoice["InvoiceNumber"].startswith("INV-")
+                )
+                # Show all pending invoices upto <year>
+                or (
+                    invoice["Status"] == "AUTHORISED"
+                    and int(invoice["DateString"].split('-')[0]) <= int(_year)
+                )
+            ):
                 if invoice['InvoiceNumber'].endswith('-VOID'):
                     # Skip invoices that were VOIDED. These have a -VOID at the end
                     continue
