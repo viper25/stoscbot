@@ -186,10 +186,11 @@ def show_my_harvest_festival_menu(client, query):
     query.answer()
     member_code = utils.getMemberCode_from_TelegramID(query.from_user.id)
     msg = "➖➖**My Harvest Details Menu** 🌽➖➖"
+    msg += "\n`Your successful bids from the last Harvest Festival`"
     my_auction_link = f"`My Auction Link:` {utils.get_member_auction_link(member_code)}"
     my_auction_spend = utils.generate_msg_member_auction_purchases(member_code)
     msg += "\n\n" + my_auction_spend
-    msg += "\n" + my_auction_link
+    # msg += "\n" + my_auction_link
     utils.edit_and_send_msg(query, msg, keyboards.back_to_main_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("PayNow Menu"))
