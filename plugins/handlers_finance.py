@@ -13,6 +13,11 @@ def dynamic_data_filter(data):
         lambda flt, _, query: flt.data == query.data,
         data=data  # "data" kwarg is accessed with "flt.data" above
     )
+def dynamic_data_filter_starts_with(data):
+    return filters.create(
+        lambda flt, _, query: query.data.startswith(flt.data),
+        data=data  # "data" kwarg is accessed with "flt.data" above
+    )
 # --------------------------------------------------
 @Client.on_message(filters.command(["x"]))
 @loggers.log_access
@@ -33,7 +38,7 @@ def finance_search_member_payments(client, message):
         if len(result) == 0:
             message.reply("No such Member")
             return  
-        elif len(result) >= 1:              
+        elif len(result) >= 1:
             # Figure out the year of accounts we want to retrieve 
             # /x v019 2020
             if len(message.command) == 3:
@@ -153,32 +158,38 @@ def get_finance_bank_summary(client, query):
     utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
 
 # --------------------------------------------------
-@Client.on_callback_query(dynamic_data_filter("Finance Trial Balance Button"))
+@Client.on_callback_query(dynamic_data_filter_starts_with("Finance Trial Balance"))
 @loggers.log_access
 def get_finance_trial_balance(client, query):
     query.answer()
+    is_income_report = "REVENUE" in query.data.upper()
     report=xero_utils.xero_get_trial_balance()['Reports'][0]['Rows']
-    msg="➖**TRIAL BALANCE**➖\n\n"
-    for row in report:
-        if row['RowType'] == 'Header':
-            debit_ytd_title=row['Cells'][3]['Value']
-            credit_ytd_title=row['Cells'][4]['Value']
-        else:
-            # For each Bank account
-            for _section in row['Rows']:
-                section=_section['Cells'][0]['Value']
-                loggers.debug(f"Processing [{section}]")
+    msg="**TRIAL BALANCE**\n"
+    msg+=f"`For Year {str(datetime.now().year)}`\n"
+    msg += "➖➖➖➖➖➖➖\n\n"
+    def __get_msg(rows, report_type):
+        __msg = ""
+        for row in rows:
+            account=row['Cells'][0]['Value']
+            loggers.debug(f"Processing [{account}]")
+            if report_type == 'revenue':
+                ytd_value=row['Cells'][4]['Value'] if row['Cells'][4]['Value'] != '' else 0
+            else:
+                ytd_value=row['Cells'][3]['Value'] if row['Cells'][3]['Value'] != '' else 0
 
-                debit_ytd_value=_section['Cells'][3]['Value'] if _section['Cells'][3]['Value'] != '' else 0
-                credit_ytd_value=_section['Cells'][4]['Value'] if _section['Cells'][4]['Value'] != '' else 0
+            __msg += f"{account}\n"
+            __msg += f"**${float(ytd_value):,.2f}**\n"
+            __msg += "––––————————————————\n"
+        # Remove last line
+        __msg = __msg[:-len("––––————————————————\n")]
+        return __msg
 
-                if not section.startswith('DBS FD'):
-                    msg += "〰〰〰〰〰\n"
-                    msg += f"**{section}**\n"
-                    if float(debit_ytd_value) != 0.0:
-                        msg += f"{debit_ytd_title}=${float(debit_ytd_value):,.2f}\n"
-                    if float(credit_ytd_value) != 0.0:
-                        msg += f"{credit_ytd_title}=${float(credit_ytd_value):,.2f}\n"
+    # report[1] = Revenue
+    if is_income_report:
+        msg += __get_msg(report[1]['Rows'], report_type = 'revenue')        
+    else:
+        # report[2] = Expense
+        msg += __get_msg(report[2]['Rows'], report_type = 'expense')
 
     # Telegram has a 4096 byte limit for msgs
     msg=(msg[:4076] + '\n`... (truncated)`') if len(msg) > 4096 else msg

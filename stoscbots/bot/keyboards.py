@@ -14,7 +14,6 @@ __MAIN_MY_DETAILS_BUTTON = InlineKeyboardButton("👨🏻 My Details 👩🏻", 
 __MAIN_MY_HARVEST_BUTTON = InlineKeyboardButton("My Harvest Festival 🌽", callback_data = "My Harvest Festival Menu")
 __MAIN_PAYNOW_BUTTON = InlineKeyboardButton("💵 PayNow", callback_data = "PayNow Menu")
 
-__MEMBERS_DETAILS_BUTTON = InlineKeyboardButton("Member Details", callback_data = "Member Details Button")
 __MEMBERS_BDAY_TODAY_BUTTON = InlineKeyboardButton("🎂 Birthdays today", callback_data = "Member Birthday Today Button")
 __MEMBERS_BDAY_WEEK_BUTTON = InlineKeyboardButton("🎂 Birthdays this week", callback_data = "Member Birthday Week Button")
 __MEMBERS_ANNIVERSARY_TODAY_BUTTON = InlineKeyboardButton("💍 Anniversaries today", callback_data = "Member Anniversary Today Button")
@@ -23,10 +22,10 @@ __MEMBERS_GB_INELIGIBLE_BUTTON = InlineKeyboardButton("❎ GB Ineligible", callb
 
 __FINANCE_EXEC_SUMMARY_BUTTON = InlineKeyboardButton("Executive Summary", callback_data = "Finance Executive Summary Button")
 __FINANCE_BANK_SUMMARY_BUTTON = InlineKeyboardButton("Bank Summary", callback_data = "Finance Bank Summary Button")
-__FINANCE_TRIAL_BAL_BUTTON = InlineKeyboardButton("Trial Balance", callback_data = "Finance Trial Balance Button")
+__FINANCE_TRIAL_INC_BAL_BUTTON = InlineKeyboardButton("Trial Bal Revenue", callback_data = "Finance Trial Balance Revenue Button")
+__FINANCE_TRIAL_EXP_BAL_BUTTON = InlineKeyboardButton("Trial Bal Expense", callback_data = "Finance Trial Balance Expense Button")
 __FINANCE_PAYMENTS_WTD_BUTTON = InlineKeyboardButton("Payments WTD", callback_data = "Finance Payments WTD Button")
 __FINANCE_LATEST_TX_BUTTON = InlineKeyboardButton("Latest Transactions", callback_data = "Finance Latest Transactions Button")
-__FINANCE_MEMBER_BAL_BUTTON = InlineKeyboardButton("ℹ Help", callback_data = "Finance Help Button")
 
 __MYDETAILS_MY_PROFILE_BUTTON = InlineKeyboardButton("🧾 My Profile", callback_data = "My Profile")
 __MYDETAILS_MY_CONTRIBUTIONS_BUTTON = InlineKeyboardButton("💳 My Contributions", callback_data = "My Contributions")
@@ -52,8 +51,8 @@ members_menu_keyboard = InlineKeyboardMarkup([
 
 finance_menu_keyboard = InlineKeyboardMarkup([
     [__FINANCE_EXEC_SUMMARY_BUTTON, __FINANCE_BANK_SUMMARY_BUTTON],
-    [__FINANCE_TRIAL_BAL_BUTTON, __FINANCE_PAYMENTS_WTD_BUTTON],
-    [__FINANCE_LATEST_TX_BUTTON, __FINANCE_MEMBER_BAL_BUTTON],
+    [__FINANCE_TRIAL_INC_BAL_BUTTON, __FINANCE_TRIAL_EXP_BAL_BUTTON],
+    [__FINANCE_LATEST_TX_BUTTON, __FINANCE_PAYMENTS_WTD_BUTTON],
     [__BACK_TO_MAIN_BUTTON]
 ])
 
