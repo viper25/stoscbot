@@ -173,6 +173,13 @@ def show_finance_menu(client, query):
     msg = "➖➖**Finance Menu**➖➖"
     query.message.reply(msg, reply_markup=keyboards.finance_menu_keyboard)
 # --------------------------------------------------
+@Client.on_callback_query(dynamic_data_filter1("St. Marys Menu"))
+@loggers.log_access
+def show_st_marys_menu(client, query):
+    query.answer()
+    msg = "➖➖**St. Mary's Menu**➖➖"
+    query.message.reply(msg, reply_markup=keyboards.stmarys_menu_keyboard)
+# --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("My Details Menu"))
 @loggers.log_access
 def show_my_details_menu(client, query):

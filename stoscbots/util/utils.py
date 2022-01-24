@@ -16,13 +16,12 @@ resource = boto3.resource(
     aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
     region_name="ap-southeast-1",
 )
-table_stosc_bot_member_telegram=resource.Table('stosc_bot_member_telegram')
-table_member_payments=resource.Table('member_payments')
-table_members=resource.Table('member_payments')
-table_harvest_metrics=resource.Table('stosc_harvest_metrics')
+table_stosc_bot_member_telegram = resource.Table('stosc_bot_member_telegram')
+table_member_payments = resource.Table('member_payments')
+table_harvest_metrics = resource.Table('stosc_harvest_metrics')
 table_harvest_items = resource.Table("stosc_harvest_items")
 table_harvest_members = resource.Table("stosc_harvest_members")
-
+table_stosc_xero_accounts_of_interest = resource.Table("stosc_xero_accounts_of_interest")
 # ----------------------------------------------------------------------------------------------------------------------
 # get STOSC Member code from Telegram ID
 def getMemberCode_from_TelegramID(telegram_id):
@@ -230,3 +229,13 @@ def is_valid_member_code(_member_code):
 # ----------------------------------------------------------------------------------------------------------------------
 def is_valid_year(year):
     return len(year) == 4 and (re.match('\d{4}', year) is not None)
+# ----------------------------------------------------------------------------------------------------------------------
+def get_tracked_projects(raw_data=False):
+    response = table_stosc_xero_accounts_of_interest.scan()
+    if raw_data:
+        return response["Items"]
+    msg = "**TRACKED PROJECTS**\n"
+    msg += "➖➖➖➖➖➖\n\n"
+    for _item in response["Items"]:
+        msg += f"• **{_item['AccountName']}** - `${_item['Total']:,.2f}`\n"
+    return msg

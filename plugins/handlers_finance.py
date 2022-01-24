@@ -261,9 +261,9 @@ def get_finance_latest_tx(client, query):
     msg=(msg[:4076] + '\n`... (truncated)`') if len(msg) > 4096 else msg
     utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
 # --------------------------------------------------
-@Client.on_callback_query(dynamic_data_filter("Finance Help Button"))
+@Client.on_callback_query(dynamic_data_filter("Finance Track Button"))
 @loggers.log_access
-def get_finance_help(client, query):
+def get_finance_tracking(client, query):
     query.answer()
-    msg="🚨 Get member Balances by **member ID** or **Name**. \n Examples:\n‣ Payments by member code: `/x A001`\n‣ Subscriptions by member code: `/xs A001`"
+    msg = utils.get_tracked_projects()
     utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
