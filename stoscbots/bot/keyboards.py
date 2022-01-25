@@ -27,7 +27,7 @@ __FINANCE_TRIAL_INC_BAL_BUTTON = InlineKeyboardButton("Trial Bal Revenue", callb
 __FINANCE_TRIAL_EXP_BAL_BUTTON = InlineKeyboardButton("Trial Bal Expense", callback_data = "Finance Trial Balance Expense Button")
 __FINANCE_PAYMENTS_WTD_BUTTON = InlineKeyboardButton("Payments WTD", callback_data = "Finance Payments WTD Button")
 __FINANCE_LATEST_TX_BUTTON = InlineKeyboardButton("Latest Transactions", callback_data = "Finance Latest Transactions Button")
-__FINANCE_TRACK_BUTTON = InlineKeyboardButton("Projects", callback_data = "Finance Track Button")
+__FINANCE_TRACK_BUTTON = InlineKeyboardButton("Projects", callback_data = "Finance Projects Button")
 
 __ST_MARYS_EXEC_SUMMARY_BUTTON = InlineKeyboardButton("📊 Projects Summary", callback_data = "St. Marys Project Summary Button")
 
