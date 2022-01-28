@@ -104,8 +104,9 @@ def get_bank_summary():
     return __xero_get(url)
 # ----------------------------------------------------------------------------------------------------------------------
 # Returns a trial balance for the current month up to the date specified. YTD values are shown too.
+# Set paymentsOnly=true to get Cash Basis (actual payments and not receivables)
 def xero_get_trial_balance():
-    url = f'https://api.xero.com/api.xro/2.0/Reports/TrialBalance?date={utils.todays_date()}'
+    url = f'https://api.xero.com/api.xro/2.0/Reports/TrialBalance?paymentsOnly=true&date={utils.todays_date()}'
     return __xero_get(url)
 # ----------------------------------------------------------------------------------------------------------------------
 def xero_get_payments():
