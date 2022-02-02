@@ -163,10 +163,10 @@ def get_finance_bank_summary(client, query):
 def get_finance_trial_balance(client, query):
     query.answer()
     is_income_report = "REVENUE" in query.data.upper()
-    report=xero_utils.xero_get_trial_balance()['Reports'][0]['Rows']
     msg="**TRIAL BALANCE**\n"
     msg+=f"`For Year {str(datetime.now().year)}`\n"
     msg += "➖➖➖➖➖➖➖\n\n"
+
     def __get_msg(rows, report_type):
         __msg = ""
         for row in rows:
@@ -186,8 +186,10 @@ def get_finance_trial_balance(client, query):
 
     # report[1] = Revenue
     if is_income_report:
+        report=xero_utils.xero_get_trial_balance(_paymentsOnly=True)['Reports'][0]['Rows']
         msg += __get_msg(report[1]['Rows'], report_type = 'revenue')        
     else:
+        report=xero_utils.xero_get_trial_balance()['Reports'][0]['Rows']
         # report[2] = Expense
         msg += __get_msg(report[2]['Rows'], report_type = 'expense')
 
