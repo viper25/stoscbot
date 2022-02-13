@@ -54,7 +54,7 @@ def __db_executeQuery(sql, db, prepared=False, *args):
 
 # ----------------------------------------------------------------------------------------------------------------------
 def get_next_services():
-    sql = "select s.service_ID, s.service_Name, s.service_Date, s.attendees_Limit, sum(r.people_Count) as registered, s.group_ID from services s, registrations r where s.service_ID=r.service_ID and r.cancelled is null and s.service_Date > DATE_ADD(now(), INTERVAL -7 DAY) group by 1,2,3,4 order by s.service_Date, s.group_ID asc limit 8;"
+    sql = "select s.service_ID, s.service_Name, s.service_Date, s.attendees_Limit, sum(r.people_Count) as registered, s.group_ID from services s, registrations r where s.service_ID=r.service_ID and r.cancelled is null and s.active =1 and s.service_Date > DATE_ADD(now(), INTERVAL -7 DAY) group by 1,2,3,4 order by s.service_Date, s.group_ID asc limit 8;"
 
     _result = __db_executeQuery(sql, Databases.FORMS)
     return _result
