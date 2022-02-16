@@ -17,7 +17,7 @@ resource = boto3.resource(
     region_name="ap-southeast-1",
 )
 table_stosc_bot_member_telegram = resource.Table('stosc_bot_member_telegram')
-table_member_payments = resource.Table('member_payments')
+table_member_payments = resource.Table('stosc_xero_member_payments')
 table_harvest_metrics = resource.Table('stosc_harvest_metrics')
 table_harvest_items = resource.Table("stosc_harvest_items")
 table_harvest_members = resource.Table("stosc_harvest_members")
