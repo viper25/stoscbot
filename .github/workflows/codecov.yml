@@ -1,7 +1,10 @@
 name: CodeCov
-on: 
+
+on:
   push:
-    branches: [ reports ]
+    branches:
+      - '*'
+      
 jobs:
   run:
     runs-on: ubuntu-latest
