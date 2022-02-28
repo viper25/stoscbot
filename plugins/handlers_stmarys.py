@@ -26,4 +26,6 @@ def get_finance_stmarys_executive_summary(client, query):
             msg += f"• **{_item['AccountName']}** - `${_item['Total']:,.2f}`\n"
         elif _item['AccountName'] == 'Vanitha Dinam':
             msg += f"• **{_item['AccountName']}** - `${_item['Total']:,.2f}`\n"
+        elif _item['AccountName'] == 'Pethrutha':
+            msg += f"• **{_item['AccountName']}** - `${_item['Total']:,.2f}`\n"
     utils.edit_and_send_msg(query, msg, keyboards.stmarys_menu_keyboard)
