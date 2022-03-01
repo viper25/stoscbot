@@ -94,3 +94,8 @@ pip install --upgrade -r requirements.txt
 
 * Good Reference on structuring Python project: 
 https://github.com/Fumaz/TTSBot
+
+## TODO
+
+* [Define Default Values in Dictionaries With .get() and .setdefault()])(https://realpython.com/python-coding-interview-tips/#define-default-values-in-dictionaries-with-get-and-setdefault)
+* In interating over long lists, use [generators](https://realpython.com/python-coding-interview-tips/#save-memory-with-generators)
