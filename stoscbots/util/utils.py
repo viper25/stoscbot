@@ -237,5 +237,6 @@ def get_tracked_projects(raw_data=False):
     msg = "**TRACKED PROJECTS**\n"
     msg += "➖➖➖➖➖➖➖➖\n\n"
     for _item in response["Items"]:
-        msg += f"• {_item['AccountName']} - `${_item['Total']:,.2f}`\n"
+        if _item['Total']:
+            msg += f"• {_item['AccountName']} - `${_item['Total']:,.2f}`\n"
     return msg
