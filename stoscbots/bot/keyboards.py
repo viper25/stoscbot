@@ -124,15 +124,13 @@ def get_main_keyboard(telegram_id):
 
 # Dynamically generate a keyboard with upcoming services and prayer requests
 def get_services_keyboard(next_services):
-    _counter = 0
     # Kerboard is a double List
     keyboard = []
     _keyboard_rows = []
 
     cols_per_row = 2
 
-    for _item in next_services:
-        _counter += 1
+    for _counter, _item in enumerate(next_services):
         if datetime.now() > _item[2]:
             _keyboard_text = f'🔒 {_item[2].strftime("%b %d")} registrations »'
         else:
@@ -143,7 +141,7 @@ def get_services_keyboard(next_services):
             )
         )
         # For every 2 cols in a row
-        if _counter % cols_per_row == 0:
+        if (_counter + 1) % cols_per_row == 0:
             # Add the rows to the main keyboard
             keyboard.append(_keyboard_rows)
             # Reinitialize the row
@@ -155,15 +153,13 @@ def get_services_keyboard(next_services):
 
 # Generate a Keyboard of member search results
 def get_member_listing_keyboard(results):
-    _counter=0
     # Kerboard is a double List
     keyboard = []
     _keyboard_rows = []
 
     cols_per_row = 2
 
-    for _item in results:
-        _counter += 1
+    for _counter, _item in enumerate(results):
         icon = ''
 
         # Head of Family
@@ -199,7 +195,7 @@ def get_member_listing_keyboard(results):
             )
         )
         # For every 2 cols in a row
-        if _counter % cols_per_row == 0:
+        if (_counter + 1) % cols_per_row == 0:
             # Add the rows to the main keyboard
             keyboard.append(_keyboard_rows)
             # Reinitialize the row
