@@ -23,9 +23,9 @@ def get_finance_stmarys_executive_summary(client, query):
     report = utils.get_tracked_projects(raw_data=True)
     for _item in report:
         if _item['AccountName'] == 'Snehasparsham' and _item['Total']:
-            msg += f"• **{_item['AccountName']}** - `${_item['Total']:,.2f}`\n"
+            msg += f"•** {_item['AccountName']}** - `${_item['Total']:,.2f}`\n"
         elif _item['AccountName'] == 'Vanitha Dinam' and _item['Total']:
-            msg += f"• **{_item['AccountName']}** - `${_item['Total']:,.2f}`\n"
+            msg += f"•** {_item['AccountName']}** - `${_item['Total']:,.2f}`\n"
         elif _item['AccountName'] == 'Pethrutha' and _item['Total']:
-            msg += f"• **{_item['AccountName']}** - `${_item['Total']:,.2f}`\n"
+            msg += f"•** {_item['AccountName']}** - `${_item['Total']:,.2f}`\n"
     utils.edit_and_send_msg(query, msg, keyboards.stmarys_menu_keyboard)
