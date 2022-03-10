@@ -1,7 +1,6 @@
 import os
 import boto3
 from boto3.dynamodb.conditions import Key
-from stoscbots.db import db
 from stoscbots.xero import xero_utils
 from stoscbots.util import loggers
 from datetime import date

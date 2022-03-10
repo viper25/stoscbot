@@ -1,4 +1,4 @@
-[![STOSCBot Build](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml/badge.svg)](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml)
+[![STOSCBot Build](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml/badge.svg)](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml)  [![codecov](https://codecov.io/gh/viper25/stoscbot/branch/CodeCoverage/graph/badge.svg?token=QQ3WXQ2TSQ)](https://codecov.io/gh/viper25/stoscbot)
 
 # STOSC Bot
 A Telegram bot (based on [Pyrogram](https://docs.pyrogram.org/)) to manage affairs of the St. Thomas Orthodox Syrian Cathedral, Singapore.
@@ -54,6 +54,11 @@ pip install --upgrade -r requirements.txt
 ```
 </details>
 
+## Run Tests
+```
+pytest --cov=./ --cov-report=xml
+coverage report
+```
 
 ## Deployment
 <details>
@@ -89,11 +94,6 @@ pip install --upgrade -r requirements.txt
 3. Set a startup script in Azure Console under `Startup Command`. This is what will be used to start the bot (do not ignore the `.session` file). 
 4. It is expected the app provide an application running at port 8000. If not, the Azure App Service container will stop after a while (and our bot process will be killed). 
 </details>
-
-## Reference
-
-* Good Reference on structuring Python project: 
-https://github.com/Fumaz/TTSBot
 
 ## TODO
 
