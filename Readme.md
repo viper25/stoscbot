@@ -42,7 +42,6 @@ Dependencies
 
 ## Install dependencies.
 
-
 ```bash
 pip install -r requirements.txt
 ```
@@ -54,11 +53,17 @@ pip install --upgrade -r requirements.txt
 ```
 </details>
 
+<details>
+<summary>
+Tests
+</summary>
+
 ## Run Tests
 ```
 pytest --cov=./ --cov-report=xml
 coverage report
 ```
+</details>
 
 ## Deployment
 <details>
