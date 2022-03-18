@@ -39,7 +39,7 @@ def get_address_details(_zip: str):
         loggers.error(f"Exception in onemap API: {e}")
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate a Member Profile msg
-def generate_profile_msg(result: list[tuple]):
+def generate_profile_msg(result: list):
     msg=f"• Name: **{result[0][1]}**\n"
     if (result[0][2] != "" and result[0][2] is not None):
         msg += f"• Add: **{result[0][2]}**"
@@ -201,7 +201,7 @@ def generate_msg_member_auction_purchases(_member_code: str):
         msg = "No Purchases yet\n"
     return msg
 # ----------------------------------------------------------------------------------------------------------------------
-def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list[tuple], keyboard: InlineKeyboardMarkup = None):
+def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list, keyboard: InlineKeyboardMarkup = None):
     if (result[0][4] != "" and result[0][4] is not None): 
         if get_address_details(result[0][4]):
             lat, lon=get_address_details(result[0][4])
