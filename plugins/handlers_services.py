@@ -1,4 +1,5 @@
 from pyrogram import Client, filters
+from pyrogram.types import CallbackQuery
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
 from stoscbots.bot import keyboards
@@ -19,7 +20,7 @@ def dynamic_data_filter(data):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Registrations for Service"))
 @loggers.log_access
-def get_service_registrations(client, query):
+def get_service_registrations(client: Client, query: CallbackQuery):
     query.answer()
     _service_id = query.data.split(" ")[3]
     serviceName, serviceDate, serviceList, kids_count = db.get_members_for_serviceID(_service_id)
@@ -47,7 +48,7 @@ def get_service_registrations(client, query):
 @Client.on_callback_query(dynamic_data_filter("Prayer Requests"))
 @loggers.log_access
 # Check if there is any prayer request for this week submitted after current service starts at 7.45
-def get_prayer_requests(client, query):
+def get_prayer_requests(client: Client, query: CallbackQuery):
     query.answer()
 
     # Credentials are at %APPDATA%\gspread\service_account.json or
