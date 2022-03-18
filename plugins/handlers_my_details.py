@@ -1,4 +1,5 @@
 from pyrogram import Client, filters
+from pyrogram.types import CallbackQuery
 from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils
@@ -21,7 +22,7 @@ def dynamic_data_filter(data):
 # Callback Handlers (for Buttons)
 @Client.on_callback_query(dynamic_data_filter("My Profile"))
 @loggers.log_access
-def show_my_profile(client, query):
+def show_my_profile(client: Client, query: CallbackQuery):
     query.answer()
     _member_code=utils.getMemberCode_from_TelegramID(query.from_user.id)
     result=db.get_member_details(_member_code,'code')
@@ -33,7 +34,7 @@ def show_my_profile(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("My Contributions"))
 @loggers.log_access
-def show_my_contributions(client, query):
+def show_my_contributions(client: Client, query: CallbackQuery):
     query.answer()
     # Set to current year
     _year=str(datetime.now().year)
@@ -44,7 +45,7 @@ def show_my_contributions(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("My Subscriptions"))
 @loggers.log_access
-def show_my_subscriptions(client, query):
+def show_my_subscriptions(client: Client, query: CallbackQuery):
     query.answer()
     # Set to current year
     _year=str(datetime.now().year)
@@ -54,7 +55,7 @@ def show_my_subscriptions(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Help"))
 @loggers.log_access
-def show_help(client, query):
+def show_help(client: Client, query: CallbackQuery):
     query.answer()
     msg="How to use\n"
     msg += "➖➖➖➖➖\n"
@@ -68,7 +69,7 @@ def show_help(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("List of Accounts"))
 @loggers.log_access
-def show_list_accounts(client, query):
+def show_list_accounts(client: Client, query: CallbackQuery):
     query.answer()
     payments = utils.get_member_payments(utils.getMemberCode_from_TelegramID(query.from_user.id), str(datetime.now().year))
     msg="List of Accounts\n"

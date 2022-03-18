@@ -1,5 +1,5 @@
 from pyrogram import Client, filters
-from stoscbots.db import db
+from pyrogram.types import CallbackQuery
 from stoscbots.util import loggers, utils, bot_auth
 from stoscbots.bot import keyboards
 from stoscbots.xero import xero_utils
@@ -16,7 +16,7 @@ def dynamic_data_filter(data):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("St. Marys Project Summary Button"))
 @loggers.log_access
-def get_finance_stmarys_executive_summary(client, query):
+def get_finance_stmarys_executive_summary(client: Client, query: CallbackQuery):
     query.answer()
     msg = "**EXECUTIVE SUMMARY\n"
     msg += "➖➖➖➖➖➖➖➖➖\n\n"

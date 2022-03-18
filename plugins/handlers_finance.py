@@ -1,4 +1,5 @@
 from pyrogram import Client, filters
+from pyrogram.types import Message, CallbackQuery
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
 from stoscbots.bot import keyboards
@@ -22,7 +23,7 @@ def dynamic_data_filter_starts_with(data):
 @Client.on_message(filters.command(["x"]))
 @loggers.log_access
 @bot_auth.management_only
-def finance_search_member_payments(client, message):
+def finance_search_member_payments(client: Client, message: Message):
     member_code = None
     if len(message.command) >= 2:
         member_code = message.command[1].upper()
@@ -52,7 +53,7 @@ def finance_search_member_payments(client, message):
 @Client.on_message(filters.command(["xs"]))
 @loggers.log_access
 @bot_auth.management_only
-def finance_search_member_sub(client, message):
+def finance_search_member_sub(client: Client, message: Message):
     member_code = None
     if len(message.command) >= 2:
         member_code = message.command[1].upper()
@@ -81,7 +82,7 @@ def finance_search_member_sub(client, message):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Executive Summary Button"))
 @loggers.log_access
-def get_finance_executive_summary(client, query):
+def get_finance_executive_summary(client: Client, query: CallbackQuery):
     query.answer()
     report=xero_utils.get_executive_summary()['Reports'][0]['Rows']
     msg="➖**EXECUTIVE SUMMARY**➖\n\n"
@@ -117,7 +118,7 @@ def get_finance_executive_summary(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Bank Summary Button"))
 @loggers.log_access
-def get_finance_bank_summary(client, query):
+def get_finance_bank_summary(client: Client, query: CallbackQuery):
     query.answer()
     report=xero_utils.get_bank_summary()['Reports'][0]['Rows']
     msg="➖**BANK ACCOUNTS SUMMARY**➖\n\n"
@@ -160,7 +161,7 @@ def get_finance_bank_summary(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter_starts_with("Finance Trial Balance"))
 @loggers.log_access
-def get_finance_trial_balance(client, query):
+def get_finance_trial_balance(client: Client, query: CallbackQuery):
     query.answer()
     is_income_report = "REVENUE" in query.data.upper()
     msg="**TRIAL BALANCE**\n"
@@ -200,7 +201,7 @@ def get_finance_trial_balance(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Payments WTD Button"))
 @loggers.log_access
-def get_finance_payments_wtd_balance(client, query):
+def get_finance_payments_wtd_balance(client: Client, query: CallbackQuery):
     query.answer()
     payments=xero_utils.xero_get_payments()
     msg="➖**INVOICE/BILL PAYMENTS**➖\n\n"
@@ -225,7 +226,7 @@ def get_finance_payments_wtd_balance(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Latest Transactions Button"))
 @loggers.log_access
-def get_finance_latest_tx(client, query):
+def get_finance_latest_tx(client: Client, query: CallbackQuery):
     query.answer()
     bank_tx=xero_utils.xero_get_bank_transactions()
     msg="➖**TRANSACTIONS (WTD)**➖\n`No Invoice (subscription) or bill payment transactions shown`\n\n"
@@ -265,7 +266,7 @@ def get_finance_latest_tx(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Projects Button"))
 @loggers.log_access
-def get_finance_tracking(client, query):
+def get_finance_tracking(client: Client, query: CallbackQuery):
     query.answer()
     msg = utils.get_tracked_projects()
     utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
