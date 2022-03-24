@@ -95,48 +95,48 @@ def generate_msg_xero_member_invoices(_member_code: str, _year: str):
     if _invoices and len(_invoices['Invoices'])> 0:
         msg=f"--**{_invoices['Invoices'][0]['Contact']['Name']} ({_member_code})**--\n\n"
         icon='🟠' 
-        for invoice in _invoices['Invoices']:
-            # Show only invoices that are INV-<year> or HF-<year> or created in <year> or status = AUTHORIZED
+        for invoice in _invoices["Invoices"]:
             if (
-                invoice["InvoiceNumber"].startswith(f"INV-{_year[2:]}")
-                or invoice["InvoiceNumber"].startswith(f"HF-{_year[2:]}")
-                # Invoice Date: to list invoices that are not subscription or harvest created in that year
-                or (
-                    invoice["DateString"].startswith(f"{_year}")
-                    and not invoice["InvoiceNumber"].startswith("HF-")
-                    and not invoice["InvoiceNumber"].startswith("INV-")
-                )
-                # Show all pending invoices upto <year>
-                or (
-                    invoice["Status"] == "AUTHORISED"
-                    and int(invoice["DateString"].split('-')[0]) <= int(_year)
+                # Show only Invoices and not Bills
+                invoice["Type"] == "ACCREC"
+                # Don't show VOID invoices
+                and not invoice["InvoiceNumber"].endswith("-VOID")
+                and (
+                    # Show only invoices that are INV-<year> or HF-<year> or created in <year> or status = AUTHORIZED
+                    invoice["InvoiceNumber"].startswith(f"INV-{_year[2:]}")
+                    or invoice["InvoiceNumber"].startswith(f"HF-{_year[2:]}")  # Show all pending invoices upto <year>
+                    or (invoice["Status"] == "AUTHORISED" and int(invoice["DateString"].split("-")[0]) <= int(_year))
                 )
             ):
-                if invoice['InvoiceNumber'].endswith('-VOID'):
+                if invoice["InvoiceNumber"].endswith("-VOID"):
                     # Skip invoices that were VOIDED. These have a -VOID at the end
                     continue
                 loggers.debug(f"Invoice No: {invoice['InvoiceNumber']} for amount: {invoice['AmountDue']}")
-                if invoice['Status'] == 'PAID':
-                    icon='🟢'
-                elif invoice['Status'] == 'AUTHORISED':
-                    invoice['Status'] = 'DUE'
-                    icon='🟠'
-                elif invoice['Status'] == 'VOIDED':
+                if invoice["Status"] == "PAID":
+                    icon = "🟢"
+                elif invoice["Status"] == "AUTHORISED":
+                    invoice["Status"] = "DUE"
+                    icon = "🟠"
+                elif invoice["Status"] == "VOIDED":
                     # Don't show VOIDED invoices
                     continue
-                elif invoice['Status'] == 'DRAFT':
-                    icon='🟠'
-                elif invoice['Status'] == 'DELETED':
+                elif invoice["Status"] == "DRAFT":
+                    icon = "🟠"
+                elif invoice["Status"] == "DELETED":
                     # Don't show DELETED invoices
                     continue
-                msg += f"**[{invoice['InvoiceNumber']}] - **" if (invoice['InvoiceNumber'] != '' and invoice['InvoiceNumber'] is not None) else '[`-NA-`] - '
+                msg += (
+                    f"**[{invoice['InvoiceNumber']}] - **"
+                    if (invoice["InvoiceNumber"] != "" and invoice["InvoiceNumber"] is not None)
+                    else "[`-NA-`] - "
+                )
                 # For a neater display
-                if invoice['AmountDue'] ==  0 or invoice['AmountDue'] == invoice['Total']:
+                if invoice["AmountDue"] == 0 or invoice["AmountDue"] == invoice["Total"]:
                     msg += f"**${invoice['Total']:,.2f}**: {invoice['Status']} {icon}\n"
                 else:
                     msg += f"**${invoice['Total']:,.2f}**: ${invoice['AmountDue']:,.2f} {invoice['Status']} {icon}\n"
-                for line in invoice['LineItems']:
-                                #msg += "−−−−\n"
+                for line in invoice["LineItems"]:
+                    # msg += "−−−−\n"
                     msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
                 msg += "––––————————————————\n"
         return msg
