@@ -29,7 +29,7 @@ On Linux:
 Change `config.ini` for server. 
 
 ```bash
-source .venv/Scripts/activate
+source .venv/bin/activate
 nohup python3 run_stoscbot.py &
 ```
 </details>
