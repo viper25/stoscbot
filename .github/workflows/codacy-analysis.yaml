@@ -2,7 +2,7 @@ name: Codacy Analysis CLI
 
 on:
   push:
-    branches: [ github_actions, codacy_fixes, dev ]
+    branches: [ codacy_fixes ]
 
 jobs:
   codacy-analysis-cli:

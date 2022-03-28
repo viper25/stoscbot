@@ -1,4 +1,5 @@
 from pyrogram import Client, filters
+from pyrogram.types import CallbackQuery
 from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils
@@ -16,7 +17,7 @@ def dynamic_data_filter(data):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Member Birthday Today Button"))
 @loggers.log_access
-def get_today_bdays(client, query):
+def get_today_bdays(client: Client, query: CallbackQuery):
     query.answer()
     start, end, result=db.get_bday('d')
     if len(result) ==0:
@@ -29,7 +30,7 @@ def get_today_bdays(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Member Anniversary Today Button"))
 @loggers.log_access
-def get_today_anniversaries(client, query):
+def get_today_anniversaries(client: Client, query: CallbackQuery):
     query.answer()
     start, end, result=db.get_anniversaries('d')
     if len(result) ==0:
@@ -42,7 +43,7 @@ def get_today_anniversaries(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Member Birthday Week Button"))
 @loggers.log_access
-def get_weeks_bdays(client, query):
+def get_weeks_bdays(client: Client, query: CallbackQuery):
     query.answer()
     start, end, result=db.get_bday('w')
     if len(result) ==0:
@@ -56,7 +57,7 @@ def get_weeks_bdays(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Member Anniversary Week Button"))
 @loggers.log_access
-def get_weeks_anniversaries(client, query):
+def get_weeks_anniversaries(client: Client, query: CallbackQuery):
     query.answer()
     start, end, result=db.get_anniversaries('w')
     if len(result) ==0:
@@ -70,7 +71,7 @@ def get_weeks_anniversaries(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("GB Ineligible"))
 @loggers.log_access
-def member_gb_ineligible(client, query):
+def member_gb_ineligible(client: Client, query: CallbackQuery):
     query.answer()
     result=db.get_gb_ineligible()
     msg = f"**GB Ineligible** `({len(result)})`\n"

@@ -6,7 +6,7 @@ on:
       - '*'
 
 jobs:
-  Build_and_Lint:
+  Build_Lint_Test_Coverage:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,9 +27,30 @@ jobs:
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
+    - name: Run Tests
+      env:
+        STOSC_DB_HOST: ${{ secrets.STOSC_DB_HOST }}
+        STOSC_DB_PWD: ${{ secrets.STOSC_DB_PWD }}
+        STOSC_LOGS: ${{ secrets.STOSC_LOGS }}
+        STOSC_TELEGRAM_BOT_TOKEN: ${{ secrets.STOSC_TELEGRAM_BOT_TOKEN }}
+        STOSC_DDB_ACCESS_KEY_ID: ${{ secrets.STOSC_DDB_ACCESS_KEY_ID }}
+        STOSC_DDB_SECRET_ACCESS_KEY: ${{ secrets.STOSC_DDB_SECRET_ACCESS_KEY }}
+        STOSC_XERO_STOSC_TENANT_ID: ${{ secrets.STOSC_XERO_STOSC_TENANT_ID }}
+        STOSC_XERO_CLIENT_ID: ${{ secrets.STOSC_XERO_CLIENT_ID }}
+        VIBIN_TELEGRAM_ID: ${{ secrets.VIBIN_TELEGRAM_ID }}
+      run: |
+        pip install pytest-cov
+        pytest --cov=./ --cov-report=xml
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: true
+
   Deploy_to_VM:
     runs-on: ubuntu-latest
-    needs: [ Build_and_Lint ]
+    needs: [ Build_Lint_Test_Coverage ]
     if: github.ref == 'refs/heads/main'
 
     steps:

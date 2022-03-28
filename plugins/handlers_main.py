@@ -1,4 +1,5 @@
 from pyrogram import Client, filters
+from pyrogram.types import Message, CallbackQuery
 from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
@@ -10,14 +11,14 @@ import re
 @Client.on_message(filters.command(["start"]))
 @loggers.log_access
 @bot_auth.member_only
-def start_handler(client, message):
+def start_handler(client: Client, message: Message):
     msg="What would you like to do?\n Select an option:"
     message.reply(msg, reply_markup=keyboards.get_main_keyboard(message.from_user.id))
 # -------------------------------------------------
 @Client.on_message(filters.command(["help"]))
 @loggers.log_access
 @bot_auth.member_only
-def help_handler(client, message):
+def help_handler(client: Client, message: Message):
     msg="**Help**\n➖➖"
     msg+="\nI can help you use STOSC Bot. If you're new to the Bot, please see /help\n"
     msg+="\nYou can control me by sending these commands or clicking the buttons at /start:\n"
@@ -32,14 +33,14 @@ def help_handler(client, message):
 # -------------------------------------------------
 @Client.on_message(filters.command(["year"]))
 @loggers.log_access
-@bot_auth.management_only
-def year_handler(client, message):
+@bot_auth.area_prayer_coordinator_only
+def year_handler(client: Client, message: Message):
     if len(message.command)==1:
         msg="Please enter the year you want to view\ne.g. '/year 2020'"
         message.reply(msg, reply_markup=keyboards.back_to_main_keyboard)
         return
     year = message.command[1]
-    if (len(year) ==4 and (re.match('\d{4}', year) is not None)):
+    if utils.is_valid_year(year):
         result=db.get_members_born_on(year)
         msg = f"**Members Born on {year}** ({len(result)})\n➖➖➖➖➖➖➖➖"
         if result:
@@ -62,7 +63,7 @@ def year_handler(client, message):
 @Client.on_message(filters.command(["u"]))
 @loggers.log_access
 @bot_auth.area_prayer_coordinator_only
-def member_search_cmd_handler(client, message):
+def member_search_cmd_handler(client: Client, message: Message):
     if len(message.command) != 2:
         msg="Please enter a Member Code or Name to search"
         message.reply(msg,quote=True)
@@ -107,7 +108,7 @@ def dynamic_data_filter2(data):
 # Callback Handlers (for Buttons)
 @Client.on_callback_query(dynamic_data_filter1("Main Menu"))
 @loggers.log_access
-def show_main_menu(client, query):
+def show_main_menu(client: Client, query: CallbackQuery):
     query.answer()
     msg = "➖➖**Main Menu**➖➖"
     query.message.reply(msg, reply_markup=keyboards.get_main_keyboard(query.from_user.id))
@@ -115,13 +116,13 @@ def show_main_menu(client, query):
 # Callback Handlers (for Buttons)
 @Client.on_callback_query(dynamic_data_filter1("Services Menu"))
 @loggers.log_access
-def show_services_menu(client, query):
+def show_services_menu(client: Client, query: CallbackQuery):
     query.answer()
     result=db.get_next_services()
     if len(result) == 0:
         msg="No Services"
     else:
-        msg="**Upcoming Services**\n➖➖➖➖➖➖➖\n\n"
+        msg="**Upcoming Services**\n➖➖➖➖➖➖\n\n"
         _counter=0
         # Get first group in result set and see if it changes
         group=result[0][5]
@@ -154,47 +155,55 @@ def show_services_menu(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("Members Menu"))
 @loggers.log_access
-def show_members_menu(client, query):
+def show_members_menu(client: Client, query: CallbackQuery):
     query.answer()
     msg = "➖➖**Members Menu**➖➖"
     utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("Prayer Groups Menu"))
 @loggers.log_access
-def show_prayer_groups_menu(client, query):
+def show_prayer_groups_menu(client: Client, query: CallbackQuery):
     query.answer()
     msg = "➖➖**Area Prayer Group Menu**➖➖"
     utils.edit_and_send_msg(query, msg, keyboards.area_prayer_groups_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("Finance Menu"))
 @loggers.log_access
-def show_finance_menu(client, query):
+def show_finance_menu(client: Client, query: CallbackQuery):
     query.answer()
     msg = "➖➖**Finance Menu**➖➖"
     query.message.reply(msg, reply_markup=keyboards.finance_menu_keyboard)
 # --------------------------------------------------
+@Client.on_callback_query(dynamic_data_filter1("St. Marys Menu"))
+@loggers.log_access
+def show_st_marys_menu(client: Client, query: CallbackQuery):
+    query.answer()
+    msg = "➖➖**St. Mary's Menu**➖➖"
+    query.message.reply(msg, reply_markup=keyboards.stmarys_menu_keyboard)
+# --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("My Details Menu"))
 @loggers.log_access
-def show_my_details_menu(client, query):
+def show_my_details_menu(client: Client, query: CallbackQuery):
     query.answer()
     msg = "➖➖**My Details Menu**➖➖"
     utils.edit_and_send_msg(query, msg, keyboards.my_details_menu_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("My Harvest Festival Menu"))
 @loggers.log_access
-def show_my_harvest_festival_menu(client, query):
+def show_my_harvest_festival_menu(client: Client, query: CallbackQuery):
     query.answer()
     member_code = utils.getMemberCode_from_TelegramID(query.from_user.id)
     msg = "➖➖**My Harvest Details Menu** 🌽➖➖"
+    msg += "\n`Your successful bids from the last Harvest Festival`"
     my_auction_link = f"`My Auction Link:` {utils.get_member_auction_link(member_code)}"
     my_auction_spend = utils.generate_msg_member_auction_purchases(member_code)
     msg += "\n\n" + my_auction_spend
-    msg += "\n" + my_auction_link
+    # msg += "\n" + my_auction_link
     utils.edit_and_send_msg(query, msg, keyboards.back_to_main_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("PayNow Menu"))
 @loggers.log_access
-def show_paynow_menu(client, query):
+def show_paynow_menu(client: Client, query: CallbackQuery):
     query.answer()
     msg = "**Payment Options**\n"
     msg += "➖➖➖➖➖➖\n"
@@ -202,7 +211,7 @@ def show_paynow_menu(client, query):
     msg += "    • PayNow to UEN: **S79SS0001L**\n"
     msg += "    • PayNow to QR code shown above\n"
     msg += "    • Bank transfer to DBS: **0480155596**\n"
-    msg += "    • NETS, Cash or Cheque at church office\n"
+    msg += "    • NETS, Cash or Cheque (payable to `St. Thomas Orthodox Syrian Cathedral`) at the church office\n"
     msg += "\n`Please mention your family code and purpose of contribution.`\n"
     msg += "`For multiple payments, you can make one transfer and email the breakdown to` accounts@stosc.com"
     client.send_photo(chat_id=query.from_user.id, photo='https://stosc.com/paynow/img/QR.png',caption=msg,reply_markup = keyboards.back_to_main_keyboard)
@@ -210,7 +219,7 @@ def show_paynow_menu(client, query):
 # Handler for buttons generated from /u MyName search command 
 @Client.on_callback_query(dynamic_data_filter2("Member_"))
 @loggers.log_access
-def member_search_button_handler(client, query):
+def member_search_button_handler(client: Client, query: CallbackQuery):
     query.answer()
     _member_code=query.data.split('_')[1]
     result=db.get_member_details(_member_code,'code')

@@ -1,4 +1,5 @@
 from pyrogram import Client, filters
+from pyrogram.types import CallbackQuery
 from stoscbots.db import db
 from stoscbots.util import loggers
 from stoscbots.bot import keyboards
@@ -16,7 +17,7 @@ def dynamic_data_filter(data):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Area Prayer Group"))
 @loggers.log_access
-def get_area_prayer_group_members(client, query):
+def get_area_prayer_group_members(client: Client, query: CallbackQuery):
     query.answer()
     _area = query.data.split(' ')[3]
     _memberlist,area_name=db.get_members_for_area(_area)
