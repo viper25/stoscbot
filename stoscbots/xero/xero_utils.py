@@ -49,7 +49,7 @@ def __xero_get_Access_Token():
 __access_token = __xero_get_Access_Token()
 
 # Make the GET HTTP call to XERO API
-def __xero_get(url, **extra_headers):
+def __xero_get(url: str, **extra_headers):
     # Setting as global since it can be modified by this function if access token has expired
     global __access_token
     _headers={
@@ -73,18 +73,18 @@ def __xero_get(url, **extra_headers):
             'Xero-tenant-id': XERO_TENANT_ID
         }
         # Make the call again with new access token
-        response = requests.get(url,headers=_headers)        
+        response = requests.get(url,headers=_headers)
     return response.json()
 
-# ----------------------------------------------------------------------------------------------------------------------    
-def get_xero_ContactID(code=None):
+# ----------------------------------------------------------------------------------------------------------------------
+def get_xero_ContactID(code: str=None):
     url = f'https://api.xero.com/api.xro/2.0/Contacts?where=AccountNumber=="{code}"'
     contacts=__xero_get(url)
     if len(contacts['Contacts'])>0:
         return contacts['Contacts'][0]['ContactID']
 # ----------------------------------------------------------------------------------------------------------------------
 # Retrieve all AUTHORISED and PAID Invoices for a ContactID
-def get_Invoices(memberID):
+def get_Invoices(memberID: str):
     _contactID=get_xero_ContactID(memberID)
     if _contactID:
         url = f"https://api.xero.com/api.xro/2.0/Invoices?ContactIDs={_contactID}&Statuses=AUTHORISED,PAID"
@@ -104,20 +104,21 @@ def get_bank_summary():
     return __xero_get(url)
 # ----------------------------------------------------------------------------------------------------------------------
 # Returns a trial balance for the current month up to the date specified. YTD values are shown too.
-def xero_get_trial_balance():
-    url = f'https://api.xero.com/api.xro/2.0/Reports/TrialBalance?date={utils.todays_date()}'
+# Set paymentsOnly=true to get Cash Basis (actual payments and not receivables)
+def xero_get_trial_balance(_paymentsOnly: bool=False):
+    url = f'https://api.xero.com/api.xro/2.0/Reports/TrialBalance?paymentsOnly={_paymentsOnly}&date={utils.todays_date()}'
     return __xero_get(url)
 # ----------------------------------------------------------------------------------------------------------------------
 def xero_get_payments():
     _week_ago=utils.a_week_ago()
     url = f"https://api.xero.com/api.xro/2.0/Payments?where=Date>DateTime({_week_ago.year}, {_week_ago.month}, {_week_ago.day})&order=Date"
     return __xero_get(url)
-#-----------------------------------------------------------------------------------    
+#-----------------------------------------------------------------------------------
 def xero_get_bank_transactions():
     _week_ago=utils.a_week_ago()
     url = f"https://api.xero.com/api.xro/2.0/BankTransactions?where=Date>DateTime({_week_ago.year}, {_week_ago.month}, {_week_ago.day})&order=Date"
-    return __xero_get(url)    
-#-----------------------------------------------------------------------------------    
+    return __xero_get(url)
+#-----------------------------------------------------------------------------------
 # Xero dates are weird. Parse
-def parse_Xero_Date(_date):
-    return datetime.fromtimestamp(int(_date[6:-2].split('+')[0])/1000)    
+def parse_Xero_Date(_date: str):
+    return datetime.fromtimestamp(int(_date[6:-2].split('+')[0])/1000)

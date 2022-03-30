@@ -1,7 +1,7 @@
-[![STOSCBot Build](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml/badge.svg)](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml)
+[![STOSCBot Build](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml/badge.svg)](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml)  [![codecov](https://codecov.io/gh/viper25/stoscbot/branch/main/graph/badge.svg?token=QQ3WXQ2TSQ)](https://codecov.io/gh/viper25/stoscbot)
 
 # STOSC Bot
-A Telegram bot (based on [Pyrogram](https://docs.pyrogram.org/)) to manage affairs of the St. Thomas Orthodox Syrian Cathedral, Singapore.
+A Telegram bot (based on [Pyrogram](https://docs.pyrogram.org/)) to manage affairs of the St. Thomas Orthodox Syrian Cathedral (STOSC), Singapore.
 
 ![image](https://user-images.githubusercontent.com/327990/142089101-04f782d3-0982-4ac0-83d0-899d714bc1cb.png) ![02](https://user-images.githubusercontent.com/327990/142300513-b2cbde04-f695-40f3-92f3-5e56649550f9.png) ![markup_41332 (1)](https://user-images.githubusercontent.com/327990/145735665-da9a6c31-29cc-4a5e-8824-8cd8653b84f8.png)
 
@@ -29,7 +29,7 @@ On Linux:
 Change `config.ini` for server. 
 
 ```bash
-source .venv/Scripts/activate
+source .venv/bin/activate
 nohup python3 run_stoscbot.py &
 ```
 </details>
@@ -42,7 +42,6 @@ Dependencies
 
 ## Install dependencies.
 
-
 ```bash
 pip install -r requirements.txt
 ```
@@ -54,6 +53,17 @@ pip install --upgrade -r requirements.txt
 ```
 </details>
 
+<details>
+<summary>
+Tests
+</summary>
+
+## Run Tests
+```
+pytest --cov=./ --cov-report=xml
+coverage report
+```
+</details>
 
 ## Deployment
 <details>
@@ -90,7 +100,8 @@ pip install --upgrade -r requirements.txt
 4. It is expected the app provide an application running at port 8000. If not, the Azure App Service container will stop after a while (and our bot process will be killed). 
 </details>
 
-## Reference
+## TODO
 
-* Good Reference on structuring Python project: 
-https://github.com/Fumaz/TTSBot
+* [Define Default Values in Dictionaries With `.get()` and `.setdefault()`](https://realpython.com/python-coding-interview-tips/#define-default-values-in-dictionaries-with-get-and-setdefault)
+* In iterating over long lists, use [generators](https://realpython.com/python-coding-interview-tips/#save-memory-with-generators)
+* Check if using `logger` or `loggers` class

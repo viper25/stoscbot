@@ -1,4 +1,5 @@
 from pyrogram import Client, filters
+from pyrogram.types import Message, CallbackQuery
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
 from stoscbots.bot import keyboards
@@ -13,11 +14,16 @@ def dynamic_data_filter(data):
         lambda flt, _, query: flt.data == query.data,
         data=data  # "data" kwarg is accessed with "flt.data" above
     )
+def dynamic_data_filter_starts_with(data):
+    return filters.create(
+        lambda flt, _, query: query.data.startswith(flt.data),
+        data=data  # "data" kwarg is accessed with "flt.data" above
+    )
 # --------------------------------------------------
 @Client.on_message(filters.command(["x"]))
 @loggers.log_access
 @bot_auth.management_only
-def finance_search_member_payments(client, message):
+def finance_search_member_payments(client: Client, message: Message):
     member_code = None
     if len(message.command) >= 2:
         member_code = message.command[1].upper()
@@ -33,7 +39,7 @@ def finance_search_member_payments(client, message):
         if len(result) == 0:
             message.reply("No such Member")
             return  
-        elif len(result) >= 1:              
+        elif len(result) >= 1:
             # Figure out the year of accounts we want to retrieve 
             # /x v019 2020
             if len(message.command) == 3:
@@ -47,7 +53,7 @@ def finance_search_member_payments(client, message):
 @Client.on_message(filters.command(["xs"]))
 @loggers.log_access
 @bot_auth.management_only
-def finance_search_member_sub(client, message):
+def finance_search_member_sub(client: Client, message: Message):
     member_code = None
     if len(message.command) >= 2:
         member_code = message.command[1].upper()
@@ -76,7 +82,7 @@ def finance_search_member_sub(client, message):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Executive Summary Button"))
 @loggers.log_access
-def get_finance_executive_summary(client, query):
+def get_finance_executive_summary(client: Client, query: CallbackQuery):
     query.answer()
     report=xero_utils.get_executive_summary()['Reports'][0]['Rows']
     msg="➖**EXECUTIVE SUMMARY**➖\n\n"
@@ -112,7 +118,7 @@ def get_finance_executive_summary(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Bank Summary Button"))
 @loggers.log_access
-def get_finance_bank_summary(client, query):
+def get_finance_bank_summary(client: Client, query: CallbackQuery):
     query.answer()
     report=xero_utils.get_bank_summary()['Reports'][0]['Rows']
     msg="➖**BANK ACCOUNTS SUMMARY**➖\n\n"
@@ -153,32 +159,40 @@ def get_finance_bank_summary(client, query):
     utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
 
 # --------------------------------------------------
-@Client.on_callback_query(dynamic_data_filter("Finance Trial Balance Button"))
+@Client.on_callback_query(dynamic_data_filter_starts_with("Finance Trial Balance"))
 @loggers.log_access
-def get_finance_trial_balance(client, query):
+def get_finance_trial_balance(client: Client, query: CallbackQuery):
     query.answer()
-    report=xero_utils.xero_get_trial_balance()['Reports'][0]['Rows']
-    msg="➖**TRIAL BALANCE**➖\n\n"
-    for row in report:
-        if row['RowType'] == 'Header':
-            debit_ytd_title=row['Cells'][3]['Value']
-            credit_ytd_title=row['Cells'][4]['Value']
-        else:
-            # For each Bank account
-            for _section in row['Rows']:
-                section=_section['Cells'][0]['Value']
-                loggers.debug(f"Processing [{section}]")
+    is_income_report = "REVENUE" in query.data.upper()
+    msg="**TRIAL BALANCE**\n"
+    msg+=f"`For Year {str(datetime.now().year)}`\n"
+    msg += "➖➖➖➖➖➖➖\n\n"
 
-                debit_ytd_value=_section['Cells'][3]['Value'] if _section['Cells'][3]['Value'] != '' else 0
-                credit_ytd_value=_section['Cells'][4]['Value'] if _section['Cells'][4]['Value'] != '' else 0
+    def __get_msg(rows, report_type):
+        __msg = ""
+        for row in rows:
+            account=row['Cells'][0]['Value']
+            loggers.debug(f"Processing [{account}]")
+            if report_type == 'revenue':
+                ytd_value=row['Cells'][4]['Value'] if row['Cells'][4]['Value'] != '' else 0
+            else:
+                ytd_value=row['Cells'][3]['Value'] if row['Cells'][3]['Value'] != '' else 0
 
-                if not section.startswith('DBS FD'):
-                    msg += "〰〰〰〰〰\n"
-                    msg += f"**{section}**\n"
-                    if float(debit_ytd_value) != 0.0:
-                        msg += f"{debit_ytd_title}=${float(debit_ytd_value):,.2f}\n"
-                    if float(credit_ytd_value) != 0.0:
-                        msg += f"{credit_ytd_title}=${float(credit_ytd_value):,.2f}\n"
+            __msg += f"{account}\n"
+            __msg += f"**${float(ytd_value):,.2f}**\n"
+            __msg += "––––————————————————\n"
+        # Remove last line
+        __msg = __msg[:-len("––––————————————————\n")]
+        return __msg
+
+    # report[1] = Revenue
+    if is_income_report:
+        report=xero_utils.xero_get_trial_balance(_paymentsOnly=True)['Reports'][0]['Rows']
+        msg += __get_msg(report[1]['Rows'], report_type = 'revenue')        
+    else:
+        report=xero_utils.xero_get_trial_balance()['Reports'][0]['Rows']
+        # report[2] = Expense
+        msg += __get_msg(report[2]['Rows'], report_type = 'expense')
 
     # Telegram has a 4096 byte limit for msgs
     msg=(msg[:4076] + '\n`... (truncated)`') if len(msg) > 4096 else msg
@@ -187,7 +201,7 @@ def get_finance_trial_balance(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Payments WTD Button"))
 @loggers.log_access
-def get_finance_payments_wtd_balance(client, query):
+def get_finance_payments_wtd_balance(client: Client, query: CallbackQuery):
     query.answer()
     payments=xero_utils.xero_get_payments()
     msg="➖**INVOICE/BILL PAYMENTS**➖\n\n"
@@ -212,7 +226,7 @@ def get_finance_payments_wtd_balance(client, query):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Latest Transactions Button"))
 @loggers.log_access
-def get_finance_latest_tx(client, query):
+def get_finance_latest_tx(client: Client, query: CallbackQuery):
     query.answer()
     bank_tx=xero_utils.xero_get_bank_transactions()
     msg="➖**TRANSACTIONS (WTD)**➖\n`No Invoice (subscription) or bill payment transactions shown`\n\n"
@@ -250,9 +264,9 @@ def get_finance_latest_tx(client, query):
     msg=(msg[:4076] + '\n`... (truncated)`') if len(msg) > 4096 else msg
     utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
 # --------------------------------------------------
-@Client.on_callback_query(dynamic_data_filter("Finance Help Button"))
+@Client.on_callback_query(dynamic_data_filter("Finance Projects Button"))
 @loggers.log_access
-def get_finance_help(client, query):
+def get_finance_tracking(client: Client, query: CallbackQuery):
     query.answer()
-    msg="🚨 Get member Balances by **member ID** or **Name**. \n Examples:\n‣ Payments by member code: `/x A001`\n‣ Subscriptions by member code: `/xs A001`"
+    msg = utils.get_tracked_projects()
     utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)

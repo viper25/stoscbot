@@ -1,14 +1,15 @@
+from multiprocessing.connection import Client
 import os
 import boto3
-from boto3.dynamodb.conditions import Key
-from stoscbots.db import db
-from stoscbots.xero import xero_utils
-from stoscbots.util import loggers
+import requests
+import re
 from datetime import date
 import datetime
 from datetime import timedelta
-import requests
-import re
+from pyrogram.types import CallbackQuery, InlineKeyboardMarkup
+from boto3.dynamodb.conditions import Key
+from stoscbots.xero import xero_utils
+from stoscbots.util import loggers
 
 resource = boto3.resource(
     "dynamodb",
@@ -16,21 +17,20 @@ resource = boto3.resource(
     aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
     region_name="ap-southeast-1",
 )
-table_stosc_bot_member_telegram=resource.Table('stosc_bot_member_telegram')
-table_member_payments=resource.Table('member_payments')
-table_members=resource.Table('member_payments')
-table_harvest_metrics=resource.Table('stosc_harvest_metrics')
+table_stosc_bot_member_telegram = resource.Table('stosc_bot_member_telegram')
+table_member_payments = resource.Table('stosc_xero_member_payments')
+table_harvest_metrics = resource.Table('stosc_harvest_metrics')
 table_harvest_items = resource.Table("stosc_harvest_items")
 table_harvest_members = resource.Table("stosc_harvest_members")
-
+table_stosc_xero_accounts_of_interest = resource.Table("stosc_xero_accounts_of_interest")
 # ----------------------------------------------------------------------------------------------------------------------
 # get STOSC Member code from Telegram ID
-def getMemberCode_from_TelegramID(telegram_id):
+def getMemberCode_from_TelegramID(telegram_id: int):
     response=table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))
     if len(response['Items']) == 1:
         return response['Items'][0]['member_code']
 # ----------------------------------------------------------------------------------------------------------------------
-def get_address_details(_zip):
+def get_address_details(_zip: str):
     try:
         result=requests.get(f'https://developers.onemap.sg//commonapi/search?searchVal={_zip}&returnGeom=Y&getAddrDetails=Y').json()
         if len(result['results'])>0:
@@ -39,7 +39,7 @@ def get_address_details(_zip):
         loggers.error(f"Exception in onemap API: {e}")
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate a Member Profile msg
-def generate_profile_msg(result):
+def generate_profile_msg(result: list):
     msg=f"• Name: **{result[0][1]}**\n"
     if (result[0][2] != "" and result[0][2] is not None):
         msg += f"• Add: **{result[0][2]}**"
@@ -60,7 +60,7 @@ def generate_profile_msg(result):
 
 # ----------------------------------------------------------------------------------------------------------------------
 # This method can be called from a Telegram button or command such as /x V019
-def generate_msg_xero_member_payments(name, _member_code, _year):
+def generate_msg_xero_member_payments(name: str, _member_code: str, _year: str):
     payments = get_member_payments(_member_code, _year)
     if payments:
         msg=f"**{name}**\n`For Year {_year}`\n"
@@ -77,7 +77,7 @@ def generate_msg_xero_member_payments(name, _member_code, _year):
     return f"No contributions for **{_member_code}** for year **{_year}**"
 # ----------------------------------------------------------------------------------------------------------------------
 # Return a list of member payments for a year
-def get_member_payments(_member_code, _year) -> list:
+def get_member_payments(_member_code: str, _year: str) -> list:
     xero_contactID = xero_utils.get_xero_ContactID(_member_code)
     if xero_contactID is not None:
         response=table_member_payments.query(KeyConditionExpression=Key('ContactID').eq(xero_contactID) & Key('AccountCode').begins_with(_year))
@@ -88,51 +88,55 @@ def get_member_payments(_member_code, _year) -> list:
 # ----------------------------------------------------------------------------------------------------------------------
 # This method can be called from a Telegram button or command such as /xs V019
 # Returns a list of all Invoices paid and due for a member
-def generate_msg_xero_member_invoices(_member_code, _year):
+def generate_msg_xero_member_invoices(_member_code: str, _year: str):
     if not is_valid_year(_year):
        return f"Not a valid year: **{_year}**"
     _invoices=xero_utils.get_Invoices(_member_code)
     if _invoices and len(_invoices['Invoices'])> 0:
         msg=f"--**{_invoices['Invoices'][0]['Contact']['Name']} ({_member_code})**--\n\n"
         icon='🟠' 
-        for invoice in _invoices['Invoices']:
-            # Show only invoices that are INV-<year> or HF-<year> or created in <year> or status = AUTHORIZED
+        for invoice in _invoices["Invoices"]:
             if (
-                invoice["InvoiceNumber"].startswith(f"INV-{_year[2:]}")
-                or invoice["InvoiceNumber"].startswith(f"HF-{_year[2:]}")
-                # Invoice Date: to list invoices that are not subscription or harvest created in that year
-                or (
-                    invoice["DateString"].startswith(f"{_year}")
-                    and not invoice["InvoiceNumber"].startswith("HF-")
-                    and not invoice["InvoiceNumber"].startswith("INV-")
-                )
-                # Show all pending invoices upto <year>
-                or (
-                    invoice["Status"] == "AUTHORISED"
-                    and int(invoice["DateString"].split('-')[0]) <= int(_year)
+                # Show only Invoices and not Bills
+                invoice["Type"] == "ACCREC"
+                # Don't show VOID invoices
+                and not invoice["InvoiceNumber"].endswith("-VOID")
+                and (
+                    # Show only invoices that are INV-<year> or HF-<year> or created in <year> or status = AUTHORIZED
+                    invoice["InvoiceNumber"].startswith(f"INV-{_year[2:]}")
+                    or invoice["InvoiceNumber"].startswith(f"HF-{_year[2:]}")  # Show all pending invoices upto <year>
+                    or (invoice["Status"] == "AUTHORISED" and int(invoice["DateString"].split("-")[0]) <= int(_year))
                 )
             ):
-                if invoice['InvoiceNumber'].endswith('-VOID'):
+                if invoice["InvoiceNumber"].endswith("-VOID"):
                     # Skip invoices that were VOIDED. These have a -VOID at the end
                     continue
                 loggers.debug(f"Invoice No: {invoice['InvoiceNumber']} for amount: {invoice['AmountDue']}")
-                if invoice['Status'] == 'PAID':
-                    icon='🟢'
-                elif invoice['Status'] == 'AUTHORISED':
-                    invoice['Status'] = 'DUE'
-                    icon='🟠'
-                elif invoice['Status'] == 'VOIDED':
+                if invoice["Status"] == "PAID":
+                    icon = "🟢"
+                elif invoice["Status"] == "AUTHORISED":
+                    invoice["Status"] = "DUE"
+                    icon = "🟠"
+                elif invoice["Status"] == "VOIDED":
                     # Don't show VOIDED invoices
                     continue
-                elif invoice['Status'] == 'DRAFT':
-                    icon='🟠'
-                elif invoice['Status'] == 'DELETED':
+                elif invoice["Status"] == "DRAFT":
+                    icon = "🟠"
+                elif invoice["Status"] == "DELETED":
                     # Don't show DELETED invoices
                     continue
-                msg += f"**[{invoice['InvoiceNumber']}] - **" if (invoice['InvoiceNumber'] != '' and invoice['InvoiceNumber'] is not None) else '[`-NA-`] - '
-                msg += f"**${invoice['Total']:,.2f}** - {invoice['Status']} {icon}\n"
-                for line in invoice['LineItems']:
-                                #msg += "−−−−\n"
+                msg += (
+                    f"**[{invoice['InvoiceNumber']}] - **"
+                    if (invoice["InvoiceNumber"] != "" and invoice["InvoiceNumber"] is not None)
+                    else "[`-NA-`] - "
+                )
+                # For a neater display
+                if invoice["AmountDue"] == 0 or invoice["AmountDue"] == invoice["Total"]:
+                    msg += f"**${invoice['Total']:,.2f}**: {invoice['Status']} {icon}\n"
+                else:
+                    msg += f"**${invoice['Total']:,.2f}**: ${invoice['AmountDue']:,.2f} {invoice['Status']} {icon}\n"
+                for line in invoice["LineItems"]:
+                    # msg += "−−−−\n"
                     msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
                 msg += "––––————————————————\n"
         return msg
@@ -140,7 +144,7 @@ def generate_msg_xero_member_invoices(_member_code, _year):
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Send a message to a Telegram user with an optional inline keyboard
-def edit_and_send_msg(query, msg, keyboard=None):
+def edit_and_send_msg(query: CallbackQuery, msg: str, keyboard: InlineKeyboardMarkup=None):
     try:
         query.message.edit_text(text=msg,reply_markup=keyboard)
     except Exception as e:
@@ -168,18 +172,18 @@ def todays_date():
 def a_week_ago():
     return datetime.datetime.today() - timedelta(days=7)
 # ----------------------------------------------------------------------------------------------------------------------
-def get_member_auction_link(_member_code):
+def get_member_auction_link(_member_code: str):
     response = table_harvest_members.query(KeyConditionExpression=Key("code").eq(_member_code))
     _link = f"https://harvest.stosc.com/?id={response['Items'][0]['guid']}"
     return _link
 # ----------------------------------------------------------------------------------------------------------------------
 # Get Winning Bid for an Item
-def __get_winning_bid(_itemCode):
+def __get_winning_bid(_itemCode: str):
     response = table_harvest_items.query(KeyConditionExpression=Key("itemCode").eq(int(_itemCode)))
     if "winning_bid" in response["Items"][0].keys():
         return response["Items"][0]["winning_bid"]
 # ----------------------------------------------------------------------------------------------------------------------
-def generate_msg_member_auction_purchases(_member_code):
+def generate_msg_member_auction_purchases(_member_code: str):
     response = table_harvest_metrics.query(KeyConditionExpression=Key("pk").eq("user") & Key("sk").begins_with(_member_code))
     if len(response["Items"]) != 0:
         msg = f"**{response['Items'][0]['sk'][5:]}**\n"
@@ -197,7 +201,7 @@ def generate_msg_member_auction_purchases(_member_code):
         msg = "No Purchases yet\n"
     return msg
 # ----------------------------------------------------------------------------------------------------------------------
-def send_profile_address_and_pic(client, _x, msg,result, keyboard = None):
+def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list, keyboard: InlineKeyboardMarkup = None):
     if (result[0][4] != "" and result[0][4] is not None): 
         if get_address_details(result[0][4]):
             lat, lon=get_address_details(result[0][4])
@@ -221,8 +225,19 @@ def send_profile_address_and_pic(client, _x, msg,result, keyboard = None):
             else:
                 loggers.error(f"{e2.MESSAGE}: for [{result[0][1]}]")
 # ----------------------------------------------------------------------------------------------------------------------
-def is_valid_member_code(_member_code):
+def is_valid_member_code(_member_code: str):
     return re.match('[A-Za-z]\d{2,3}', _member_code)
 # ----------------------------------------------------------------------------------------------------------------------
-def is_valid_year(year):
+def is_valid_year(year: str):
     return len(year) == 4 and (re.match('\d{4}', year) is not None)
+# ----------------------------------------------------------------------------------------------------------------------
+def get_tracked_projects(raw_data: bool=False):
+    response = table_stosc_xero_accounts_of_interest.scan()
+    if raw_data:
+        return response["Items"]
+    msg = "**TRACKED PROJECTS**\n"
+    msg += "➖➖➖➖➖➖➖➖\n\n"
+    for _item in response["Items"]:
+        if _item['Total']:
+            msg += f"• {_item['AccountName']} - `${_item['Total']:,.2f}`\n"
+    return msg

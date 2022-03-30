@@ -21,8 +21,9 @@ class Databases(enum.Enum):
     FORMS='forms_db'
 
 # Execute Query and return data
-def __db_executeQuery(sql, db, prepared=False, *args):
+def __db_executeQuery(sql: str, db: enum, prepared=False, *args):
     # Connect to MariaDB Platform
+    logger.debug(f"Query: [{sql}] on DB: [{db.value}]")
     try:
         conn = mysql.connector.connect( 
             user = USER, 
@@ -54,12 +55,12 @@ def __db_executeQuery(sql, db, prepared=False, *args):
 
 # ----------------------------------------------------------------------------------------------------------------------
 def get_next_services():
-    sql = "select s.service_ID, s.service_Name, s.service_Date, s.attendees_Limit, sum(r.people_Count) as registered, s.group_ID from services s, registrations r where s.service_ID=r.service_ID and r.cancelled is null and s.service_Date > DATE_ADD(now(), INTERVAL -7 DAY) group by 1,2,3,4 order by s.service_Date, s.group_ID asc limit 8;"
+    sql = "select s.service_ID, s.service_Name, s.service_Date, s.attendees_Limit, sum(r.people_Count) as registered, s.group_ID from services s, registrations r where s.service_ID=r.service_ID and r.cancelled is null and s.active =1 and s.service_Date > DATE_ADD(now(), INTERVAL -7 DAY) group by 1,2,3,4 order by s.service_Date, s.group_ID asc limit 8;"
 
     _result = __db_executeQuery(sql, Databases.FORMS)
     return _result
 # ----------------------------------------------------------------------------------------------------------------------
-def get_bday(duration = 'w'):
+def get_bday(duration: str = 'w'):
     today=pendulum.now()
     if (duration.lower()) == "d":
         start = today.strftime("%Y%m%d")
@@ -73,7 +74,7 @@ def get_bday(duration = 'w'):
     _result = __db_executeQuery(sql, Databases.CRM)
     return today.start_of('week').strftime("%b %d"), today.end_of('week').strftime("%b %d"), _result
 # ----------------------------------------------------------------------------------------------------------------------
-def get_anniversaries(duration='w'):
+def get_anniversaries(duration: str = 'w'):
     today=pendulum.now()
     if (duration.lower()) == "d":
         start = today.strftime("%Y%m%d")
@@ -87,7 +88,7 @@ def get_anniversaries(duration='w'):
     _result = __db_executeQuery(sql, Databases.CRM)
     return today.start_of('week').strftime("%b %d"), today.end_of('week').strftime("%b %d"),_result
 # ----------------------------------------------------------------------------------------------------------------------
-def get_members_for_area(area_code):
+def get_members_for_area(area_code: str):
     sql = "select f.fam_Name from family_fam f, family_custom fc where f.fam_ID=fc.fam_ID and fc.c8=%s order by fam_Name"
     _result_members = __db_executeQuery(sql, Databases.CRM, True, area_code)
 
@@ -96,7 +97,7 @@ def get_members_for_area(area_code):
 
     return _result_members,_result_area_name
 # ----------------------------------------------------------------------------------------------------------------------
-def get_member_details(search, search_type):
+def get_member_details(search:str, search_type:str):
     if search_type == 'code':
         sql = "select f.fam_ID, f.fam_Name, f.fam_Address1, f.fam_Address2, f.fam_Zip, f.fam_CellPhone, f.fam_HomePhone, f.fam_Email,IFNULL(fc.c1,'') as 'Home Parish', IFNULL(fc.c2,'') as 'Membership Date', IFNULL(fc.c4,'') as 'Related Families',IFNULL(fc.c5,FALSE) as 'Electoral Roll', IFNULL(l.lst_OptionName,'') as 'Prayer Group' from family_fam f inner join family_custom fc on f.fam_ID=fc.fam_ID and left(right(f.fam_Name,5),4)=%s and f.fam_DateDeactivated is null left join list_lst l on fc.c8=l.lst_OptionID and l.lst_ID =30"
         _result = __db_executeQuery(sql, Databases.CRM, True, search)
@@ -106,12 +107,12 @@ def get_member_details(search, search_type):
         _result = __db_executeQuery(sql, Databases.CRM, True, search, search, search)
     return _result
 # ----------------------------------------------------------------------------------------------------------------------
-def get_booking_GUID(memberCode):
+def get_booking_GUID(memberCode: str):
     sql = "select guid from family_fam where fam_Code= %s and enabled =1"
     _result = __db_executeQuery(sql, Databases.FORMS, True, memberCode)
     return _result
 # ----------------------------------------------------------------------------------------------------------------------
-def get_members_for_serviceID(service_ID):
+def get_members_for_serviceID(service_ID: str):
     sql_next_service="select service_Name ,service_Date from services where service_ID =%s"
     _result1=__db_executeQuery(sql_next_service, Databases.FORMS,True,service_ID)
 
@@ -123,7 +124,7 @@ def get_members_for_serviceID(service_ID):
 
     return _result1[0][0], _result1[0][1].strftime("%a, %b %d %I:%M %p"), _result2, _result_count_kids
 # ----------------------------------------------------------------------------------------------------------------------
-def get_members_born_on(year):
+def get_members_born_on(year: str):
     sql = "select CONCAT(crm_person_per.per_FirstName,' ', crm_person_per.per_MiddleName,' ', crm_person_per.per_LastName), CONCAT(crm_person_per.per_BirthYear,'-',LPAD(crm_person_per.per_BirthMonth,2,'0'),'-',LPAD(crm_person_per.per_BirthDay,2,'0')), fam.fam_Name ,fam.fam_Email, fam.fam_HomePhone, fam.fam_CellPhone from stosc_churchcrm.person_per crm_person_per inner join family_fam fam on crm_person_per.per_fam_ID = fam.fam_ID where fam.fam_DateDeactivated is null and crm_person_per.per_BirthYear = %s order by CONCAT(crm_person_per.per_BirthYear,LPAD(crm_person_per.per_BirthMonth,2,'0'),LPAD(crm_person_per.per_BirthDay,2,'0'))"
     return __db_executeQuery(sql, Databases.CRM,True,year)
 # ----------------------------------------------------------------------------------------------------------------------
