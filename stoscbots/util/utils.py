@@ -144,9 +144,9 @@ def generate_msg_xero_member_invoices(_member_code: str, _year: str):
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Send a message to a Telegram user with an optional inline keyboard
-def edit_and_send_msg(query: CallbackQuery, msg: str, keyboard: InlineKeyboardMarkup=None):
+async def edit_and_send_msg(query: CallbackQuery, msg: str, keyboard: InlineKeyboardMarkup=None):
     try:
-        query.message.edit_text(text=msg,reply_markup=keyboard)
+        await query.message.edit_text(text=msg,reply_markup=keyboard)
     except Exception as e:
         if e.ID == 'MESSAGE_NOT_MODIFIED':  
             loggers.warn(e.MESSAGE)
@@ -201,14 +201,14 @@ def generate_msg_member_auction_purchases(_member_code: str):
         msg = "No Purchases yet\n"
     return msg
 # ----------------------------------------------------------------------------------------------------------------------
-def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list, keyboard: InlineKeyboardMarkup = None):
+async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list, keyboard: InlineKeyboardMarkup = None):
     if (result[0][4] != "" and result[0][4] is not None): 
         if get_address_details(result[0][4]):
             lat, lon=get_address_details(result[0][4])
-            client.send_venue(chat_id=_x.from_user.id,latitude=float(lat),longitude=float(lon),title=result[0][1],address=result[0][2],disable_notification=True)
+            await client.send_venue(chat_id=_x.from_user.id,latitude=float(lat),longitude=float(lon),title=result[0][1],address=result[0][2],disable_notification=True)
     try:
         # Per Simon, all images are png, so try looking that up first   
-        client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png", caption=msg, reply_markup=keyboard)
+        await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png", caption=msg, reply_markup=keyboard)
     except Exception as e1:
         if e1.ID == 'MEDIA_EMPTY':
             loggers.warn(f"No png image for [{result[0][1]}], trying jpg")
@@ -216,12 +216,12 @@ def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, re
             loggers.error(f"{e1.MESSAGE}: for [{result[0][1]}]")
         try:
             # If no png, try looking for a jpg
-            client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.jpg", caption=msg, reply_markup=keyboard)    
+            await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.jpg", caption=msg, reply_markup=keyboard)    
         except Exception as e2:
             if e2.ID == 'MEDIA_EMPTY':               
                 loggers.warn(f"No jpg image for [{result[0][1]}]")
                 # No Image found, send details without photo then
-                client.send_message(chat_id=_x.from_user.id,text=msg, reply_markup=keyboard)
+                await client.send_message(chat_id=_x.from_user.id,text=msg, reply_markup=keyboard)
             else:
                 loggers.error(f"{e2.MESSAGE}: for [{result[0][1]}]")
 # ----------------------------------------------------------------------------------------------------------------------

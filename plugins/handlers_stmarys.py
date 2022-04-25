@@ -1,9 +1,7 @@
 from pyrogram import Client, filters
 from pyrogram.types import CallbackQuery
-from stoscbots.util import loggers, utils, bot_auth
+from stoscbots.util import loggers, utils
 from stoscbots.bot import keyboards
-from stoscbots.xero import xero_utils
-from datetime import datetime
 # ==================================================
 '''
 Handle multiple callback queries data and return filter for each
@@ -15,10 +13,10 @@ def dynamic_data_filter(data):
     )
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("St. Marys Project Summary Button"))
-@loggers.log_access
-def get_finance_stmarys_executive_summary(client: Client, query: CallbackQuery):
-    query.answer()
-    msg = "**EXECUTIVE SUMMARY\n"
+@loggers.async_log_access
+async def get_finance_stmarys_executive_summary(client: Client, query: CallbackQuery):
+    await query.answer()
+    msg = "**EXECUTIVE SUMMARY**\n"
     msg += "➖➖➖➖➖➖➖➖➖\n\n"
     report = utils.get_tracked_projects(raw_data=True)
     for _item in report:
@@ -30,4 +28,4 @@ def get_finance_stmarys_executive_summary(client: Client, query: CallbackQuery):
             msg += f"•** {_item['AccountName']}** - `${_item['Total']:,.2f}`\n"
         elif _item['AccountName'] == 'Migrant Workers' and _item['Total']:
             msg += f"•** {_item['AccountName']}** - `${_item['Total']:,.2f}`\n"
-    utils.edit_and_send_msg(query, msg, keyboards.stmarys_menu_keyboard)
+    await utils.edit_and_send_msg(query, msg, keyboards.stmarys_menu_keyboard)

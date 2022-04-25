@@ -21,7 +21,7 @@ resource = boto3.resource(
     aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
     region_name="ap-southeast-1",
 )
-table_telegram_members = resource.Table("stosc_bot_member_telegram")
+table_stosc_bot_member_telegram = resource.Table("stosc_bot_member_telegram")
 
 # Update metrics only if using PRO STOSC Bot Token
 log_metrics = hashlib.md5(os.environ.get("STOSC_TELEGRAM_BOT_TOKEN").encode()).hexdigest() == "4e2626e3e8e0be3245c8fff1a0f72df9"
@@ -33,7 +33,7 @@ def update_access_metrics(telegram_id):
     update and we capture the exception and move along
     '''
     try:
-        table_telegram_members.update_item(
+        table_stosc_bot_member_telegram.update_item(
             Key = {'telegram_id': str(telegram_id)},
             UpdateExpression = "SET hits = hits + :inc, last_seen = :modified_ts_val",
             ExpressionAttributeValues = {
@@ -50,10 +50,12 @@ def update_access_metrics(telegram_id):
         logger.error("%s update failed with error: %s",telegram_id,e)
 
 
-def log_access(func):
+# Log Bot user access metrics. This is to be decorated ONLY on async functionsq
+def async_log_access(func):
     @wraps(func)
-    def function_wrapper(*args, **kwargs):
-        if  log_metrics:
+    # See: https://stackoverflow.com/questions/44169998/how-to-create-a-python-decorator-that-can-wrap-either-coroutine-or-function#comment111746175_63156433
+    async def function_wrapper(*args, **kwargs):
+        if log_metrics:
             update_access_metrics(args[1].from_user.id)
         arg_msg=""
         if hasattr(args[1], 'text') and args[1].text:
@@ -65,8 +67,8 @@ def log_access(func):
             arg_msg=f" for button: '{args[1].data}'"
 
         logger.info(f"{func.__module__}.{func.__name__} called by [{args[1].from_user.id}:{args[1].from_user.username}:{args[1].from_user.first_name}]" + arg_msg)
-        # Call the original passed-in function
-        return func(*args, **kwargs)
+        # If the wrapped function is an aysnc function, we need to await it
+        return await func(*args, **kwargs)
     return function_wrapper
 
 def info(e):

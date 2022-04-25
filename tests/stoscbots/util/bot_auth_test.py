@@ -76,7 +76,7 @@ def test_is_st_marys_member_False():
 
 
 def test_decorator_member_only(monkeypatch):
-    @bot_auth.member_only
+    @bot_auth.async_member_only
     def to_be_decorated_fn(telegram_client, telegram_query):
         # If Non-member then this function isn't called and nothing is returned
         return "In Function"

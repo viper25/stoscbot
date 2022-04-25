@@ -59,7 +59,12 @@ Tests
 </summary>
 
 ## Run Tests
-```
+
+Ensure `pytest` is installed so that VSCode and "find" tests. Run the below command to run the tests.
+
+```bash
+
+```bash
 pytest --cov=./ --cov-report=xml
 coverage report
 ```
@@ -69,7 +74,7 @@ coverage report
 <details>
 <summary>Deploy on a VM</summary>
 
-1. [Do not re-use](https://docs.pyrogram.org/faq#can-i-use-multiple-clients-at-once-on-the-same-account) a session file when deploying to a new instance. To do so, delete any existing `.session` file and run `python3 run_stoscbot.py` and enter the bot ID to create new `*.session` files. Ensure [config.ini](https://docs.pyrogram.org/topics/config-file#the-config-ini-file) is present.
+1. [Do not re-use](https://docs.pyrogram.org/faq/using-multiple-clients-at-once-on-the-same-account) a session file when deploying to a new instance. On a new isntance, delete any existing `.session` file and [generate a new session file](https://docs.pyrogram.org/start/auth#bot-authorization).
 2. Copy the [Google API keys](https://console.cloud.google.com/iam-admin/serviceaccounts/details/104130143367587513093;edit=true/keys?project=api-project-57990973458) to `~/.config/gspread/service_account.json`
 3. Subsequently run headless as ` nohup python3 run_stoscbot.py &`
 </details>
@@ -96,7 +101,7 @@ coverage report
     }
     ```
 2. Add Timezone as an Application Settings variable i.e. `TZ=Asia/Singapore`
-3. Set a startup script in Azure Console under `Startup Command`. This is what will be used to start the bot (do not ignore the `.session` file). 
+3. Set a startup script in Azure Console under `Startup Command`. This is what will be used to start the bot (do not ignore to create the Pyrogram `.session` file). 
 4. It is expected the app provide an application running at port 8000. If not, the Azure App Service container will stop after a while (and our bot process will be killed). 
 </details>
 
@@ -105,3 +110,4 @@ coverage report
 * [Define Default Values in Dictionaries With `.get()` and `.setdefault()`](https://realpython.com/python-coding-interview-tips/#define-default-values-in-dictionaries-with-get-and-setdefault)
 * In iterating over long lists, use [generators](https://realpython.com/python-coding-interview-tips/#save-memory-with-generators)
 * Check if using `logger` or `loggers` class
+* Update Build Numbers and versions

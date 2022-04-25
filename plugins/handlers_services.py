@@ -19,9 +19,9 @@ def dynamic_data_filter(data):
 
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Registrations for Service"))
-@loggers.log_access
-def get_service_registrations(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def get_service_registrations(client: Client, query: CallbackQuery):
+    await query.answer()
     _service_id = query.data.split(" ")[3]
     serviceName, serviceDate, serviceList, kids_count = db.get_members_for_serviceID(_service_id)
     msg = f"**{serviceName}** ({_service_id})\n`{serviceDate}`\n"
@@ -39,17 +39,17 @@ def get_service_registrations(client: Client, query: CallbackQuery):
     msg += f"\n Attendees: **{total}**"
     # Show this keyboard only to SMO
     if bot_auth.is_smo_member(query.from_user.id):
-        utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard(db.get_next_services()))
+        await utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard(db.get_next_services()))
     else:
         utils.edit_and_send_msg(query, msg)
 
 
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Prayer Requests"))
-@loggers.log_access
+@loggers.async_log_access
 # Check if there is any prayer request for this week submitted after current service starts at 7.45
-def get_prayer_requests(client: Client, query: CallbackQuery):
-    query.answer()
+async def get_prayer_requests(client: Client, query: CallbackQuery):
+    await query.answer()
 
     # Credentials are at %APPDATA%\gspread\service_account.json or
     # ~/.config/gspread/service_account.json
@@ -113,6 +113,6 @@ def get_prayer_requests(client: Client, query: CallbackQuery):
                 keyboards.get_services_keyboard(db.get_next_services()),
             )
         else:
-            utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard(db.get_next_services()))
+            await utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard(db.get_next_services()))
     else:
-        utils.edit_and_send_msg(query, "No Prayer Requests yet", keyboards.get_services_keyboard(db.get_next_services()))
+        await utils.edit_and_send_msg(query, "No Prayer Requests yet", keyboards.get_services_keyboard(db.get_next_services()))

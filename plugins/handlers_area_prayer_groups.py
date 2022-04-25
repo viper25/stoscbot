@@ -16,9 +16,9 @@ def dynamic_data_filter(data):
 
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Area Prayer Group"))
-@loggers.log_access
-def get_area_prayer_group_members(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def get_area_prayer_group_members(client: Client, query: CallbackQuery):
+    await query.answer()
     _area = query.data.split(' ')[3]
     _memberlist,area_name=db.get_members_for_area(_area)
     if len(_memberlist) ==0:
@@ -27,4 +27,4 @@ def get_area_prayer_group_members(client: Client, query: CallbackQuery):
         msg=f"**Members in {area_name[0][0]}** `({len(_memberlist)})` \n\n"
         for _member in _memberlist:
             msg += f"• {_member[0].split('(')[0]}`({_member[0].split('(')[1][:4]})`\n"
-    utils.edit_and_send_msg(query, msg, keyboards.area_prayer_groups_keyboard)
+    await utils.edit_and_send_msg(query, msg, keyboards.area_prayer_groups_keyboard)
