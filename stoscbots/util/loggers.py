@@ -8,7 +8,7 @@ from logging.handlers import RotatingFileHandler
 import botocore.exceptions
 
 LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
-MODE = os.environ.get("MODE").upper()
+ENV = os.environ.get("ENV").upper()
 
 def logger_init():
     print(f"Initializing Logger - logger_init() - {__name__}")
@@ -31,7 +31,7 @@ def logger_init():
     stream.setFormatter(streamformat)
 
     # Adding all handlers to the logs
-    if MODE == "PRO":
+    if ENV == "PRO":
         # No need to stream in PRO
         logger.addHandler(rf_handler)
     else:

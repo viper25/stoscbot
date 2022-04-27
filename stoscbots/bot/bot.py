@@ -11,8 +11,8 @@ logger.setLevel(LOGLEVEL)
 # ------------------------------------------------------------------
 
 test_mode = True
-MODE = os.environ.get("MODE")
-if MODE == "PRO":
+ENV = os.environ.get("ENV")
+if ENV == "PRO":
     test_mode = False
 
 app = Client("STOSCBOT_Laptop", plugins=dict(root="plugins"), test_mode=test_mode)
