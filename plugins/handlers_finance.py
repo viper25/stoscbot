@@ -31,7 +31,7 @@ def dynamic_data_filter_starts_with(data):
 # --------------------------------------------------
 @Client.on_message(filters.command(["x"]))
 @loggers.async_log_access
-@bot_auth.management_only
+@bot_auth.async_management_only
 async def finance_search_member_payments(client: Client, message: Message):
     member_code = None
     if len(message.command) >= 2:
@@ -61,7 +61,7 @@ async def finance_search_member_payments(client: Client, message: Message):
 # --------------------------------------------------
 @Client.on_message(filters.command(["xs"]))
 @loggers.async_log_access
-@bot_auth.management_only
+@bot_auth.async_management_only
 async def finance_search_member_sub(client: Client, message: Message):
     member_code = None
     if len(message.command) >= 2:

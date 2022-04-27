@@ -33,7 +33,7 @@ async def help_handler(client: Client, message: Message):
 # -------------------------------------------------
 @Client.on_message(filters.command(["year"]))
 @loggers.async_log_access
-@bot_auth.area_prayer_coordinator_only
+@bot_auth.async_area_prayer_coordinator_only
 async def year_handler(client: Client, message: Message):
     if len(message.command)==1:
         msg = "Please enter the year you want to view\ne.g. '/year 2020'"
@@ -62,7 +62,7 @@ async def year_handler(client: Client, message: Message):
 # Command Handlers
 @Client.on_message(filters.command(["u"]))
 @loggers.async_log_access
-@bot_auth.area_prayer_coordinator_only
+@bot_auth.async_area_prayer_coordinator_only
 async def member_search_cmd_handler(client: Client, message: Message):
     if len(message.command) != 2:
         msg="Please enter a Member Code or Name to search"
