@@ -1,11 +1,20 @@
+from datetime import datetime
+import logging
 from pyrogram import Client, filters
 from pyrogram.types import Message, CallbackQuery
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
 from stoscbots.bot import keyboards
 from stoscbots.xero import xero_utils
-from datetime import datetime
+
 # ==================================================
+
+# Module logger
+logger = logging.getLogger('Handler.Finance')
+logger.setLevel(loggers.LOGLEVEL)
+
+# --------------------------------------------------
+
 '''
 Handle multiple callback queries data and return filter for each
 '''
@@ -92,13 +101,13 @@ async def get_finance_executive_summary(client: Client, query: CallbackQuery):
             previous_month_title=row['Cells'][2]['Value']
         else:
             # There are multiple sections: Cash, Profitability etc. Loop through items in each
-            loggers.debug(f"In Section: {row['Title']}")
+            logger.debug(f"In Section: {row['Title']}")
             # Ignore these sections; we're not interested
             if (row['Title'].upper() in ['POSITION','PERFORMANCE','PROFITABILITY','INCOME']):
                 continue
             msg += f"**==========\n📌SECTION: {row['Title'].upper()}**\n"
             for section in row['Rows']:
-                loggers.debug(f"Processing [{section['Cells'][0]['Value']}]")    
+                logger.debug(f"Processing [{section['Cells'][0]['Value']}]")    
                 msg += "〰〰〰〰〰\n"
                 msg += f"**{section['Cells'][0]['Value']}**\n"
                 current_month_value=section['Cells'][1]['Value']
@@ -133,7 +142,7 @@ async def get_finance_bank_summary(client: Client, query: CallbackQuery):
             all_fd_sum=0.0
             for _bank_account in row['Rows']:
                 bank_account=_bank_account['Cells'][0]['Value']
-                loggers.debug(f"Processing [{bank_account}]")
+                logger.debug(f"Processing [{bank_account}]")
 
                 opening_bal_value=_bank_account['Cells'][1]['Value'] if _bank_account['Cells'][1]['Value'] != '' else 0
                 cash_recvd_value=_bank_account['Cells'][2]['Value'] if _bank_account['Cells'][2]['Value'] != '' else 0
@@ -172,7 +181,7 @@ async def get_finance_trial_balance(client: Client, query: CallbackQuery):
         __msg = ""
         for row in rows:
             account=row['Cells'][0]['Value']
-            loggers.debug(f"Processing [{account}]")
+            logger.debug(f"Processing [{account}]")
             if report_type == 'revenue':
                 ytd_value=row['Cells'][4]['Value'] if row['Cells'][4]['Value'] != '' else 0
             else:

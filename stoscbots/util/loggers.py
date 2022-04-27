@@ -7,13 +7,40 @@ import hashlib
 from logging.handlers import RotatingFileHandler
 import botocore.exceptions
 
-formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-rfh = RotatingFileHandler(os.environ.get("STOSC_LOGS"), maxBytes=1000000, backupCount=5, encoding='utf-8')
-rfh.setLevel(level=logging.INFO)
-rfh.setFormatter(formatter)
+LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
+MODE = os.environ.get("MODE").upper()
 
-logger = logging.getLogger(__name__)
-logger.addHandler(rfh)
+def logger_init():
+    print(f"Initializing Logger - logger_init() - {__name__}")
+
+    ## get logger
+    #logger = logging.getLogger(__name__) ## this was my mistake, to init a module logger here
+    logger = logging.getLogger() ## root logger
+        
+    # File handler
+    rf_handler = RotatingFileHandler(os.environ.get("STOSC_LOGS"), maxBytes=1000000, backupCount=5, encoding='utf-8')
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+    rf_handler.setFormatter(formatter)
+    rf_handler.setLevel(LOGLEVEL)
+
+    # Stream handler
+    stream = logging.StreamHandler()
+    #streamformat = logging.Formatter("%(asctime)s [%(levelname)s:%(module)s] %(message)s")
+    streamformat = logging.Formatter("%(asctime)s [%(levelname)s]: %(name)s: %(message)s")
+    stream.setLevel(LOGLEVEL)
+    stream.setFormatter(streamformat)
+
+    # Adding all handlers to the logs
+    if MODE == "PRO":
+        # No need to stream in PRO
+        logger.addHandler(rf_handler)
+    else:
+        logger.addHandler(rf_handler)
+        logger.addHandler(stream)
+
+logger_init() ## init root logger
+logger = logging.getLogger(__name__) ## module logger
+logger.setLevel(LOGLEVEL)
 
 resource = boto3.resource(
     "dynamodb",
@@ -70,15 +97,3 @@ def async_log_access(func):
         # If the wrapped function is an aysnc function, we need to await it
         return await func(*args, **kwargs)
     return function_wrapper
-
-def info(e):
-    logger.info(e)
-
-def error(e):
-    logger.error(e)
-
-def warn(e):
-    logger.warning(e)
-
-def debug(e):
-    logger.debug(e)
