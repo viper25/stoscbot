@@ -60,7 +60,7 @@ Tests
 
 ## Run Tests
 
-Ensure `pytest` is installed so that VSCode and "find" tests. Run the below command to run the tests.
+Ensure `pytest` and `pytest-asyncio` is installed so that VSCode and "find" tests. Run the below command to run the tests.
 
 ```bash
 

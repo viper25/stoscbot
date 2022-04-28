@@ -66,7 +66,7 @@ def async_management_only(func):
         if not is_mgmt_member(msg_or_query.from_user.id):
             await send_access_denied_msg(client, msg_or_query)
             return
-        return func(client, msg_or_query)
+        return await func(client, msg_or_query)
     return wrapped
 # --------------------------------------------------
 def async_area_prayer_coordinator_only(func):
@@ -78,7 +78,7 @@ def async_area_prayer_coordinator_only(func):
         if not (is_area_prayer_coordinator_member(msg_or_query.from_user.id) or is_mgmt_member(msg_or_query.from_user.id)):
             await send_access_denied_msg(client, msg_or_query)
             return
-        return func(client, msg_or_query)
+        return await func(client, msg_or_query)
     return wrapped
 # =================================================
 def is_member(telegram_id: int):
