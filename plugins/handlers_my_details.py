@@ -76,8 +76,9 @@ async def show_list_accounts(client: Client, query: CallbackQuery):
     msg += "➖➖➖➖➖➖\n"
     msg += "You may contribute towards the following accounts:\n"
     for account in LIST_ACCOUNTS:
-        if any(payment.get('Account', '').startswith(account) for payment in payments):
-            msg += f"• **{account}**\n"
+        for payment in payments:
+            if payment.get('Account', '').startswith(account):
+                msg += f"• **{account} `(${payment['LineAmount']:,.2f})`**\n"
         else:
             msg += f"• {account}\n"
     msg += "\n`*` **Bold** `indicates that you have contributed towards this account head`"
