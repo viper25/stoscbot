@@ -6,6 +6,11 @@ import datetime
 import hashlib
 from logging.handlers import RotatingFileHandler
 import botocore.exceptions
+from dotenv import load_dotenv
+
+# Load environment variables from .env file (for the whole project)
+# This here is one of the first entry points
+load_dotenv()
 
 LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 ENV = os.environ.get("ENV").upper()
