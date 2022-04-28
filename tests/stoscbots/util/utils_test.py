@@ -1,6 +1,8 @@
+import os 
 from stoscbots.util import utils
 from decimal import Decimal
 
+VIBIN_TELEGRAM_ID = os.environ.get('VIBIN_TELEGRAM_ID')
 
 def test_getMemberCode_from_TelegramID_Bad_value():
     memberCode = utils.getMemberCode_from_TelegramID("wrongID")
@@ -8,7 +10,7 @@ def test_getMemberCode_from_TelegramID_Bad_value():
 
 
 def test_getMemberCode_from_TelegramID():
-    memberCode = utils.getMemberCode_from_TelegramID(1413407913)
+    memberCode = utils.getMemberCode_from_TelegramID(VIBIN_TELEGRAM_ID)
     assert memberCode == "V019"
 
 

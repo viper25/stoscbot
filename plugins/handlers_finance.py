@@ -1,11 +1,20 @@
+from datetime import datetime
+import logging
 from pyrogram import Client, filters
 from pyrogram.types import Message, CallbackQuery
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
 from stoscbots.bot import keyboards
 from stoscbots.xero import xero_utils
-from datetime import datetime
+
 # ==================================================
+
+# Module logger
+logger = logging.getLogger('Handler.Finance')
+logger.setLevel(loggers.LOGLEVEL)
+
+# --------------------------------------------------
+
 '''
 Handle multiple callback queries data and return filter for each
 '''
@@ -21,9 +30,9 @@ def dynamic_data_filter_starts_with(data):
     )
 # --------------------------------------------------
 @Client.on_message(filters.command(["x"]))
-@loggers.log_access
-@bot_auth.management_only
-def finance_search_member_payments(client: Client, message: Message):
+@loggers.async_log_access
+@bot_auth.async_management_only
+async def finance_search_member_payments(client: Client, message: Message):
     member_code = None
     if len(message.command) >= 2:
         member_code = message.command[1].upper()
@@ -31,13 +40,13 @@ def finance_search_member_payments(client: Client, message: Message):
         # Match member codes such as V019. One char followed by 2 or 3 digits
         if utils.is_valid_member_code(member_code) is None:
             msg="Please enter a Member Code to search"
-            message.reply(msg,quote=True)
+            await message.reply(msg,quote=True)
             return
     #A member code has been sent
     if member_code:
         result=db.get_member_details(member_code, 'code')
         if len(result) == 0:
-            message.reply("No such Member")
+            await message.reply("No such Member")
             return  
         elif len(result) >= 1:
             # Figure out the year of accounts we want to retrieve 
@@ -48,26 +57,26 @@ def finance_search_member_payments(client: Client, message: Message):
             elif len(message.command) == 2:
                 _year=str(datetime.now().year)
             msg = utils.generate_msg_xero_member_payments(result[0][1],member_code, _year)
-            message.reply(msg)
+            await message.reply(msg)
 # --------------------------------------------------
 @Client.on_message(filters.command(["xs"]))
-@loggers.log_access
-@bot_auth.management_only
-def finance_search_member_sub(client: Client, message: Message):
+@loggers.async_log_access
+@bot_auth.async_management_only
+async def finance_search_member_sub(client: Client, message: Message):
     member_code = None
     if len(message.command) >= 2:
         member_code = message.command[1].upper()
         # There is atleast a member code sent
         # Match member codes such as V019. One char followed by 2 or 3 digits
         if utils.is_valid_member_code(member_code) is None:
-            msg="Please enter a Member Code to search"
-            message.reply(msg,quote=True)
+            msg = "Please enter a Member Code to search"
+            await message.reply(msg,quote=True)
             return
     #A member code has been sent
     if member_code:
-        result=db.get_member_details(member_code,'code')
+        result = db.get_member_details(member_code,'code')
         if len(result) == 0:
-            message.reply("No such Member")
+            await message.reply("No such Member")
             return  
         elif len(result) >= 1:
         # Figure out the year of accounts we want to retrieve 
@@ -76,34 +85,34 @@ def finance_search_member_sub(client: Client, message: Message):
                 _year=message.command[2]
             # /x v019
             elif len(message.command) == 2:
-                _year=str(datetime.now().year)    
+                _year = str(datetime.now().year)    
             msg = utils.generate_msg_xero_member_invoices(member_code, _year)
-            message.reply(msg)
+            await message.reply(msg)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Executive Summary Button"))
-@loggers.log_access
-def get_finance_executive_summary(client: Client, query: CallbackQuery):
-    query.answer()
-    report=xero_utils.get_executive_summary()['Reports'][0]['Rows']
-    msg="➖**EXECUTIVE SUMMARY**➖\n\n"
+@loggers.async_log_access
+async def get_finance_executive_summary(client: Client, query: CallbackQuery):
+    await query.answer()
+    report = xero_utils.get_executive_summary()['Reports'][0]['Rows']
+    msg = "➖**EXECUTIVE SUMMARY**➖\n\n"
     for row in report:
         if row['RowType'] == 'Header':
             current_month_title=row['Cells'][1]['Value']
             previous_month_title=row['Cells'][2]['Value']
         else:
             # There are multiple sections: Cash, Profitability etc. Loop through items in each
-            loggers.debug(f"In Section: {row['Title']}")
+            logger.debug(f"In Section: {row['Title']}")
             # Ignore these sections; we're not interested
             if (row['Title'].upper() in ['POSITION','PERFORMANCE','PROFITABILITY','INCOME']):
                 continue
             msg += f"**==========\n📌SECTION: {row['Title'].upper()}**\n"
             for section in row['Rows']:
-                loggers.debug(f"Processing [{section['Cells'][0]['Value']}]")    
+                logger.debug(f"Processing [{section['Cells'][0]['Value']}]")    
                 msg += "〰〰〰〰〰\n"
                 msg += f"**{section['Cells'][0]['Value']}**\n"
                 current_month_value=section['Cells'][1]['Value']
                 previous_month_value=section['Cells'][2]['Value']
-                variance=section['Cells'][3]['Value']           
+                variance = section['Cells'][3]['Value']           
                
                 msg += f"{previous_month_title}={previous_month_value if ('%' in previous_month_value or previous_month_value=='' ) else round(float(previous_month_value),1):,.2f}\n"
                 msg += f"{current_month_title}={current_month_value if ('%' in current_month_value or current_month_value=='' ) else round(float(current_month_value),1):,.2f}\n"
@@ -113,13 +122,13 @@ def get_finance_executive_summary(client: Client, query: CallbackQuery):
                     msg += f"Variance=▼{variance}\n"
                 else:
                     msg += f"Variance=▲{variance}\n"
-    utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
+    await utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
 
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Bank Summary Button"))
-@loggers.log_access
-def get_finance_bank_summary(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def get_finance_bank_summary(client: Client, query: CallbackQuery):
+    await query.answer()
     report=xero_utils.get_bank_summary()['Reports'][0]['Rows']
     msg="➖**BANK ACCOUNTS SUMMARY**➖\n\n"
     for row in report:
@@ -133,7 +142,7 @@ def get_finance_bank_summary(client: Client, query: CallbackQuery):
             all_fd_sum=0.0
             for _bank_account in row['Rows']:
                 bank_account=_bank_account['Cells'][0]['Value']
-                loggers.debug(f"Processing [{bank_account}]")
+                logger.debug(f"Processing [{bank_account}]")
 
                 opening_bal_value=_bank_account['Cells'][1]['Value'] if _bank_account['Cells'][1]['Value'] != '' else 0
                 cash_recvd_value=_bank_account['Cells'][2]['Value'] if _bank_account['Cells'][2]['Value'] != '' else 0
@@ -156,13 +165,13 @@ def get_finance_bank_summary(client: Client, query: CallbackQuery):
 
     msg += "--------------------\n"
     msg += f"(Fixed Deposits=**${float(all_fd_sum):,.2f}**)\n"
-    utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
+    await utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
 
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter_starts_with("Finance Trial Balance"))
-@loggers.log_access
-def get_finance_trial_balance(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def get_finance_trial_balance(client: Client, query: CallbackQuery):
+    await query.answer()
     is_income_report = "REVENUE" in query.data.upper()
     msg="**TRIAL BALANCE**\n"
     msg+=f"`For Year {str(datetime.now().year)}`\n"
@@ -172,7 +181,7 @@ def get_finance_trial_balance(client: Client, query: CallbackQuery):
         __msg = ""
         for row in rows:
             account=row['Cells'][0]['Value']
-            loggers.debug(f"Processing [{account}]")
+            logger.debug(f"Processing [{account}]")
             if report_type == 'revenue':
                 ytd_value=row['Cells'][4]['Value'] if row['Cells'][4]['Value'] != '' else 0
             else:
@@ -196,13 +205,13 @@ def get_finance_trial_balance(client: Client, query: CallbackQuery):
 
     # Telegram has a 4096 byte limit for msgs
     msg=(msg[:4076] + '\n`... (truncated)`') if len(msg) > 4096 else msg
-    utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
+    await utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
 
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Payments WTD Button"))
-@loggers.log_access
-def get_finance_payments_wtd_balance(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def get_finance_payments_wtd_balance(client: Client, query: CallbackQuery):
+    await query.answer()
     payments=xero_utils.xero_get_payments()
     msg="➖**INVOICE/BILL PAYMENTS**➖\n\n"
     
@@ -221,13 +230,13 @@ def get_finance_payments_wtd_balance(client: Client, query: CallbackQuery):
 
     # Telegram has a 4096 byte limit for msgs
     msg=(msg[:4076] + '\n`... (truncated)`') if len(msg) > 4096 else msg
-    utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
+    await utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
 
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Latest Transactions Button"))
-@loggers.log_access
-def get_finance_latest_tx(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def get_finance_latest_tx(client: Client, query: CallbackQuery):
+    await query.answer()
     bank_tx=xero_utils.xero_get_bank_transactions()
     msg="➖**TRANSACTIONS (WTD)**➖\n`No Invoice (subscription) or bill payment transactions shown`\n\n"
 
@@ -262,11 +271,11 @@ def get_finance_latest_tx(client: Client, query: CallbackQuery):
     
     # Telegram has a 4096 byte limit for msgs
     msg=(msg[:4076] + '\n`... (truncated)`') if len(msg) > 4096 else msg
-    utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
+    await utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Projects Button"))
-@loggers.log_access
-def get_finance_tracking(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def get_finance_tracking(client: Client, query: CallbackQuery):
+    await query.answer()
     msg = utils.get_tracked_projects()
-    utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
+    await utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)

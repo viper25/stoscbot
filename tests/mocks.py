@@ -15,7 +15,7 @@ telegram_member_stmarys = User(id="9999999993", first_name="StMarys", username="
 telegram_member_harvest_admin = User(id="9999999994", first_name="HarvestAdmin", username="harvest_admin")
 telegram_member_normal = User(id="9999999995", first_name="Member", username="member")
 chat_bot = Chat(id="chat_id_123", type="bot")
-msg = Message(message_id="msg_id_123", chat=chat_bot, client=telegram_client)
+msg = Message(id="msg_id_123", chat=chat_bot, client=telegram_client)
 
 # Any arguments may be passed and mock_query_answer_with_data() will always return our
 # mocked object, which only has the .query() method.

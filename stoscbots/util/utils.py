@@ -9,8 +9,14 @@ from datetime import timedelta
 from pyrogram.types import CallbackQuery, InlineKeyboardMarkup
 from boto3.dynamodb.conditions import Key
 from stoscbots.xero import xero_utils
-from stoscbots.util import loggers
+from stoscbots.util.loggers import LOGLEVEL
+import logging
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Module logger
+logger = logging.getLogger('Utils')
+logger.setLevel(LOGLEVEL)
+# ----------------------------------------------------------------------------------------------------------------------
 resource = boto3.resource(
     "dynamodb",
     aws_access_key_id=os.environ.get("STOSC_DDB_ACCESS_KEY_ID"),
@@ -36,7 +42,7 @@ def get_address_details(_zip: str):
         if len(result['results'])>0:
             return result['results'][0]['LATITUDE'], result['results'][0]['LONGITUDE']
     except Exception as e:
-        loggers.error(f"Exception in onemap API: {e}")
+        logger.error(f"Exception in onemap API: {e}")
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate a Member Profile msg
 def generate_profile_msg(result: list):
@@ -111,7 +117,7 @@ def generate_msg_xero_member_invoices(_member_code: str, _year: str):
                 if invoice["InvoiceNumber"].endswith("-VOID"):
                     # Skip invoices that were VOIDED. These have a -VOID at the end
                     continue
-                loggers.debug(f"Invoice No: {invoice['InvoiceNumber']} for amount: {invoice['AmountDue']}")
+                logger.debug(f"Invoice No: {invoice['InvoiceNumber']} for amount: {invoice['AmountDue']}")
                 if invoice["Status"] == "PAID":
                     icon = "🟢"
                 elif invoice["Status"] == "AUTHORISED":
@@ -144,14 +150,14 @@ def generate_msg_xero_member_invoices(_member_code: str, _year: str):
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Send a message to a Telegram user with an optional inline keyboard
-def edit_and_send_msg(query: CallbackQuery, msg: str, keyboard: InlineKeyboardMarkup=None):
+async def edit_and_send_msg(query: CallbackQuery, msg: str, keyboard: InlineKeyboardMarkup=None):
     try:
-        query.message.edit_text(text=msg,reply_markup=keyboard)
+        await query.message.edit_text(text=msg,reply_markup=keyboard)
     except Exception as e:
         if e.ID == 'MESSAGE_NOT_MODIFIED':  
-            loggers.warn(e.MESSAGE)
+            logger.warn(e.MESSAGE)
         else:
-            loggers.error(e.MESSAGE)
+            logger.error(e.MESSAGE)
 # ----------------------------------------------------------------------------------------------------------------------
 # Return Jan 1 of current year. For Xero accounting methods
 def year_start():
@@ -201,29 +207,29 @@ def generate_msg_member_auction_purchases(_member_code: str):
         msg = "No Purchases yet\n"
     return msg
 # ----------------------------------------------------------------------------------------------------------------------
-def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list, keyboard: InlineKeyboardMarkup = None):
+async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list, keyboard: InlineKeyboardMarkup = None):
     if (result[0][4] != "" and result[0][4] is not None): 
         if get_address_details(result[0][4]):
             lat, lon=get_address_details(result[0][4])
-            client.send_venue(chat_id=_x.from_user.id,latitude=float(lat),longitude=float(lon),title=result[0][1],address=result[0][2],disable_notification=True)
+            await client.send_venue(chat_id=_x.from_user.id,latitude=float(lat),longitude=float(lon),title=result[0][1],address=result[0][2],disable_notification=True)
     try:
         # Per Simon, all images are png, so try looking that up first   
-        client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png", caption=msg, reply_markup=keyboard)
+        await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png", caption=msg, reply_markup=keyboard)
     except Exception as e1:
         if e1.ID == 'MEDIA_EMPTY':
-            loggers.warn(f"No png image for [{result[0][1]}], trying jpg")
+            logger.warn(f"No png image for [{result[0][1]}], trying jpg")
         else:
-            loggers.error(f"{e1.MESSAGE}: for [{result[0][1]}]")
+            logger.error(f"{e1.MESSAGE}: for [{result[0][1]}]")
         try:
             # If no png, try looking for a jpg
-            client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.jpg", caption=msg, reply_markup=keyboard)    
+            await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.jpg", caption=msg, reply_markup=keyboard)    
         except Exception as e2:
             if e2.ID == 'MEDIA_EMPTY':               
-                loggers.warn(f"No jpg image for [{result[0][1]}]")
+                logger.warn(f"No jpg image for [{result[0][1]}]")
                 # No Image found, send details without photo then
-                client.send_message(chat_id=_x.from_user.id,text=msg, reply_markup=keyboard)
+                await client.send_message(chat_id=_x.from_user.id,text=msg, reply_markup=keyboard)
             else:
-                loggers.error(f"{e2.MESSAGE}: for [{result[0][1]}]")
+                logger.error(f"{e2.MESSAGE}: for [{result[0][1]}]")
 # ----------------------------------------------------------------------------------------------------------------------
 def is_valid_member_code(_member_code: str):
     return re.match('[A-Za-z]\d{2,3}', _member_code)

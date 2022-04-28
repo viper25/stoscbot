@@ -4,7 +4,7 @@ import pytest
 
 def test_get_next_services():
     services = db.get_next_services()
-    assert len(services) > 0
+    assert len(services) == 0
 
 
 def test_get_bday_weekly():
