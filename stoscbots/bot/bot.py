@@ -15,7 +15,7 @@ ENV = os.environ.get("ENV")
 if ENV == "PRO":
     test_mode = False
 
-app = Client("STOSCBOT_Laptop", plugins=dict(root="plugins"), test_mode=test_mode)
+app = Client(os.environ.get("BOT_CLIENT_NAME"), plugins=dict(root="plugins"), test_mode=test_mode)
 
 def run():
     app.start_time = datetime.now()
