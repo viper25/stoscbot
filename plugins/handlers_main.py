@@ -29,6 +29,7 @@ async def help_handler(client: Client, message: Message):
     msg+="\n/x [member code] - Show member contributions"
     msg+="\n/xs [member code] - Show member subscriptions"
     msg+="\n/year [year in YYYY] - Show members born on this year"
+    msg+="\n/version or /ver - Show bot version"
     await message.reply_text(msg, reply_markup=keyboards.back_to_main_keyboard)
 # -------------------------------------------------
 @Client.on_message(filters.command(["year"]))
