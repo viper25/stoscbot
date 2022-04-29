@@ -4,7 +4,13 @@ import pendulum
 import enum
 import logging
 from dotenv import load_dotenv
+from stoscbots.util.loggers import LOGLEVEL
 
+# ----------------------------------------------------------------------------------------------------------------------
+# Module logger
+logger = logging.getLogger('DB')
+logger.setLevel(LOGLEVEL)
+# ----------------------------------------------------------------------------------------------------------------------
 
 load_dotenv()
 
@@ -12,9 +18,6 @@ USER="stosc_ro"
 PASSWORD=os.environ.get('STOSC_DB_PWD')
 HOST=os.environ.get('STOSC_DB_HOST')
 PORT=3306
-
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
-logger=logging.getLogger(__name__)
 
 class Databases(enum.Enum):
     CRM='stosc_churchcrm'

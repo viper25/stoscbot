@@ -1,6 +1,9 @@
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from stoscbots.util import bot_auth
 from datetime import datetime, date
+
+web_app_pr: WebAppInfo = WebAppInfo(url="https://stosc.com/pr")
+
 # --------------------------------------------------------------------------------------------------
 """
 InlineKeyboardButton = Buttons that belong to a Keyboard
@@ -34,10 +37,10 @@ __ST_MARYS_EXEC_SUMMARY_BUTTON = InlineKeyboardButton("📊 Projects Summary", c
 __MYDETAILS_MY_PROFILE_BUTTON = InlineKeyboardButton("🧾 My Profile", callback_data = "My Profile")
 __MYDETAILS_MY_CONTRIBUTIONS_BUTTON = InlineKeyboardButton("💳 My Contributions", callback_data = "My Contributions")
 __MYDETAILS_MY_SUBSCRIPTIONS_BUTTON = InlineKeyboardButton("📜 My Subscription", callback_data = "My Subscriptions")
-__MYDETAILS_HELP_BUTTON = InlineKeyboardButton("ℹ Help", callback_data = "Help")
+__MYDETAILS_PRAYER_REQUESTS_BUTTON = InlineKeyboardButton("🙏🏽 Submit Prayer Requests", web_app=web_app_pr)
 __MYDETAILS_LIST_OF_ACCOUNTS_BUTTON = InlineKeyboardButton("ℹ List of Accounts", callback_data = "List of Accounts")
 
-__PRAYER_REQUESTS_BUTTON = InlineKeyboardButton("📿 Prayer Requests", callback_data = "Prayer Requests")
+__PRAYER_REQUESTS_LISTING_BUTTON = InlineKeyboardButton("📿 Prayer Requests", callback_data = "Prayer Requests")
 
 # ---------------------------------------------------------------------------------------------------
 '''
@@ -86,8 +89,8 @@ area_prayer_groups_keyboard = InlineKeyboardMarkup([
 
 my_details_menu_keyboard = InlineKeyboardMarkup([
     [__MYDETAILS_MY_PROFILE_BUTTON],
-    [__MYDETAILS_MY_CONTRIBUTIONS_BUTTON, __MYDETAILS_MY_SUBSCRIPTIONS_BUTTON],
-    [__MYDETAILS_HELP_BUTTON, __MYDETAILS_LIST_OF_ACCOUNTS_BUTTON],
+    [__MYDETAILS_MY_CONTRIBUTIONS_BUTTON, __MYDETAILS_LIST_OF_ACCOUNTS_BUTTON],
+    [__MYDETAILS_MY_SUBSCRIPTIONS_BUTTON, __MYDETAILS_PRAYER_REQUESTS_BUTTON],
     [__BACK_TO_MAIN_BUTTON]
 ])
 # ---------------------------------------------------------------------------------------------------
@@ -148,7 +151,7 @@ def get_services_keyboard(next_services):
             _keyboard_rows = []
     _keyboard_rows.append(__MAIN_SERVICES_BUTTON)
     keyboard.append(_keyboard_rows)
-    keyboard.append([__BACK_TO_MAIN_BUTTON, __PRAYER_REQUESTS_BUTTON])
+    keyboard.append([__BACK_TO_MAIN_BUTTON, __PRAYER_REQUESTS_LISTING_BUTTON])
     return InlineKeyboardMarkup(keyboard)
 
 # Generate a Keyboard of member search results

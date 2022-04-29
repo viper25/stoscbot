@@ -9,39 +9,40 @@ import re
 # ==================================================
 # Command Handlers
 @Client.on_message(filters.command(["start"]))
-@loggers.log_access
-@bot_auth.member_only
-def start_handler(client: Client, message: Message):
+@loggers.async_log_access
+@bot_auth.async_member_only
+async def start_handler(client: Client, message: Message):
     msg="What would you like to do?\n Select an option:"
-    message.reply(msg, reply_markup=keyboards.get_main_keyboard(message.from_user.id))
+    await message.reply_text(msg, reply_markup=keyboards.get_main_keyboard(message.from_user.id))
 # -------------------------------------------------
 @Client.on_message(filters.command(["help"]))
-@loggers.log_access
-@bot_auth.member_only
-def help_handler(client: Client, message: Message):
+@loggers.async_log_access
+@bot_auth.async_member_only
+async def help_handler(client: Client, message: Message):
     msg="**Help**\n➖➖"
     msg+="\nI can help you use STOSC Bot. If you're new to the Bot, please see /help\n"
     msg+="\nYou can control me by sending these commands or clicking the buttons at /start:\n"
     msg+="\n/help - Show this help message"
     msg+="\n/start - Start the bot\n"
-    msg+="\n** The below commands are restricted use:**\n"
+    msg+="\n** 🚫 The below commands are restricted use: 🚫**\n"
     msg+="\n/u [member code or name] - Search for a member by member code or Name"
     msg+="\n/x [member code] - Show member contributions"
     msg+="\n/xs [member code] - Show member subscriptions"
     msg+="\n/year [year in YYYY] - Show members born on this year"
-    message.reply(msg, reply_markup=keyboards.back_to_main_keyboard)
+    msg+="\n/version or /ver - Show bot version"
+    await message.reply_text(msg, reply_markup=keyboards.back_to_main_keyboard)
 # -------------------------------------------------
 @Client.on_message(filters.command(["year"]))
-@loggers.log_access
-@bot_auth.area_prayer_coordinator_only
-def year_handler(client: Client, message: Message):
+@loggers.async_log_access
+@bot_auth.async_area_prayer_coordinator_only
+async def year_handler(client: Client, message: Message):
     if len(message.command)==1:
-        msg="Please enter the year you want to view\ne.g. '/year 2020'"
-        message.reply(msg, reply_markup=keyboards.back_to_main_keyboard)
+        msg = "Please enter the year you want to view\ne.g. '/year 2020'"
+        await message.reply_text(msg, reply_markup=keyboards.back_to_main_keyboard)
         return
     year = message.command[1]
     if utils.is_valid_year(year):
-        result=db.get_members_born_on(year)
+        result = db.get_members_born_on(year)
         msg = f"**Members Born on {year}** ({len(result)})\n➖➖➖➖➖➖➖➖"
         if result:
             for member in result:
@@ -51,44 +52,44 @@ def year_handler(client: Client, message: Message):
                 msg += f"{member[3]}\n" if (member[3] != "" and member[3] is not None) else ""
                 msg += f"{member[4]}\n" if (member[4] != "" and member[4] is not None) else ""
                 msg += f"{member[5]}\n" if (member[2] != "" and member[5] is not None) else ""
-            message.reply(msg, reply_markup=keyboards.back_to_main_keyboard)
+            await message.reply_text(msg, reply_markup=keyboards.back_to_main_keyboard)
         else:
             msg = f"No members born on {year}"
-            message.reply(msg)
+            await message.reply_text(msg)
     else:
         msg="Please enter a valid 4 digit year to search"
-        message.reply(msg,quote=True)
+        await message.reply_text(msg,quote=True)
 # -------------------------------------------------
 # Command Handlers
 @Client.on_message(filters.command(["u"]))
-@loggers.log_access
-@bot_auth.area_prayer_coordinator_only
-def member_search_cmd_handler(client: Client, message: Message):
+@loggers.async_log_access
+@bot_auth.async_area_prayer_coordinator_only
+async def member_search_cmd_handler(client: Client, message: Message):
     if len(message.command) != 2:
         msg="Please enter a Member Code or Name to search"
-        message.reply(msg,quote=True)
+        await message.reply_text(msg,quote=True)
         return
     # Match member codes such as V019. One char followed by 2 or 3 digits
     if utils.is_valid_member_code(message.command[1]) is not None:
         #A member code has been sent
         result=db.get_member_details(message.command[1],'code')
         if len(result) == 0:
-            message.reply("No such Member", quote=True)
+            await message.reply_text("No such Member", quote=True)
             return
         elif len(result) >= 1:  
             msg = utils.generate_profile_msg(result)   
-            utils.send_profile_address_and_pic(client, message, msg,result)
+            await utils.send_profile_address_and_pic(client, message, msg,result)
     else:
         # A search string and not member code
         result=db.get_member_details(message.command[1],'free_text')
         if not result or len(result) == 0:
-            message.reply("No such Member", quote=True)
+            await message.reply_text("No such Member", quote=True)
         elif len(result) >= 1:
             msg = f'🔎 Search results for "`{message.command[1]}`"\n--------------------------------------------'
             msg += '`\n⚡ = Head of Family`'
             msg += '`\n👦🏻 = Boy   👧🏻 = Girl`'
             msg += '`\n🧔🏻 = Man   👩🏻 = Woman`'
-            message.reply(msg,reply_markup=keyboards.get_member_listing_keyboard(result))
+            await message.reply_text(msg,reply_markup=keyboards.get_member_listing_keyboard(result))
         
 # ==================================================
 '''
@@ -107,17 +108,17 @@ def dynamic_data_filter2(data):
 # ==================================================
 # Callback Handlers (for Buttons)
 @Client.on_callback_query(dynamic_data_filter1("Main Menu"))
-@loggers.log_access
-def show_main_menu(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def show_main_menu(client: Client, query: CallbackQuery):
+    await query.answer()
     msg = "➖➖**Main Menu**➖➖"
-    query.message.reply(msg, reply_markup=keyboards.get_main_keyboard(query.from_user.id))
+    await query.message.reply_text(msg, reply_markup=keyboards.get_main_keyboard(query.from_user.id))
 # -------------------------------------------------
 # Callback Handlers (for Buttons)
 @Client.on_callback_query(dynamic_data_filter1("Services Menu"))
-@loggers.log_access
-def show_services_menu(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def show_services_menu(client: Client, query: CallbackQuery):
+    await query.answer()
     result=db.get_next_services()
     if len(result) == 0:
         msg="No Services"
@@ -149,49 +150,49 @@ def show_services_menu(client: Client, query: CallbackQuery):
                     msg += f'{_counter}. {_item[1]} on {_item[2].strftime("%b %d %I:%M %p")} `({_item[4]}/{_item[3]})`\n'
     # Show this keyboard only to SMO
     if bot_auth.is_smo_member(query.from_user.id):
-        utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard(db.get_next_services()))
+        await utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard(db.get_next_services()))
     else:
-        utils.edit_and_send_msg(query, msg, keyboards.back_to_main_keyboard)
+        await utils.edit_and_send_msg(query, msg, keyboards.back_to_main_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("Members Menu"))
-@loggers.log_access
-def show_members_menu(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def show_members_menu(client: Client, query: CallbackQuery):
+    await query.answer()
     msg = "➖➖**Members Menu**➖➖"
-    utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
+    await utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("Prayer Groups Menu"))
-@loggers.log_access
-def show_prayer_groups_menu(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def show_prayer_groups_menu(client: Client, query: CallbackQuery):
+    await query.answer()
     msg = "➖➖**Area Prayer Group Menu**➖➖"
-    utils.edit_and_send_msg(query, msg, keyboards.area_prayer_groups_keyboard)
+    await utils.edit_and_send_msg(query, msg, keyboards.area_prayer_groups_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("Finance Menu"))
-@loggers.log_access
-def show_finance_menu(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def show_finance_menu(client: Client, query: CallbackQuery):
+    await query.answer()
     msg = "➖➖**Finance Menu**➖➖"
-    query.message.reply(msg, reply_markup=keyboards.finance_menu_keyboard)
+    await query.message.reply_text(msg, reply_markup=keyboards.finance_menu_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("St. Marys Menu"))
-@loggers.log_access
-def show_st_marys_menu(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def show_st_marys_menu(client: Client, query: CallbackQuery):
+    await query.answer()
     msg = "➖➖**St. Mary's Menu**➖➖"
-    query.message.reply(msg, reply_markup=keyboards.stmarys_menu_keyboard)
+    await query.message.reply_text(msg, reply_markup=keyboards.stmarys_menu_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("My Details Menu"))
-@loggers.log_access
-def show_my_details_menu(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def show_my_details_menu(client: Client, query: CallbackQuery):
+    await query.answer()
     msg = "➖➖**My Details Menu**➖➖"
-    utils.edit_and_send_msg(query, msg, keyboards.my_details_menu_keyboard)
+    await utils.edit_and_send_msg(query, msg, keyboards.my_details_menu_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("My Harvest Festival Menu"))
-@loggers.log_access
-def show_my_harvest_festival_menu(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def show_my_harvest_festival_menu(client: Client, query: CallbackQuery):
+    await query.answer()
     member_code = utils.getMemberCode_from_TelegramID(query.from_user.id)
     msg = "➖➖**My Harvest Details Menu** 🌽➖➖"
     msg += "\n`Your successful bids from the last Harvest Festival`"
@@ -199,12 +200,12 @@ def show_my_harvest_festival_menu(client: Client, query: CallbackQuery):
     my_auction_spend = utils.generate_msg_member_auction_purchases(member_code)
     msg += "\n\n" + my_auction_spend
     # msg += "\n" + my_auction_link
-    utils.edit_and_send_msg(query, msg, keyboards.back_to_main_keyboard)
+    await utils.edit_and_send_msg(query, msg, keyboards.back_to_main_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("PayNow Menu"))
-@loggers.log_access
-def show_paynow_menu(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def show_paynow_menu(client: Client, query: CallbackQuery):
+    await query.answer()
     msg = "**Payment Options**\n"
     msg += "➖➖➖➖➖➖\n"
     msg += "You may pay by one of these ways:\n"
@@ -214,14 +215,14 @@ def show_paynow_menu(client: Client, query: CallbackQuery):
     msg += "    • NETS, Cash or Cheque (payable to `St. Thomas Orthodox Syrian Cathedral`) at the church office\n"
     msg += "\n`Please mention your family code and purpose of contribution.`\n"
     msg += "`For multiple payments, you can make one transfer and email the breakdown to` accounts@stosc.com"
-    client.send_photo(chat_id=query.from_user.id, photo='https://stosc.com/paynow/img/QR.png',caption=msg,reply_markup = keyboards.back_to_main_keyboard)
+    await client.send_photo(chat_id=query.from_user.id, photo='https://stosc.com/paynow/img/QR.png',caption=msg,reply_markup = keyboards.back_to_main_keyboard)
 # --------------------------------------------------
 # Handler for buttons generated from /u MyName search command 
 @Client.on_callback_query(dynamic_data_filter2("Member_"))
-@loggers.log_access
-def member_search_button_handler(client: Client, query: CallbackQuery):
-    query.answer()
+@loggers.async_log_access
+async def member_search_button_handler(client: Client, query: CallbackQuery):
+    await query.answer()
     _member_code=query.data.split('_')[1]
     result=db.get_member_details(_member_code,'code')
     msg = utils.generate_profile_msg(result)
-    utils.send_profile_address_and_pic(client, query, msg,result)
+    await utils.send_profile_address_and_pic(client, query, msg,result)

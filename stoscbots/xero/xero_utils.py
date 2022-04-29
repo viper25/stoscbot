@@ -3,7 +3,15 @@ import requests
 import boto3
 from boto3.dynamodb.conditions import Key
 from datetime import datetime
-from stoscbots.util import utils, loggers
+from stoscbots.util import utils
+from stoscbots.util.loggers import LOGLEVEL
+import logging
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Module logger
+logger = logging.getLogger('Xero.Utils')
+logger.setLevel(LOGLEVEL)
+# ----------------------------------------------------------------------------------------------------------------------
 
 XERO_TENANT_ID=os.environ.get('STOSC_XERO_STOSC_TENANT_ID')
 XERO_CLIENT_ID=os.environ.get('STOSC_XERO_CLIENT_ID')
@@ -64,7 +72,7 @@ def __xero_get(url: str, **extra_headers):
     response=requests.get(url,headers=_headers)
     if response.status_code == 401:
         # Access token has expired. Get a new one and set globally 
-        loggers.info("Access Token has expired. Getting a new one.")
+        logger.info("Access Token has expired. Getting a new one.")
         __access_token = __xero_get_Access_Token()
         # Reconstruct the header with new access token
         _headers={
@@ -78,6 +86,7 @@ def __xero_get(url: str, **extra_headers):
 
 # ----------------------------------------------------------------------------------------------------------------------
 def get_xero_ContactID(code: str=None):
+    logger.debug(f"Getting ContactID for {code}")
     url = f'https://api.xero.com/api.xro/2.0/Contacts?where=AccountNumber=="{code}"'
     contacts=__xero_get(url)
     if len(contacts['Contacts'])>0:
@@ -85,6 +94,7 @@ def get_xero_ContactID(code: str=None):
 # ----------------------------------------------------------------------------------------------------------------------
 # Retrieve all AUTHORISED and PAID Invoices for a ContactID
 def get_Invoices(memberID: str):
+    logger.debug(f"Getting Invoices for {memberID}")
     _contactID=get_xero_ContactID(memberID)
     if _contactID:
         url = f"https://api.xero.com/api.xro/2.0/Invoices?ContactIDs={_contactID}&Statuses=AUTHORISED,PAID"
@@ -121,4 +131,5 @@ def xero_get_bank_transactions():
 #-----------------------------------------------------------------------------------
 # Xero dates are weird. Parse
 def parse_Xero_Date(_date: str):
+    logger.debug(f"Parsing Xero date: {_date}")
     return datetime.fromtimestamp(int(_date[6:-2].split('+')[0])/1000)
