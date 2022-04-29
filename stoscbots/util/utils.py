@@ -80,7 +80,7 @@ def generate_msg_xero_member_payments(name: str, _member_code: str, _year: str):
         if latest_ts != '':
             msg += f"\n`As of: {latest_ts[:16]}`"
         return msg
-    return f"No contributions for **{_member_code}** for year **{_year}**"
+    return f"No contributions for **{name}** for year **{_year}**"
 # ----------------------------------------------------------------------------------------------------------------------
 # Return a list of member payments for a year
 def get_member_payments(_member_code: str, _year: str) -> list:
