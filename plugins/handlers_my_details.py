@@ -53,20 +53,6 @@ async def show_my_subscriptions(client: Client, query: CallbackQuery):
     msg = utils.generate_msg_xero_member_invoices(_member_code, _year)
     await utils.edit_and_send_msg(query, msg, keyboards.my_details_menu_keyboard)
 # --------------------------------------------------
-@Client.on_callback_query(dynamic_data_filter("Help"))
-@loggers.async_log_access
-async def show_help(client: Client, query: CallbackQuery):
-    await query.answer()
-    msg="How to use\n"
-    msg += "➖➖➖➖➖\n"
-    msg += "• Click **Payments** button to access payments for current year\n"
-    msg += "• Click **Subscription Invoices** button to access your subscription invoices for the current year\n"
-    msg += "• Click **List of Accounts** button to see all accounts you may wish to contribute to\n"
-    # msg += "• To see *m*ember *p*ayments for year 2020, type `'/mp 2020'` for payments for year 2020\nDo note, the new accounting system has only data from Oct 2020 onwards.\n"
-    # msg += "• To see *m*ember *s*ubscription for year 2020, type `'/ms 2020'` for subscription payments for year 2020\n"
-    msg += "`\nNote: Data available only from Oct 2020 onwards`\n"
-    await utils.edit_and_send_msg(query, msg, keyboards.my_details_menu_keyboard)
-# --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("List of Accounts"))
 @loggers.async_log_access
 async def show_list_accounts(client: Client, query: CallbackQuery):
