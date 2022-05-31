@@ -3,7 +3,7 @@ from pyrogram import Client, filters
 from pyrogram.types import CallbackQuery
 from stoscbots.bot import keyboards
 from stoscbots.db import db
-from stoscbots.util import loggers, utils
+from stoscbots.util import loggers, utils, bot_auth
 
 # ==================================================
 '''
@@ -49,10 +49,15 @@ async def get_today_anniversaries(client: Client, query: CallbackQuery):
             msg += f"• {_item[1].strip()} `({_item[0].strip()})` - {anniversary_years if anniversary_years else 'NA'}\n"
     await utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
 # --------------------------------------------------
+@Client.on_message(filters.command(["bday"]))   # For when we want to print bdays without age
 @Client.on_callback_query(dynamic_data_filter("Member Birthday Week Button"))
 @loggers.async_log_access
-async def get_weeks_bdays(client: Client, query: CallbackQuery):
-    await query.answer()
+@bot_auth.async_management_only
+async def get_weeks_bdays(client: Client, query_or_msg):
+    dont_show_age = True
+    if type(query_or_msg) == CallbackQuery:
+        await query_or_msg.answer()
+        dont_show_age = False
     start, end, result=db.get_bday('w')
     if len(result) ==0:
         msg=" No Birthdays this week"
@@ -69,15 +74,29 @@ async def get_weeks_bdays(client: Client, query: CallbackQuery):
             else:
                 age = None
             if  _day == date.today().strftime("%d") and _month == date.today().strftime("%m") :
-                msg += f"•** {_item[1].strip()}** `({_item[0].strip()})` - **{age if age else 'NA'}**\n"
+                if dont_show_age:
+                    msg += f"•** {_item[1].strip()}** `({_item[0].strip()})`\n"
+                else:
+                    msg += f"•** {_item[1].strip()}** `({_item[0].strip()})` - **{age if age else 'NA'}**\n"
             else:
-                msg += f"• {_item[1].strip()} `({_item[0].strip()})` - {age if age else 'NA'}\n"
-    await utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
+                if dont_show_age:
+                    msg += f"• {_item[1].strip()} `({_item[0].strip()})`\n"
+                else:
+                    msg += f"• {_item[1].strip()} `({_item[0].strip()})` - {age if age else 'NA'}\n"
+    if type(query_or_msg) == CallbackQuery:
+        await utils.edit_and_send_msg(query_or_msg, msg, keyboards.members_menu_keyboard)
+    else:
+        await query_or_msg.reply_text(msg)
 # --------------------------------------------------
+@Client.on_message(filters.command(["anniv"]))   # For when we want to print bdays without age
 @Client.on_callback_query(dynamic_data_filter("Member Anniversary Week Button"))
 @loggers.async_log_access
-async def get_weeks_anniversaries(client: Client, query: CallbackQuery):
-    await query.answer()
+@bot_auth.async_management_only
+async def get_weeks_anniversaries(client: Client, query_or_msg):
+    dont_show_anniv_years = True
+    if type(query_or_msg) == CallbackQuery:
+        await query_or_msg.answer()
+        dont_show_anniv_years = False
     start, end, result=db.get_anniversaries('w')
     if len(result) ==0:
         msg=" No Wedding Anniversaries this week"
@@ -86,11 +105,20 @@ async def get_weeks_anniversaries(client: Client, query: CallbackQuery):
         msg += f"`({start} - {end})`\n\n"
         for _item in result:
             anniversary_years =  date.today().year - _item[2].year
-            if str(_item[2].day) == date.today().strftime("%d") and _item[2].month == date.today().strftime("%m") :
-                msg += f"•** {_item[1].strip()}** `({_item[0].strip()})` - **{anniversary_years if anniversary_years else 'NA'}**\n"
+            if str(_item[2].day) == date.today().strftime("%d") and _item[2].month == date.today().strftime("%m"):
+                if dont_show_anniv_years:
+                    msg += f"•** {_item[1].strip()}** `({_item[0].strip()})`\n"
+                else:
+                    msg += f"•** {_item[1].strip()}** `({_item[0].strip()})` - **{anniversary_years if anniversary_years else 'NA'}**\n"
             else:
-                msg += f"• {_item[1].strip()} `({_item[0].strip()})` - {anniversary_years if anniversary_years else 'NA'}\n"
-    await utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
+                if dont_show_anniv_years:
+                    msg += f"• {_item[1].strip()} `({_item[0].strip()})`\n"
+                else:
+                    msg += f"• {_item[1].strip()} `({_item[0].strip()})` - {anniversary_years if anniversary_years else 'NA'}\n"
+    if type(query_or_msg) == CallbackQuery:
+        await utils.edit_and_send_msg(query_or_msg, msg, keyboards.members_menu_keyboard)
+    else:
+        await query_or_msg.reply_text(msg)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("GB Ineligible"))
 @loggers.async_log_access
