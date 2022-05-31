@@ -109,7 +109,6 @@ def get_main_keyboard(telegram_id):
             ])
     elif bot_auth.is_st_marys_member(telegram_id):
         keyboard_main = InlineKeyboardMarkup([
-            [__MAIN_SERVICES_BUTTON],
             [__MAIN_MEMBERS_BUTTON,__MAIN_PRAYER_GROUPS_BUTTON],
             [__MAIN_ST_MARYS_BUTTON],
             [__MAIN_MY_DETAILS_BUTTON,__MAIN_MY_HARVEST_BUTTON],
@@ -118,7 +117,7 @@ def get_main_keyboard(telegram_id):
     else:
         # Normal members
         keyboard_main = InlineKeyboardMarkup([
-            [__MAIN_SERVICES_BUTTON,__MAIN_PRAYER_GROUPS_BUTTON],
+            [__MAIN_PRAYER_GROUPS_BUTTON],
             [__MAIN_MY_DETAILS_BUTTON,__MAIN_MY_HARVEST_BUTTON],
             [__MAIN_PAYNOW_BUTTON]
             ])

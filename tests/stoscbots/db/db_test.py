@@ -66,8 +66,8 @@ def test_get_members_for_serviceID():
 
 def test_get_members_born_on():
     result = db.get_members_born_on("1979")
-    assert result[25][2] == "Vibin Joseph Kuriakose (V019)"
-    assert len(result) == 26
+    assert result[23][2] == "Vibin Joseph Kuriakose (V019)"
+    assert len(result) == 24
 
 
 def test_get_gb_ineligible():

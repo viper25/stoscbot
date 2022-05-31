@@ -58,15 +58,18 @@ async def show_my_subscriptions(client: Client, query: CallbackQuery):
 async def show_list_accounts(client: Client, query: CallbackQuery):
     await query.answer()
     payments = utils.get_member_payments(utils.getMemberCode_from_TelegramID(query.from_user.id), str(datetime.now().year))
-    msg="List of Accounts\n"
+    msg="**List of Accounts**\n"
     msg += "➖➖➖➖➖➖\n"
     msg += "You may contribute towards the following accounts:\n"
     for account in LIST_ACCOUNTS:
+        payment_account_head_added = False
         for payment in payments:
             if payment.get('Account', '').startswith(account):
                 msg += f"• **{account} `(${payment['LineAmount']:,.2f})`**\n"
-        else:
+                payment_account_head_added = True # To avoid duplicate lines being printed
+        if not payment_account_head_added:
             msg += f"• {account}\n"
+            payment_account_head_added = False
     msg += "\n`*` **Bold** `indicates that you have contributed towards this account head`"
     await utils.edit_and_send_msg(query, msg, keyboards.my_details_menu_keyboard)
 

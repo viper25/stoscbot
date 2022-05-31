@@ -80,7 +80,7 @@ def generate_msg_xero_member_payments(name: str, _member_code: str, _year: str):
         if latest_ts != '':
             msg += f"\n`As of: {latest_ts[:16]}`"
         return msg
-    return f"No contributions for **{_member_code}** for year **{_year}**"
+    return f"No contributions for **{name}** for year **{_year}**"
 # ----------------------------------------------------------------------------------------------------------------------
 # Return a list of member payments for a year
 def get_member_payments(_member_code: str, _year: str) -> list:
@@ -180,8 +180,10 @@ def a_week_ago():
 # ----------------------------------------------------------------------------------------------------------------------
 def get_member_auction_link(_member_code: str):
     response = table_harvest_members.query(KeyConditionExpression=Key("code").eq(_member_code))
-    _link = f"https://harvest.stosc.com/?id={response['Items'][0]['guid']}"
-    return _link
+    if len(response['Items']) > 0:
+        return f"https://harvest.stosc.com/?id={response['Items'][0]['guid']}"
+    else:
+        return ""
 # ----------------------------------------------------------------------------------------------------------------------
 # Get Winning Bid for an Item
 def __get_winning_bid(_itemCode: str):
@@ -204,7 +206,7 @@ def generate_msg_member_auction_purchases(_member_code: str):
                 # Get the winning price for that item
                 msg += f"[`{_item.split('-')[0]}`] {_item.split('-')[1]}: **${__get_winning_bid(_item.split('-')[0]):,}**\n"
     else:
-        msg = "No Purchases yet\n"
+        msg = "No Purchases\n"
     return msg
 # ----------------------------------------------------------------------------------------------------------------------
 async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list, keyboard: InlineKeyboardMarkup = None):
