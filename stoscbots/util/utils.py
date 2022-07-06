@@ -46,22 +46,28 @@ def get_address_details(_zip: str):
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate a Member Profile msg
 def generate_profile_msg(result: list):
-    msg=f"• Name: **{result[0][1]}**\n"
-    if (result[0][2] != "" and result[0][2] is not None):
-        msg += f"• Add: **{result[0][2]}**"
-    if (result[0][3] != "" and result[0][3] is not None):
-        msg += f"**, {result[0][3]}**"
-    if (result[0][4] != "" and result[0][4] is not None):
-        msg += f", **{result[0][4]}**"
+    msg = f"• Name: **{result[0][2]} ({result[0][1]})**\n"
+    msg += f"• DOB: **{result[0][20]}**\n" if (result[0][20] != "" and result[0][20] is not None) else ""
+    msg += f"• Spouse: **{result[0][6]}**\n" if (result[0][6] != "" and result[0][6] is not None) else ""
+    msg += f"• Spouse DOB: **{result[0][21]}**\n" if (result[0][21] != "" and result[0][21] is not None) else ""
+    msg += f"• Children: **{result[0][8]}**\n" if (result[0][8] != "" and result[0][8] is not None) else ""
+    msg += f"• Other family members: **{result[0][9]}**\n" if (result[0][9] != "" and result[0][9] is not None) else ""
+    if (result[0][10] != "" and result[0][10] is not None):
+        msg += f"• Add: **{result[0][10]}**"
+    if (result[0][11] != "" and result[0][11] is not None):
+        msg += f"**, {result[0][11]}**"
+    if (result[0][12] != "" and result[0][12] is not None):
+        msg += f", **{result[0][12]}**"
     msg += "\n"
-    msg += f"• Mobile: [{result[0][5]}](tel://{result[0][5]})\n" if (result[0][5] != "" and result[0][5] is not None) else ""
-    msg += f"• Home: [{result[0][6]}](tel://{result[0][6]})\n" if (result[0][6] != "" and result[0][6] is not None) else ""
-    msg += f"• Email: **{result[0][7]}**\n" if (result[0][7] != "" and result[0][7] is not None) else ""
-    msg += f"• Home Parish: **{result[0][8]}**\n" if (result[0][8] != "" and result[0][8] is not None) else ""
-    msg += f"• Membership Date: **{result[0][9]}**\n" if (result[0][9] != "" and result[0][9] is not None) else ""
-    msg += f"• Related Families: **{result[0][10]}**\n" if (result[0][10] != "" and result[0][10] is not None) else ""
-    msg += f"• Electoral Roll: **{result[0][11]}**\n" if (result[0][11] != "" and result[0][11] is not None) else ""
-    msg += f"• Prayer Group: **{result[0][12]}**\n" if (result[0][12] != "" and result[0][12] is not None) else ""
+    msg += f"• Mobile: [{result[0][13]}](tel://{result[0][13]})\n" if (result[0][13] != "" and result[0][13] is not None) else ""
+    msg += f"• Home: [{result[0][14]}](tel://{result[0][14]})\n" if (result[0][14] != "" and result[0][14] is not None) else ""
+    msg += f"• Email: **{result[0][5]}**\n" if (result[0][5] != "" and result[0][5] is not None) else ""
+    msg += f"• Spouse Email: **{result[0][7]}**\n" if (result[0][7] != "" and result[0][7] is not None and result[0][7]!=result[0][5]) else ""
+    msg += f"• Home Parish: **{result[0][15]}**\n" if (result[0][15] != "" and result[0][15] is not None) else ""
+    msg += f"• Membership Date: **{result[0][16]}**\n" if (result[0][16] != "" and result[0][16] is not None) else ""
+    msg += f"• Related Families: **{result[0][17]}**\n" if (result[0][17] != "" and result[0][17] is not None) else ""
+    msg += f"• Electoral Roll: **{result[0][18]}**\n" if (result[0][18] != "" and result[0][18] is not None) else ""
+    msg += f"• Prayer Group: **{result[0][19]}**\n" if (result[0][19] != "" and result[0][19] is not None) else ""
     return msg
 
 # ----------------------------------------------------------------------------------------------------------------------
