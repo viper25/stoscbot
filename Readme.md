@@ -87,6 +87,7 @@ coverage report
 <summary>Azure App Service Deployment
 </summary>
 
+>Not being used at present
 
 1. In `.vscode\settings.json` set files to be ignored under the key `appService.zipIgnorePattern`.
 
@@ -114,4 +115,5 @@ coverage report
 * [Define Default Values in Dictionaries With `.get()` and `.setdefault()`](https://realpython.com/python-coding-interview-tips/#define-default-values-in-dictionaries-with-get-and-setdefault)
 * In iterating over long lists, use [generators](https://realpython.com/python-coding-interview-tips/#save-memory-with-generators)
 * Check if using `logger` or `loggers` class
-* Update Build Numbers and versions
+* ~~Update Build Numbers and versions~~
+* [How to make a sync function to async](https://youtu.be/GpqAQxH1Afc?t=968)
