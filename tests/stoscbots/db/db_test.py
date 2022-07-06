@@ -44,7 +44,7 @@ def test_get_members_for_area():
 
 def test_get_member_details_code():
     result = db.get_member_details("V019", "code")
-    assert result[0][1] == "Vibin Joseph Kuriakose (V019)"
+    assert result[0][2] == "Vibin Joseph Kuriakose"
 
 
 def test_get_member_details_free_text():
