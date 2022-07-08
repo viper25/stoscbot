@@ -20,16 +20,18 @@ async def start_handler(client: Client, message: Message):
 @bot_auth.async_member_only
 async def help_handler(client: Client, message: Message):
     msg="**Help**\n➖➖"
-    msg+="\nI can help you use STOSC Bot. If you're new to the Bot, please see /help\n"
+    msg+="\nI can help you use STOSC Bot 🤖\n"
     msg+="\nYou can control me by sending these commands or clicking the buttons at /start:\n"
-    msg+="\n/help - Show this help message"
-    msg+="\n/start - Start the bot\n"
+    msg+="\n• /help - Show this help message"
+    msg+="\n• /start - Start the bot\n"
     msg+="\n** 🚫 The below commands are restricted use: 🚫**\n"
-    msg+="\n/u [member code or name] - Search for a member by member code or Name"
-    msg+="\n/x [member code] - Show member contributions"
-    msg+="\n/xs [member code] - Show member subscriptions"
-    msg+="\n/year [year in YYYY] - Show members born on this year"
-    msg+="\n/version or /ver - Show bot version"
+    msg+="\n• /u [member code or name] - Search for a member by member code or Name"
+    msg+="\n• /x [member code] - Show member contributions"
+    msg+="\n• /xs [member code] - Show member subscriptions"
+    msg+="\n• /year [year in YYYY] - Show members born on this year"
+    msg+="\n• /version or /ver - Show bot version"
+    msg+="\n• /bday  - Show this week's bday list without age"
+    msg+="\n• /anniv  - Show this week's anniversary list without years"
     await message.reply_text(msg, reply_markup=keyboards.back_to_main_keyboard)
 # -------------------------------------------------
 @Client.on_message(filters.command(["year"]))

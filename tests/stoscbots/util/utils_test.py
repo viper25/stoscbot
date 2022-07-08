@@ -24,24 +24,32 @@ def test_generate_profile_msg():
     result = [
         (
             587,
-            "John Mathai (X001)",
-            "XXX Noplace Link",
-            "#00-000",
-            "999999",
+            "A001",
+            "John Mathai",
+            "john@example.com",
+            "John mathai",
+            "john@example.com",
+            "John Wife",
+            "john_wife@example.com",
+            "Johnson",
+            "John Mother",
+            "Address 1",
+            "Address 2",
+            "547777",
             "99999999",
             "66666666",
-            "mathai@example.com",
-            "",
-            "",
-            "",
-            "",
+            "Home Parish",
+            "2005-07-05",
+            "A003",
             "true",
             "Houg|Sengk|Pungg",
+            "1979-12-25",
+            "1985-12-25",
         )
     ]
     x = utils.generate_profile_msg(result)
     assert (
-        "• Name: **John Mathai (X001)**\n• Add: **XXX Noplace Link****, #00-000**, **999999**\n• Mobile: [99999999](tel://99999999)\n• Home: [66666666](tel://66666666)\n• Email: **mathai@example.com**\n• Prayer Group: **true**\n"
+        "• Name: **John Mathai (A001)**\n• DOB: **1979-12-25**\n• Spouse: **John Wife**\n• Spouse DOB: **1985-12-25**\n• Children: **Johnson**\n• Other family members: **John Mother**\n• Add: **Address 1****, Address 2**, **547777**\n• Mobile: [99999999](tel://99999999)\n• Home: [66666666](tel://66666666)\n• Email: **john@example.com**\n• Spouse Email: **john_wife@example.com**\n• Home Parish: **Home Parish**\n• Membership Date: **2005-07-05**\n• Related Families: **A003**\n• Electoral Roll: **true**\n• Prayer Group: **Houg|Sengk|Pungg**\n"
         == x
     )
 

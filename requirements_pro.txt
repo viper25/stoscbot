@@ -1,0 +1,8 @@
+tgcrypto
+pyrogram
+mysql-connector-python
+python-dotenv
+pendulum
+boto3
+requests
+gspread
