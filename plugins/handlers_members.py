@@ -104,7 +104,9 @@ async def get_weeks_anniversaries(client: Client, query_or_msg):
         msg="**Wedding Anniversary** 💍\n"
         msg += f"`({start} - {end})`\n\n"
         for _item in result:
-            anniversary_years =  date.today().year - _item[2].year
+            anniversary_years = None
+            if _item[2].year != 1900:
+                anniversary_years =  str(date.today().year - _item[2].year) + ' yrs'
             if _item[2].day == date.today().day and _item[2].month == date.today().month:
                 if dont_show_anniv_years:
                     msg += f"•** {_item[1].strip()}** `({_item[0].strip()})`\n"

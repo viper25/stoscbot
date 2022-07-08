@@ -2,7 +2,7 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 from stoscbots.util import loggers, bot_auth
 
-BOT_VERSION = "2.0.7"
+BOT_VERSION = "2.0.8"
 
 # ==================================================
 # Command Handlers
