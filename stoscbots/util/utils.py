@@ -216,10 +216,10 @@ def generate_msg_member_auction_purchases(_member_code: str):
     return msg
 # ----------------------------------------------------------------------------------------------------------------------
 async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list, keyboard: InlineKeyboardMarkup = None):
-    if (result[0][4] != "" and result[0][4] is not None): 
-        if get_address_details(result[0][4]):
-            lat, lon=get_address_details(result[0][4])
-            await client.send_venue(chat_id=_x.from_user.id,latitude=float(lat),longitude=float(lon),title=result[0][1],address=result[0][2],disable_notification=True)
+    if (result[0][12] != "" and result[0][12] is not None): 
+        if get_address_details(result[0][12]):
+            lat, lon=get_address_details(result[0][12])
+            await client.send_venue(chat_id=_x.from_user.id,latitude=float(lat),longitude=float(lon),title=result[0][4],address=result[0][10],disable_notification=True)
     try:
         # Per Simon, all images are png, so try looking that up first   
         await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png", caption=msg, reply_markup=keyboard)
