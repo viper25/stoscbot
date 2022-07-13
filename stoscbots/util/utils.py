@@ -221,8 +221,8 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
             lat, lon=get_address_details(result[0][12])
             await client.send_venue(chat_id=_x.from_user.id,latitude=float(lat),longitude=float(lon),title=result[0][4],address=result[0][10],disable_notification=True)
     try:
-        # Per Simon, all images are png, so try looking that up first   
-        await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png", caption=msg, reply_markup=keyboard)
+        # Per Simon, all images are png, so try looking that up first. Adding parameter to the URL to avoid stale cache 
+        await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png?rand={hash(datetime.datetime.today())}", caption=msg, reply_markup=keyboard)
     except Exception as e1:
         if e1.ID == 'MEDIA_EMPTY':
             logger.warn(f"No png image for [{result[0][1]}], trying jpg")
