@@ -121,13 +121,6 @@ async def show_main_menu(client: Client, query: CallbackQuery):
 @loggers.async_log_access
 async def show_services_menu(client: Client, query: CallbackQuery):
     await query.answer()
-    _keyboard = None
-    # Show this keyboard only to SMO 
-    if bot_auth.is_smo_member(query.from_user.id):
-        _keyboard = keyboards.get_services_keyboard(db.get_next_services())
-    else:
-        _keyboard = keyboards.back_to_main_keyboard
-    await utils.edit_and_send_msg(query, "Wait... ⌛", _keyboard)
     result=db.get_next_services()
     if len(result) == 0:
         msg="No Services"
@@ -157,7 +150,11 @@ async def show_services_menu(client: Client, query: CallbackQuery):
                     msg += f'~~{_item[1]} on {_item[2].strftime("%b %d %I:%M %p")}~~ `({_item[4]}/{_item[3]})`\n'
                 else:
                     msg += f'{_counter}. {_item[1]} on {_item[2].strftime("%b %d %I:%M %p")} `({_item[4]}/{_item[3]})`\n'
-    await utils.edit_and_send_msg(query, msg, _keyboard)
+    # Show this keyboard only to SMO
+    if bot_auth.is_smo_member(query.from_user.id):
+        await utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard(db.get_next_services()))
+    else:
+        await utils.edit_and_send_msg(query, msg, keyboards.back_to_main_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("Members Menu"))
 @loggers.async_log_access
