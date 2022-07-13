@@ -70,9 +70,13 @@ def test_get_members_born_on():
     assert len(result) == 24
 
 
-def test_get_gb_ineligible():
-    result = db.get_gb_ineligible()
-    assert result is not None
+def test_get_gb_eligible_count_type():
+    result = db.get_gb_eligible_count()
+    assert isinstance(result[0][0], int)
+
+def test_get_gb_eligible_count_greater_0():
+    result = db.get_gb_eligible_count()
+    assert result[0][0] > 0
 
 
 def test_raises_exception_on_divide_by_zero():

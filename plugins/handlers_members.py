@@ -4,7 +4,7 @@ from pyrogram.types import CallbackQuery
 from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
-
+import math 
 # ==================================================
 '''
 Handle multiple callback queries data and return filter for each
@@ -122,13 +122,11 @@ async def get_weeks_anniversaries(client: Client, query_or_msg):
     else:
         await query_or_msg.reply_text(msg)
 # --------------------------------------------------
-@Client.on_callback_query(dynamic_data_filter("GB Ineligible"))
+@Client.on_callback_query(dynamic_data_filter("GB"))
 @loggers.async_log_access
 async def member_gb_ineligible(client: Client, query: CallbackQuery):
     await query.answer()
-    result=db.get_gb_ineligible()
-    msg = f"**GB Ineligible** `({len(result)})`\n"
-    msg += "➖➖➖➖➖➖\n"
-    for member in result:
-        msg += f"• {member[0].strip()} `({member[1]})`\n"
+    result=db.get_gb_eligible_count()
+    msg = f"**GB Eligible = ** `{result[0][0]}`\n"
+    msg += f"**Quorum `(25%)` = ** `{math.floor(result[0][0]/4)}`\n"
     await utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
