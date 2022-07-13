@@ -165,35 +165,36 @@ def get_member_listing_keyboard(results):
         icon = ''
 
         # Head of Family
-        if _item[4] == 1:
+        if _item[23] == 1:
             icon += '⚡'
         # If Age and Gender data both are available
-        #if _item[3] and _item[2]:
-        if _item[3]:
-            age = date.today().year - int(_item[3])
+        # Person's DOB in '1964-04-10'
+        if _item[20]:
+            age = date.today().year - int(_item[20].split('-')[0])
         else:
             age = None
         if age:
             if age <= 18:
-                if _item[2] == 1:
+                if _item[22] == 1:
                     icon += '👦🏻'
-                elif _item[2] == 2:
+                elif _item[22] == 2:
                     icon += '👧🏻'
             elif age > 18:
-                if _item[2] == 1:
+                # Gender
+                if _item[22] == 1:
                     icon += '🧔🏻'
-                elif _item[2] == 2:
+                elif _item[22] == 2:
                     icon += '👩🏻'
         else:
             # No age data, check only Gender:
-            if _item[2] == 1:
+            if _item[22] == 1:
                 icon += '♂'
-            elif _item[2] == 2:
+            elif _item[22] == 2:
                 icon += '♀'
-        _keyboard_text=f"{icon} {_item[0]} ({_item[1][-5:-1]}) »"
+        _keyboard_text=f"{icon} {_item[2]} ({_item[1]}) »"
         _keyboard_rows.append(
             InlineKeyboardButton(
-                _keyboard_text, callback_data = "Member_" + _item[1][-5:-1]
+                _keyboard_text, callback_data = "Member_" + _item[1]
             )
         )
         # For every 2 cols in a row

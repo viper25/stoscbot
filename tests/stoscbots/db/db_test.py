@@ -49,7 +49,7 @@ def test_get_member_details_code():
 
 def test_get_member_details_free_text():
     result = db.get_member_details("Vibin", "free_text")
-    assert result[0][1] == "Vibin Joseph Kuriakose (V019)"
+    assert result[0][2] == "Vibin Joseph Kuriakose"
 
 
 def test_get_booking_GUID():

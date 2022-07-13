@@ -87,7 +87,8 @@ async def member_search_cmd_handler(client: Client, message: Message):
         if not result or len(result) == 0:
             await message.reply_text("No such Member", quote=True)
         elif len(result) >= 1:
-            msg = f'🔎 Search results for "`{message.command[1]}`"\n--------------------------------------------'
+            msg = f"🔎 Search results for `{message.command[1]}`\n"
+            msg += '➖➖➖➖➖➖➖➖➖➖➖'
             msg += '`\n⚡ = Head of Family`'
             msg += '`\n👦🏻 = Boy   👧🏻 = Girl`'
             msg += '`\n🧔🏻 = Man   👩🏻 = Woman`'
