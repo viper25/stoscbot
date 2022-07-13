@@ -51,6 +51,7 @@ pip install -r requirements.txt
 Upgrade dependencies, test lcoally and then freeze to `requirements_pro.txt`
 
 ```bash
+pip install --upgrade pip
 pip install --upgrade -r requirements.txt
 pip freeze > requirements_pro.txt
 ```
