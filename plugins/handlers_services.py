@@ -50,6 +50,7 @@ async def get_service_registrations(client: Client, query: CallbackQuery):
 # Check if there is any prayer request for this week submitted after current service starts at 7.45
 async def get_prayer_requests(client: Client, query: CallbackQuery):
     await query.answer()
+    await utils.edit_and_send_msg(query, "Please wait... ⌛", keyboards.get_services_keyboard(db.get_next_services()))
 
     # Credentials are at %APPDATA%\gspread\service_account.json or
     # ~/.config/gspread/service_account.json
