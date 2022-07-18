@@ -79,7 +79,7 @@ async def member_search_cmd_handler(client: Client, message: Message):
             await message.reply_text("No such Member", quote=True)
             return
         elif len(result) >= 1:  
-            msg = utils.generate_profile_msg(result)   
+            msg = utils.generate_profile_msg_for_family(result)   
             await utils.send_profile_address_and_pic(client, message, msg,result)
     else:
         # A search string and not member code
@@ -226,6 +226,7 @@ async def show_paynow_menu(client: Client, query: CallbackQuery):
 async def member_search_button_handler(client: Client, query: CallbackQuery):
     await query.answer()
     _member_code=query.data.split('_')[1]
+    person_ID = query.data.split('_')[2]
     result=db.get_member_details(_member_code,'code')
-    msg = utils.generate_profile_msg(result)
-    await utils.send_profile_address_and_pic(client, query, msg,result)
+    msg = utils.generate_profile_msg_for_family(result)
+    await utils.send_profile_address_and_pic(client, query, msg, result, query.data.split('_')[2], db.get_person_name(person_ID)[0][0])

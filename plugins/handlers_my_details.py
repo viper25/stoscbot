@@ -26,7 +26,7 @@ async def show_my_profile(client: Client, query: CallbackQuery):
     await query.answer()
     _member_code=utils.getMemberCode_from_TelegramID(query.from_user.id)
     result=db.get_member_details(_member_code,'code')
-    msg = utils.generate_profile_msg(result)
+    msg = utils.generate_profile_msg_for_family(result)
     _booking_url = f"https://crm.stosc.com/stosc-forms/?id={db.get_booking_GUID(_member_code)[0][0]}"
     msg += f"• [Service Booking URL]({_booking_url})"
     msg += "\n\n`Please contact the church office or secretary@stscoc.com to update any details. Type /help to see Help`"

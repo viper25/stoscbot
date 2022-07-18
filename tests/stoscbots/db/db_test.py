@@ -78,6 +78,9 @@ def test_get_gb_eligible_count_greater_0():
     result = db.get_gb_eligible_count()
     assert result[0][0] > 0
 
+def test_get_person_name():
+    result = db.get_person_name('579')
+    assert result[0][0] == 'John '
 
 def test_raises_exception_on_divide_by_zero():
     with pytest.raises(ZeroDivisionError):

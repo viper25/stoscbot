@@ -191,10 +191,10 @@ def get_member_listing_keyboard(results):
                 icon += '♂'
             elif _item[22] == 2:
                 icon += '♀'
-        _keyboard_text=f"{icon} {_item[2]} ({_item[1]}) »"
+        _keyboard_text=f"{icon} {_item[24]} ({_item[1]}) »"
         _keyboard_rows.append(
             InlineKeyboardButton(
-                _keyboard_text, callback_data = "Member_" + _item[1]
+                _keyboard_text, callback_data = f"Member_{_item[1]}_{_item[25]}"
             )
         )
         # For every 2 cols in a row
