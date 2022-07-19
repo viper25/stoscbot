@@ -215,14 +215,16 @@ def generate_msg_member_auction_purchases(_member_code: str):
         msg = "No Purchases\n"
     return msg
 # ----------------------------------------------------------------------------------------------------------------------
-async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list, searched_person: str, searched_person_name:str, keyboard: InlineKeyboardMarkup = None):
+async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list, searched_person: str=None, searched_person_name:str=None, keyboard: InlineKeyboardMarkup = None):
     if (result[0][12] != "" and result[0][12] is not None): 
         if get_address_details(result[0][12]):
             lat, lon=get_address_details(result[0][12])
             await client.send_venue(chat_id=_x.from_user.id,latitude=float(lat),longitude=float(lon),title=result[0][4],address=result[0][10],disable_notification=True)
     try:
-        # Per Simon, all images are png, so try looking that up first. Adding parameter to the URL to avoid stale cache 
-        await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.png?rand={hash(datetime.datetime.today())}", caption=searched_person_name, reply_markup=keyboard)
+        # All images are png, so try looking that up first. Adding parameter to the URL to avoid stale cache 
+        if searched_person:
+            person_pic_caption = f"{searched_person_name} `({result[0][1]})`"
+            await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.png?rand={hash(datetime.datetime.today())}", caption=person_pic_caption)
         await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png?rand={hash(datetime.datetime.today())}", caption=msg, reply_markup=keyboard)
     except Exception as e1:
         if e1.ID == 'MEDIA_EMPTY':
@@ -231,8 +233,10 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
             logger.error(f"{e1.MESSAGE}: for [{result[0][1]}]")
         try:
             # If no png, try looking for a jpg
-            await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.jpg?rand={hash(datetime.datetime.today())}", caption=searched_person_name, reply_markup=keyboard)
-            await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.jpg", caption=msg, reply_markup=keyboard)    
+            if searched_person:
+                person_pic_caption = f"{searched_person_name} `({result[0][1]})`"
+                await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.jpg?rand={hash(datetime.datetime.today())}", caption=person_pic_caption)
+            await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.jpg?rand={hash(datetime.datetime.today())}", caption=msg, reply_markup=keyboard)    
         except Exception as e2:
             if e2.ID == 'MEDIA_EMPTY':               
                 logger.warn(f"No jpg image for [{result[0][1]}]")

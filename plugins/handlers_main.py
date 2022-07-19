@@ -80,7 +80,7 @@ async def member_search_cmd_handler(client: Client, message: Message):
             return
         elif len(result) >= 1:  
             msg = utils.generate_profile_msg_for_family(result)   
-            await utils.send_profile_address_and_pic(client, message, msg,result)
+            await utils.send_profile_address_and_pic(client, message, msg, result, searched_person=None, searched_person_name=None)
     else:
         # A search string and not member code
         result=db.get_member_details(message.command[1],'free_text')
