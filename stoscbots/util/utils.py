@@ -219,7 +219,7 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
     if (result[0][12] != "" and result[0][12] is not None): 
         if get_address_details(result[0][12]):
             lat, lon=get_address_details(result[0][12])
-            await client.send_venue(chat_id=_x.from_user.id,latitude=float(lat),longitude=float(lon),title=result[0][4],address=result[0][10],disable_notification=True)
+            await client.send_venue(chat_id=_x.from_user.id,latitude=float(lat),longitude=float(lon),title=result[0][2],address=result[0][10],disable_notification=True)
     try:
         # All images are png, so try looking that up first. Adding parameter to the URL to avoid stale cache 
         if searched_person:
