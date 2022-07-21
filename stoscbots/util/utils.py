@@ -46,7 +46,7 @@ def get_address_details(_zip: str):
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate a Member Profile msg
 def generate_profile_msg_for_family(result: list):
-    msg = f"• Name: **{result[0][2]} ({result[0][1]})**\n"
+    msg = f"• Family: **{result[0][2]} ({result[0][1]})**\n"
     msg += f"• DOB: **{result[0][20]}**\n" if (result[0][20] != "" and result[0][20] is not None) else ""
     msg += f"• Spouse: **{result[0][6]}**\n" if (result[0][6] != "" and result[0][6] is not None) else ""
     msg += f"• Spouse DOB: **{result[0][21]}**\n" if (result[0][21] != "" and result[0][21] is not None) else ""
@@ -216,7 +216,9 @@ def generate_msg_member_auction_purchases(_member_code: str):
     return msg
 # ----------------------------------------------------------------------------------------------------------------------
 async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list, searched_person: str=None, searched_person_name:str=None, keyboard: InlineKeyboardMarkup = None):
-    if (result[0][12] != "" and result[0][12] is not None): 
+    # Send if there's a Zip code present and if Family code is searched for
+    # Don't map send for person searches
+    if (result[0][12] != "" and result[0][12] is not None and searched_person is None): 
         if get_address_details(result[0][12]):
             lat, lon=get_address_details(result[0][12])
             await client.send_venue(chat_id=_x.from_user.id,latitude=float(lat),longitude=float(lon),title=result[0][2],address=result[0][10],disable_notification=True)
@@ -224,8 +226,10 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
         # All images are png, so try looking that up first. Adding parameter to the URL to avoid stale cache 
         if searched_person:
             person_pic_caption = f"{searched_person_name} `({result[0][1]})`"
-            await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.png?rand={hash(datetime.datetime.today())}", caption=person_pic_caption)
-        await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png?rand={hash(datetime.datetime.today())}", caption=msg, reply_markup=keyboard)
+            await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.png?rand={hash(datetime.datetime.today())}", caption=person_pic_caption + "\n\n" + msg)
+        # Send family pic only for searches by member code
+        if searched_person is None:
+            await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png?rand={hash(datetime.datetime.today())}", caption=msg, reply_markup=keyboard)
     except Exception as e1:
         if e1.ID == 'MEDIA_EMPTY':
             logger.warn(f"No png image for [{result[0][1]}], trying jpg")
@@ -239,11 +243,12 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
             await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.jpg?rand={hash(datetime.datetime.today())}", caption=msg, reply_markup=keyboard)    
         except Exception as e2:
             if e2.ID == 'MEDIA_EMPTY':               
-                logger.warn(f"No jpg image for [{result[0][1]}]")
+                logger.warn(f"No png or jpg image for [{result[0][1]}]")
                 # No Image found, send details without photo then
                 await client.send_message(chat_id=_x.from_user.id,text=msg, reply_markup=keyboard)
             else:
                 logger.error(f"{e2.MESSAGE}: for [{result[0][1]}]")
+                await client.send_message(chat_id=_x.from_user.id,text=msg, reply_markup=keyboard)
 # ----------------------------------------------------------------------------------------------------------------------
 def is_valid_member_code(_member_code: str):
     return re.match('[A-Za-z]\d{2,3}', _member_code)
