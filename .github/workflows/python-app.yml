@@ -93,6 +93,7 @@ jobs:
         # Ensure the existance of the remote file path
         ensureRemote: # optional
 
+    # sudo apt install python3.10-venv
     - name: Install & Start the bot on Azure VM
       uses: appleboy/ssh-action@master
       with:
