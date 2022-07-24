@@ -56,7 +56,7 @@ async def finance_search_member_payments(client: Client, message: Message):
             # /x v019
             elif len(message.command) == 2:
                 _year=str(datetime.now().year)
-            msg = utils.generate_msg_xero_member_payments(result[0][1],member_code, _year)
+            msg = utils.generate_msg_xero_member_payments(f"{result[0][2]} ({result[0][1]})",member_code, _year)
             await message.reply(msg)
 # --------------------------------------------------
 @Client.on_message(filters.command(["xs"]))
