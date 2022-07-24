@@ -52,7 +52,6 @@ async def get_today_anniversaries(client: Client, query: CallbackQuery):
 @Client.on_message(filters.command(["bday"]))   # For when we want to print bdays without age
 @Client.on_callback_query(dynamic_data_filter("Member Birthday Week Button"))
 @loggers.async_log_access
-@bot_auth.async_management_only
 async def get_weeks_bdays(client: Client, query_or_msg):
     dont_show_age = True
     if type(query_or_msg) == CallbackQuery:
@@ -91,7 +90,6 @@ async def get_weeks_bdays(client: Client, query_or_msg):
 @Client.on_message(filters.command(["anniv"]))   # For when we want to print bdays without age
 @Client.on_callback_query(dynamic_data_filter("Member Anniversary Week Button"))
 @loggers.async_log_access
-@bot_auth.async_management_only
 async def get_weeks_anniversaries(client: Client, query_or_msg):
     dont_show_anniv_years = True
     if type(query_or_msg) == CallbackQuery:

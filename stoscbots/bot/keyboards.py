@@ -117,7 +117,7 @@ def get_main_keyboard(telegram_id):
     else:
         # Normal members
         keyboard_main = InlineKeyboardMarkup([
-            [__MAIN_PRAYER_GROUPS_BUTTON],
+            [__MAIN_MEMBERS_BUTTON, __MAIN_PRAYER_GROUPS_BUTTON],
             [__MAIN_MY_DETAILS_BUTTON,__MAIN_MY_HARVEST_BUTTON],
             [__MAIN_PAYNOW_BUTTON]
             ])
