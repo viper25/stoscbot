@@ -8,7 +8,6 @@ from stoscbots.util import loggers, bot_auth
 @loggers.async_log_access
 @bot_auth.async_management_only
 async def version_handler(client: Client, message: Message):
-    msg = f"►Version: **{message._client.APP_VERSION}** on **{message._client.SYSTEM_VERSION}**"
-    msg += f"\n►Session Name: **{client.name}**"
-    msg += f"\n►Bot Name: **{client.username}**"
+    msg = f"Version: **{message._client.APP_VERSION}** on **{message._client.SYSTEM_VERSION}**"
+    msg += f"\nSession Name: **{client.name}**"
     await message.reply_text(msg)
