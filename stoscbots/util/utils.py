@@ -61,7 +61,7 @@ def generate_profile_msg_for_family(result: list):
     msg += "\n"
     msg += f"• Mobile: [{result[0][13]}](tel://{result[0][13]})\n" if (result[0][13] != "" and result[0][13] is not None) else ""
     msg += f"• Home: [{result[0][14]}](tel://{result[0][14]})\n" if (result[0][14] != "" and result[0][14] is not None) else ""
-    msg += f"• Email: **{result[0][5]}**\n" if (result[0][5] != "" and result[0][5] is not None) else ""
+    msg += f"• Email: **{result[0][3]}**\n" if (result[0][3] != "" and result[0][3] is not None) else ""
     msg += f"• Spouse Email: **{result[0][7]}**\n" if (result[0][7] != "" and result[0][7] is not None and result[0][7]!=result[0][5]) else ""
     msg += f"• Home Parish: **{result[0][15]}**\n" if (result[0][15] != "" and result[0][15] is not None) else ""
     msg += f"• Membership Date: **{result[0][16]}**\n" if (result[0][16] != "" and result[0][16] is not None) else ""
