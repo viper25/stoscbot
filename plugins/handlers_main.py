@@ -65,7 +65,6 @@ async def year_handler(client: Client, message: Message):
 # Command Handlers
 @Client.on_message(filters.command(["u"]))
 @loggers.async_log_access
-@bot_auth.async_area_prayer_coordinator_only
 async def member_search_cmd_handler(client: Client, message: Message):
     if len(message.command) != 2:
         msg="Please enter a Member Code or Name to search"
