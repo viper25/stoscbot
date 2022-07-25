@@ -118,3 +118,6 @@ coverage report
 * Check if using `logger` or `loggers` class
 * ~~Update Build Numbers and versions~~
 * [How to make a sync function to async](https://youtu.be/GpqAQxH1Afc?t=968)
+
+## Reference
+* [Pyrogram version updates](https://github.com/pyrogram/pyrogram/compare/v2.0.34...v2.0.35)
