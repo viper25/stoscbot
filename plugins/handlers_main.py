@@ -12,22 +12,25 @@ from datetime import datetime
 # Module logger
 logger = logging.getLogger('Handler.Main')
 logger.setLevel(LOGLEVEL)
+VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
 
 # ==================================================
 # Command Handlers
-@Client.on_message(filters.command(["start"]))
+@Client.on_message(filters.command(["start","hi","hello"]) & filters.private)
 @loggers.async_log_access
 async def start_handler(client: Client, message: Message):
     email = None
     member_code = None
     # Check if user is authorized
     if not bot_auth.is_member(message.from_user.id):
+        unauth_msg=f"Unauthorized Access by **[{message.from_user.id}:{message.from_user.username}:{message.from_user.first_name}]**\nCmd `/start`"
+        await client.send_message(chat_id=VIBIN_TELEGRAM_ID,text=unauth_msg)
         # Start a conversation with the user to ask for Member Code and Email
         await client.send_sticker(chat_id=message.from_user.id, sticker='CAACAgIAAxkBAAIFJV-X6UKaAAEDx4Nqup6acSBW6DlThgACoAMAAvoLtgj5yjtMiAXK4hsE')
-        await message.reply_text("You are not authorized to use this bot.\nIf you are a STOSC member, do provide your details for access.\n`Enter your member code:`")
+        await message.reply_text("**You are not authorized to use this bot**\nHowever, if you are a STOSC member, do provide your details for access.\n\n`Enter your member code:`", disable_web_page_preview=True)
         try:
             member_code = await client.listen.Message(filters.text, id = filters.user(message.from_user.id), timeout = 30)
-            logger.info(f"Unauthorized Member Code: {member_code.text}")
+            logger.info(f"Unauthorized Member Request Code: {member_code.text}")
             if not utils.is_valid_member_code(member_code.text):
                 await message.reply_text("👎🏼 Invalid member code. Please try again: /start")
                 # Cancel the conversaion
@@ -43,7 +46,7 @@ async def start_handler(client: Client, message: Message):
         await message.reply_text("`Enter your email:`")
         try:
             email = await client.listen.Message(filters.text, id = filters.user(message.from_user.id), timeout = 30)
-            logger.info(f"Unauthorized Email: {email.text}")
+            logger.info(f"Unauthorized Member Request Email: {email.text}")
             #  Check if email is valid
             if not utils.is_valid_email(email.text):
                 await message.reply_text("👎🏼 Invalid email. Please try again: /start")
@@ -58,9 +61,8 @@ async def start_handler(client: Client, message: Message):
             await client.listen.Cancel(filters.user(message.from_user.id))
             return
         if member_code and email:
-            await message.reply_text(f"I'll inform the Managing Committee of your request. Once your ID is verified, they shall add you for access to the Bot.\n\nDetails submitted:\n`Member Code: {member_code.text}\nEmail: {email.text}`")
+            await message.reply_text(f"I'll inform the Managing Committee of your request. Once your ID is verified, they shall add you for access to the Bot.\n\n**Details submitted:**\n`Member Code: {member_code.text}\nEmail: {email.text}`")
             # Send Telegram message to Managing Committee
-            VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
             await client.send_message(chat_id=VIBIN_TELEGRAM_ID,text=f"New member request:\nMember Code: `{member_code.text}`\nEmail: `{email.text}`\nTelegram ID: `{message.from_user.id}`")
         else:
             await message.reply_text("Sorry try again")
