@@ -1,11 +1,18 @@
 import os
 import asyncio
+import logging
+from stoscbots.util.loggers import LOGLEVEL
 from pyrogram import Client, filters
 from pyrogram.types import Message, CallbackQuery
 from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
 from datetime import datetime
+
+# Module logger
+logger = logging.getLogger('Handler.Main')
+logger.setLevel(LOGLEVEL)
+
 # ==================================================
 # Command Handlers
 @Client.on_message(filters.command(["start"]))
@@ -20,6 +27,7 @@ async def start_handler(client: Client, message: Message):
         await message.reply_text("You are not authorized to use this bot.\nIf you are a STOSC member, do provide your details for access.\n`Enter your member code:`")
         try:
             member_code = await client.listen.Message(filters.text, id = filters.user(message.from_user.id), timeout = 30)
+            logger.info(f"Unauthorized Member Code: {member_code.text}")
             if not utils.is_valid_member_code(member_code.text):
                 await message.reply_text("👎🏼 Invalid member code. Please try again: /start")
                 # Cancel the conversaion
@@ -35,6 +43,7 @@ async def start_handler(client: Client, message: Message):
         await message.reply_text("`Enter your email:`")
         try:
             email = await client.listen.Message(filters.text, id = filters.user(message.from_user.id), timeout = 30)
+            logger.info(f"Unauthorized Email: {email.text}")
             #  Check if email is valid
             if not utils.is_valid_email(email.text):
                 await message.reply_text("👎🏼 Invalid email. Please try again: /start")
@@ -51,7 +60,7 @@ async def start_handler(client: Client, message: Message):
         if member_code and email:
             await message.reply_text(f"I'll inform the Managing Committee of your request. Once your ID is verified, they shall add you for access to the Bot.\n\nDetails submitted:\n`Member Code: {member_code.text}\nEmail: {email.text}`")
             # Send Telegram message to Managing Committee
-            VIBIN_TELEGRAM_ID = os.environ.get('VIBIN_TELEGRAM_ID')
+            VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
             await client.send_message(chat_id=VIBIN_TELEGRAM_ID,text=f"New member request:\nMember Code: `{member_code.text}`\nEmail: `{email.text}`\nTelegram ID: `{message.from_user.id}`")
         else:
             await message.reply_text("Sorry try again")

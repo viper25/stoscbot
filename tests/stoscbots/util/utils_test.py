@@ -2,7 +2,7 @@ import os
 from stoscbots.util import utils
 from decimal import Decimal
 
-VIBIN_TELEGRAM_ID = os.environ.get('VIBIN_TELEGRAM_ID')
+VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
 
 def test_getMemberCode_from_TelegramID_Bad_value():
     memberCode = utils.getMemberCode_from_TelegramID("wrongID")
