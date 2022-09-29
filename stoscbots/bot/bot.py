@@ -3,6 +3,7 @@ from datetime import datetime
 from pyrogram import Client
 from stoscbots.util.loggers import LOGLEVEL
 import logging
+from convopyro import Conversation
 
 # ------------------------------------------------------------------
 # Module logger
@@ -16,6 +17,7 @@ if ENV == "PRO":
     test_mode = False
 
 app = Client(os.environ.get("BOT_CLIENT_NAME"), plugins=dict(root="plugins"), test_mode=test_mode)
+Conversation(app)
 
 def run():
     app.start_time = datetime.now()
