@@ -251,7 +251,13 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
                 await client.send_message(chat_id=_x.from_user.id,text=msg, reply_markup=keyboard)
 # ----------------------------------------------------------------------------------------------------------------------
 def is_valid_member_code(_member_code: str):
-    return re.match('[A-Za-z]\d{2,3}', _member_code)
+    if not _member_code:
+        return False
+    if len(_member_code) != 4:
+        return False
+    if not re.match('[A-Za-z]\d{3}', _member_code):
+        return False
+    return True
 # ----------------------------------------------------------------------------------------------------------------------
 def is_valid_year(year: str):
     return len(year) == 4 and (re.match('\d{4}', year) is not None)
@@ -266,3 +272,10 @@ def get_tracked_projects(raw_data: bool=False):
         if _item['Total']:
             msg += f"• {_item['AccountName']} - `${_item['Total']:,.2f}`\n"
     return msg
+# ----------------------------------------------------------------------------------------------------------------------
+def is_valid_email(email:str):
+    if not email:
+        return False
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+        return False
+    return True

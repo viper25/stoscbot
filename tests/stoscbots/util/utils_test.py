@@ -89,3 +89,56 @@ def test_get_member_payments():
         },
     ]
     assert expected == result
+
+
+def test_is_valid_member_code_valid():
+    result = utils.is_valid_member_code("V123")
+    assert result
+
+def test_is_valid_member_code_invalid_1():
+    result = utils.is_valid_member_code("V12")
+    assert result is False
+
+def test_is_valid_member_code_invalid_2():
+    result = utils.is_valid_member_code("V1234")
+    assert result is False
+
+def test_is_valid_member_code_invalid_3():
+    result = utils.is_valid_member_code("V")
+    assert result is False
+
+def test_is_valid_member_code_invalid_4():
+    result = utils.is_valid_member_code("")
+    assert result is False
+
+def test_is_valid_member_code_invalid_5():
+    result = utils.is_valid_member_code("V12C")
+    assert result is False
+
+def test_is_valid_email():
+    result = utils.is_valid_email("sample@example.com")
+    assert result
+
+def test_is_valid_email_invalid_1():
+    result = utils.is_valid_email("abc")
+    assert result is False
+
+def test_is_valid_email_invalid_2():
+    result = utils.is_valid_email("abc@")
+    assert result is False
+
+def test_is_valid_year():
+    result = utils.is_valid_year("2004")
+    assert result
+
+def test_is_valid_year_invalid_1():
+    result = utils.is_valid_year("04")
+    assert result is False
+
+def test_is_valid_year_invalid_2():
+    result = utils.is_valid_year("20014")
+    assert result is False
+
+def test_is_valid_year_invalid_1():
+    result = utils.is_valid_year("abcd")
+    assert result is False
