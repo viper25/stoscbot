@@ -130,7 +130,7 @@ async def member_search_cmd_handler(client: Client, message: Message):
         await message.reply_text(msg, quote=True)
         return
     # Match member codes such as V019. One char followed by 2 or 3 digits
-    if utils.is_valid_member_code(message.command[1]) is not None:
+    if utils.is_valid_member_code(message.command[1]):
         # A member code has been sent
         result = db.get_member_details(message.command[1], "code")
         if len(result) == 0:
