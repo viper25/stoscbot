@@ -78,37 +78,11 @@ coverage report
 <details>
 <summary>Deploy on a VM</summary>
 
-1. [Do not re-use](https://docs.pyrogram.org/faq/using-multiple-clients-at-once-on-the-same-account) a session file when deploying to a new instance. On a new isntance, delete any existing `.session` file and [generate a new session file](https://docs.pyrogram.org/start/auth#bot-authorization).
-2. Keep the `.env` and `.session` files in a `..\credentials\` directory. The [deployment scripts](.github\workflows\python-app.yml) will copy these files to the correct location.
-3. Copy the [Google API keys](https://console.cloud.google.com/iam-admin/serviceaccounts/details/104130143367587513093;edit=true/keys?project=api-project-57990973458) to `~/.config/gspread/service_account.json`
-4. Subsequently run headless as ` nohup python3 run_stoscbot.py &`
-</details>
-
-<details>
-<summary>Azure App Service Deployment
-</summary>
-
->Not being used at present
-
-1. In `.vscode\settings.json` set files to be ignored under the key `appService.zipIgnorePattern`.
-
-    ```json
-    {
-        "appService.defaultWebAppToDeploy": "/subscriptions/xxx-xxx-xxx-xxx-xxx/resourceGroups/STOSC/providers/Microsoft.Web/sites/stosc-bot-2",
-        "appService.deploySubpath": ".",
-        "appService.zipIgnorePattern": [
-            ".venv{,/**}",
-            ".vscode{,/**}",
-            ".github{,/**}",
-            "__pycache__{,/**}",
-            ".git{,/**}",
-            ".env{,/**}"
-        ],
-    }
-    ```
-2. Add Timezone as an Application Settings variable i.e. `TZ=Asia/Singapore`
-3. Set a startup script in Azure Console under `Startup Command`. This is what will be used to start the bot (do not ignore to create the Pyrogram `.session` file). 
-4. It is expected the app provide an application running at port 8000. If not, the Azure App Service container will stop after a while (and our bot process will be killed). 
+1. Update server timezone to local timezone
+2. [Do not re-use](https://docs.pyrogram.org/faq/using-multiple-clients-at-once-on-the-same-account) a session file when deploying to a new instance. On a new isntance, delete any existing `.session` file and [generate a new session file](https://docs.pyrogram.org/start/auth#bot-authorization).
+3. Keep the `.env` and `.session` files in a `..\credentials\` directory. The [deployment scripts](.github\workflows\python-app.yml) will copy these files to the correct location.
+4. Copy the [Google API keys](https://console.cloud.google.com/iam-admin/serviceaccounts/details/104130143367587513093;edit=true/keys?project=api-project-57990973458) to `~/.config/gspread/service_account.json`
+5. Subsequently run headless as ` nohup python3 run_stoscbot.py &`
 </details>
 
 ## TODO
