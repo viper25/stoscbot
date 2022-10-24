@@ -76,6 +76,7 @@ jobs:
         echo "[version]" > .VERSION
         echo "VERSION=${{ steps.versioning.outputs.version }}" >> .VERSION
         echo "BUILD=$GITHUB_SHA" >> .VERSION
+        echo "RELEASE_DATE=$(TZ='Asia/Singapore' date +'%d-%m-%Y %r')" >> .VERSION
         echo "BRANCH=$GITHUB_REF_NAME" >> .VERSION
         cat .VERSION
 

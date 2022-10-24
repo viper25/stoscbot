@@ -13,8 +13,9 @@ async def version_handler(client: Client, message: Message):
     msg = f"Telegram Version: **{message._client.APP_VERSION}** on **{message._client.SYSTEM_VERSION}**"
     msg += f"\nSession Name: **{client.name}**\n"
     msg += "-------------"
-    msg += f"\nRelease Version: **{config.get('version', 'VERSION')}**"
-    msg += f"\nBuild SHA: **{config.get('version', 'BUILD')[:7]}**"
-    msg += f"\nBranch: **{config.get('version', 'BRANCH')}**"
+    msg += f"\nRelease Version: `{config.get('version', 'VERSION')}`"
+    msg += f"\nRelease Date: `{config.get('version', 'RELEASE_DATE')}`"
+    msg += f"\nBuild SHA: `{config.get('version', 'BUILD')[:7]}`"
+    msg += f"\nBranch: `{config.get('version', 'BRANCH')}`"
     
     await message.reply_text(msg)
