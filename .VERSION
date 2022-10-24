@@ -1,0 +1,5 @@
+# This file will be replaced by a GitHub Actions job that will dynamically update the version number and build SHA.
+[version]
+VERSION=0.4.1
+BUILD=4ae090f164b16e2fc3af0b536954254c000f811a
+BRANCH=release-notes
