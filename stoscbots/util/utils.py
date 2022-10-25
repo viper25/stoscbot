@@ -202,8 +202,6 @@ def generate_msg_member_auction_purchases(_member_code: str):
     if len(response["Items"]) != 0:
         msg = f"**{response['Items'][0]['sk'][5:]}**\n"
         msg += "➖➖➖➖➖➖➖\n"
-        if "amt" in response["Items"][0].keys():
-            msg += f"Total: **${response['Items'][0]['amt']:,}**\n"
         msg += f"Bids Placed: {response['Items'][0]['bidCount']}\n"
         if "items_won" in response["Items"][0].keys():
             msg += f"Items Won: {len(response['Items'][0]['items_won'])}\n"
@@ -211,8 +209,13 @@ def generate_msg_member_auction_purchases(_member_code: str):
             for _item in response["Items"][0]["items_won"]:
                 # Get the winning price for that item
                 msg += f"[`{_item.split('-')[0]}`] {_item.split('-')[1]}: **${__get_winning_bid(_item.split('-')[0]):,}**\n"
+        if "amt" in response["Items"][0].keys():
+            msg += "———————\n"
+            msg += f"Total: **${response['Items'][0]['amt']:,}**\n"
+        else:
+            msg += "No Items won yet\n"
     else:
-        msg = "No Purchases\n"
+        msg = "No Bid or Purchases yet\n"
     return msg
 # ----------------------------------------------------------------------------------------------------------------------
 async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list, searched_person: str=None, searched_person_name:str=None, keyboard: InlineKeyboardMarkup = None):

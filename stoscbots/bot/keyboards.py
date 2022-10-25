@@ -15,7 +15,7 @@ __MAIN_PRAYER_GROUPS_BUTTON = InlineKeyboardButton("🤲🏻 Prayer Groups", cal
 __MAIN_FINANCE_BUTTON = InlineKeyboardButton("💲 Finance", callback_data = "Finance Menu")
 __MAIN_ST_MARYS_BUTTON = InlineKeyboardButton("👩🏻 St. Marys", callback_data = "St. Marys Menu")
 __MAIN_MY_DETAILS_BUTTON = InlineKeyboardButton("👨🏻 My Details 👩🏻", callback_data = "My Details Menu")
-__MAIN_MY_HARVEST_BUTTON = InlineKeyboardButton("My Harvest Festival 🌽", callback_data = "My Harvest Festival Menu")
+__MAIN_MY_HARVEST_BUTTON = InlineKeyboardButton("🌽 My Harvest Festival", callback_data = "My Harvest Festival Menu")
 __MAIN_PAYNOW_BUTTON = InlineKeyboardButton("💵 PayNow", callback_data = "PayNow Menu")
 
 __MEMBERS_BDAY_TODAY_BUTTON = InlineKeyboardButton("🎂 Birthdays today", callback_data = "Member Birthday Today Button")
@@ -92,6 +92,10 @@ my_details_menu_keyboard = InlineKeyboardMarkup([
     [__MYDETAILS_MY_CONTRIBUTIONS_BUTTON, __MYDETAILS_LIST_OF_ACCOUNTS_BUTTON],
     [__MYDETAILS_MY_SUBSCRIPTIONS_BUTTON, __MYDETAILS_PRAYER_REQUESTS_BUTTON],
     [__BACK_TO_MAIN_BUTTON]
+])
+
+harvest_menu_keyboard = InlineKeyboardMarkup([
+    [__BACK_TO_MAIN_BUTTON, InlineKeyboardButton("🔃 Refresh", callback_data = "My Harvest Festival Menu")]
 ])
 # ---------------------------------------------------------------------------------------------------
 """
