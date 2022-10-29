@@ -158,7 +158,7 @@ def generate_msg_xero_member_invoices(_member_code: str, _year: str):
 # Send a message to a Telegram user with an optional inline keyboard
 async def edit_and_send_msg(query: CallbackQuery, msg: str, keyboard: InlineKeyboardMarkup=None):
     try:
-        await query.message.edit_text(text=msg,reply_markup=keyboard)
+        await query.message.edit_text(text=msg,reply_markup=keyboard, disable_web_page_preview=True)
     except Exception as e:
         if e.ID == 'MESSAGE_NOT_MODIFIED':  
             logger.warn(e.MESSAGE)
