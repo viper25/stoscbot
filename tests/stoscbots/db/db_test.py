@@ -38,7 +38,6 @@ def test_get_anniversaries_daily():
 def test_get_members_for_area():
     memberlist, area_name = db.get_members_for_area("2")
     assert memberlist[0][0] == "Aaron K Mathew (A053)"
-    assert len(memberlist) == 46
     assert area_name[0][0] == "Houg|Sengk|Pungg"
 
 
