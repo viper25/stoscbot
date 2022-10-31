@@ -56,7 +56,7 @@ resource = boto3.resource(
 table_stosc_bot_member_telegram = resource.Table("stosc_bot_member_telegram")
 
 # Update metrics only if using PRO STOSC Bot Token
-log_metrics = hashlib.md5(os.environ.get("STOSC_TELEGRAM_BOT_TOKEN").encode()).hexdigest() == "4e2626e3e8e0be3245c8fff1a0f72df9"
+log_metrics = hashlib.md5(os.environ.get("STOSC_TELEGRAM_BOT_TOKEN").encode()).hexdigest() == "7ede2e8fe6780662b3e06de38e61c132"
 
 # Log Bot user access metrics
 def update_access_metrics(telegram_id):
