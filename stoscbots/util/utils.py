@@ -25,7 +25,11 @@ resource = boto3.resource(
 )
 table_stosc_bot_member_telegram = resource.Table('stosc_bot_member_telegram')
 table_member_payments = resource.Table('stosc_xero_member_payments')
+
 table_harvest_metrics = resource.Table('stosc_harvest_metrics')
+table_stosc_harvest_winners = resource.Table('stosc_harvest_winners')
+table_stosc_harvest_contributors = resource.Table('stosc_harvest_contributors')
+
 table_harvest_items = resource.Table("stosc_harvest_items")
 table_harvest_members = resource.Table("stosc_harvest_members")
 table_stosc_xero_accounts_of_interest = resource.Table("stosc_xero_accounts_of_interest")
@@ -191,31 +195,45 @@ def get_member_auction_link(_member_code: str):
     else:
         return ""
 # ----------------------------------------------------------------------------------------------------------------------
-# Get Winning Bid for an Item
-def __get_winning_bid(_itemCode: str):
-    response = table_harvest_items.query(KeyConditionExpression=Key("itemCode").eq(int(_itemCode)))
-    if "winning_bid" in response["Items"][0].keys():
-        return response["Items"][0]["winning_bid"]
+def generate_msg_member_auction_contributions(_member_code: str):
+    try:
+        response = table_stosc_harvest_contributors.query(KeyConditionExpression=Key("member_code").eq(_member_code))
+    except Exception as e:
+        logger.error(e)
+        return None
+    if len(response['Items']) > 0:
+        msg = f"**Auction Donations**\n"
+        msg += "➖➖➖➖➖➖➖\n"
+        msg += f"Items Donated: {len(response['Items'][0]['items'])}\n"
+        msg += "———————\n"
+        for _item in response['Items'][0]['items']:
+            msg += f"[`{_item['itemCode']:03}`] **{_item['itemName']}**: {_item['winner']} (${_item['winning_bid']:,}) ({_item['bids']} bids)\n"
+        msg += "———————\n"
+        msg += f"Total sold for: **${response['Items'][0]['total_fetched']:,}**\n"
+        return msg
+    else:
+        return None
+
 # ----------------------------------------------------------------------------------------------------------------------
 def generate_msg_member_auction_purchases(_member_code: str):
-    response = table_harvest_metrics.query(KeyConditionExpression=Key("pk").eq("user") & Key("sk").begins_with(_member_code))
-    if len(response["Items"]) != 0:
-        msg = f"**{response['Items'][0]['sk'][5:]}**\n"
-        msg += "➖➖➖➖➖➖➖\n"
-        msg += f"Bids Placed: {response['Items'][0]['bidCount']}\n"
-        if "items_won" in response["Items"][0].keys():
-            msg += f"Items Won: {len(response['Items'][0]['items_won'])}\n"
+    try:
+        response = table_stosc_harvest_winners.query(KeyConditionExpression=Key("member_code").eq(_member_code))
+    except Exception as e:
+        logger.error(e)
+        return "No Data"
+    if len(response['Items']) > 0:
+        if len(response['Items'][0]['items']) != 0:
+            msg = f"**Auction Wins**\n"
+            msg += "➖➖➖➖➖➖➖\n"
+            if len(response['Items'][0]['items'])>0:
+                msg += f"Items Won: {len(response['Items'][0]['items'])}\n"
+                msg += "———————\n"
+                for _item in response['Items'][0]['items']:
+                    msg += f"[`{_item['itemCode']:03}`] **{_item['itemName']}**: ${_item['winning_bid']:,} ({_item['bids']} bids)\n"
             msg += "———————\n"
-            for _item in response["Items"][0]["items_won"]:
-                # Get the winning price for that item
-                msg += f"[`{_item.split('-')[0]}`] {_item.split('-')[1]}: **${__get_winning_bid(_item.split('-')[0]):,}**\n"
-        if "amt" in response["Items"][0].keys():
-            msg += "———————\n"
-            msg += f"Total: **${response['Items'][0]['amt']:,}**\n"
-        else:
-            msg += "No Items won yet\n"
+            msg += f"Total: **${response['Items'][0]['total_bid']:,}**\n"
     else:
-        msg = "No Bid or Purchases yet\n"
+        msg = "~ No bids or purchases yet ~\n"
     return msg
 # ----------------------------------------------------------------------------------------------------------------------
 async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list, searched_person: str=None, searched_person_name:str=None, keyboard: InlineKeyboardMarkup = None):
