@@ -43,7 +43,7 @@ async def show_my_contributions(client: Client, query: CallbackQuery):
     msg = utils.generate_msg_xero_member_payments(result[0][1], _member_code, _year)
     await utils.edit_and_send_msg(query, msg, keyboards.my_details_menu_keyboard)
 # --------------------------------------------------
-@Client.on_callback_query(dynamic_data_filter("My Subscriptions"))
+@Client.on_callback_query(dynamic_data_filter("My Dues"))
 @loggers.async_log_access
 async def show_my_subscriptions(client: Client, query: CallbackQuery):
     await query.answer()
