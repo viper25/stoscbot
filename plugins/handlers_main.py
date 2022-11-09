@@ -192,7 +192,7 @@ async def show_services_menu(client: Client, query: CallbackQuery):
     await query.answer()
     result = db.get_next_services()
     if len(result) == 0:
-        msg = "No Services"
+        msg = "No Service bookings found"
     else:
         msg = "**Upcoming Services**\n➖➖➖➖➖➖\n\n"
         _counter = 0
