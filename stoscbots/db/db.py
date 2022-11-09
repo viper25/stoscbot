@@ -114,6 +114,7 @@ def get_person_name(person_ID:str):
     sql = "select CONCAT(per_FirstName,' ',per_MiddleName,per_LastName) as person from person_per where per_ID = %s"
     return __db_executeQuery(sql, Databases.CRM, True, person_ID)
 # ----------------------------------------------------------------------------------------------------------------------
+# To get Service booking GUID for a given member
 def get_booking_GUID(memberCode: str):
     sql = "select guid from family_fam where fam_Code= %s and enabled =1"
     _result = __db_executeQuery(sql, Databases.FORMS, True, memberCode)

@@ -27,9 +27,10 @@ async def show_my_profile(client: Client, query: CallbackQuery):
     _member_code=utils.getMemberCode_from_TelegramID(query.from_user.id)
     result=db.get_member_details(_member_code,'code')
     msg = utils.generate_profile_msg_for_family(result)
-    _booking_url = f"https://crm.stosc.com/stosc-forms/?id={db.get_booking_GUID(_member_code)[0][0]}"
-    msg += f"• [Service Booking URL]({_booking_url})"
-    msg += "\n\n`Please contact the church office or secretary@stscoc.com to update any details. Type /help to see Help`"
+    # Service booking disabled for now
+    # _booking_url = f"https://crm.stosc.com/stosc-forms/?id={db.get_booking_GUID(_member_code)[0][0]}"
+    # msg += f"• [Service Booking URL]({_booking_url})"
+    msg += "\n`Please contact the church office or secretary@stscoc.com to update any details. Type /help to see Help`"
     await utils.send_profile_address_and_pic(client, query, msg,result, searched_person=None, searched_person_name=None, keyboard=keyboards.my_details_menu_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("My Contributions"))
