@@ -2,11 +2,6 @@ from stoscbots.db import db
 import pytest
 
 
-def test_get_next_services():
-    services = db.get_next_services()
-    assert len(services) == 0
-
-
 def test_get_bday_weekly():
     start, end, result = db.get_bday(duration="w")
     assert start is not None
@@ -51,18 +46,6 @@ def test_get_member_details_free_text():
     assert result[0][2] == "Vibin Joseph Kuriakose"
 
 
-def test_get_booking_GUID():
-    result = db.get_booking_GUID("T047")
-    assert len(result) == 0
-
-
-def test_get_members_for_serviceID():
-    result = db.get_members_for_serviceID("1")
-    assert result[0] == "Sun Morning English"
-    assert result[1] == "Sun, Jun 28 08:30 AM"
-    assert len(result) == 4
-
-
 def test_get_members_born_on():
     result = db.get_members_born_on("1979")
     assert result[23][2] == "Vibin Joseph Kuriakose (V019)"
@@ -73,13 +56,16 @@ def test_get_gb_eligible_count_type():
     result = db.get_gb_eligible_count()
     assert isinstance(result[0][0], int)
 
+
 def test_get_gb_eligible_count_greater_0():
     result = db.get_gb_eligible_count()
     assert result[0][0] > 0
 
+
 def test_get_person_name():
-    result = db.get_person_name('579')
-    assert result[0][0] == 'John '
+    result = db.get_person_name("579")
+    assert result[0][0] == "John "
+
 
 def test_raises_exception_on_divide_by_zero():
     with pytest.raises(ZeroDivisionError):

@@ -128,32 +128,10 @@ def get_main_keyboard(telegram_id):
     return keyboard_main
 
 
-# Dynamically generate a keyboard with upcoming services and prayer requests
-def get_services_keyboard(next_services):
+# Dynamically generate a keyboard with prayer requests
+def get_services_keyboard():
     # Kerboard is a double List
     keyboard = []
-    _keyboard_rows = []
-
-    cols_per_row = 2
-
-    for _counter, _item in enumerate(next_services):
-        if datetime.now() > _item[2]:
-            _keyboard_text = f'🔒 {_item[2].strftime("%b %d")} registrations »'
-        else:
-            _keyboard_text = f'{_item[2].strftime("%b %d")} registrations »'
-        _keyboard_rows.append(
-            InlineKeyboardButton(
-                _keyboard_text, callback_data = "Registrations for Service " + str(_item[0])
-            )
-        )
-        # For every 2 cols in a row
-        if (_counter + 1) % cols_per_row == 0:
-            # Add the rows to the main keyboard
-            keyboard.append(_keyboard_rows)
-            # Reinitialize the row
-            _keyboard_rows = []
-    _keyboard_rows.append(__MAIN_SERVICES_BUTTON)
-    keyboard.append(_keyboard_rows)
     keyboard.append([__BACK_TO_MAIN_BUTTON, __PRAYER_REQUESTS_LISTING_BUTTON])
     return InlineKeyboardMarkup(keyboard)
 

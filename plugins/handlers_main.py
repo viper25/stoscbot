@@ -190,40 +190,8 @@ async def show_main_menu(client: Client, query: CallbackQuery):
 @loggers.async_log_access
 async def show_services_menu(client: Client, query: CallbackQuery):
     await query.answer()
-    result = db.get_next_services()
-    if len(result) == 0:
-        msg = "No Service bookings found"
-    else:
-        msg = "**Upcoming Services**\n➖➖➖➖➖➖\n\n"
-        _counter = 0
-        # Get first group in result set and see if it changes
-        group = result[0][5]
-        msg += f"**--Group {group}--**\n"
-        for _item in result:
-            if group == _item[5]:
-                _counter += 1
-                # Assign current group
-                group = _item[5]
-                if datetime.now() > _item[2]:
-                    # Strikethrough finished services
-                    msg += f'~~{_counter}. {_item[1]} on {_item[2].strftime("%b %d %I:%M %p")}~~ `({_item[4]}/{_item[3]})`\n'
-                else:
-                    msg += f'{_counter}. {_item[1]} on {_item[2].strftime("%b %d %I:%M %p")} `({_item[4]}/{_item[3]})`\n'
-            else:
-                # A new group, so reset number and draw a line
-                _counter = 1
-                group = _item[5]
-                msg += f"\n**--Group {group}--**\n"
-                if datetime.now() > _item[2]:
-                    # Strikethrough finished services
-                    msg += f'~~{_item[1]} on {_item[2].strftime("%b %d %I:%M %p")}~~ `({_item[4]}/{_item[3]})`\n'
-                else:
-                    msg += f'{_counter}. {_item[1]} on {_item[2].strftime("%b %d %I:%M %p")} `({_item[4]}/{_item[3]})`\n'
-    # Show this keyboard only to SMO
-    if bot_auth.is_smo_member(query.from_user.id):
-        await utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard(db.get_next_services()))
-    else:
-        await utils.edit_and_send_msg(query, msg, keyboards.back_to_main_keyboard)
+    msg = "➖➖**Services Menu**➖➖\n"
+    await utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard())
 
 
 # --------------------------------------------------
