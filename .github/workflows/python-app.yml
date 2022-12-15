@@ -101,80 +101,57 @@ jobs:
         path: ${{ github.workspace }}
         key: ${{ runner.os }}-stoscbot-${{ github.sha }}
 
-    - name: Set up Python 3.10
+    - name: Set up Python 3.11
       uses: actions/setup-python@master
       with:
-        python-version: "3.10"
+        python-version: "3.11"
 
     - name: Remove unwanted folders
       run: |
         cd ${{ github.workspace }}
         rm -rf .git/ .github/ .gitignore
-    # See https://kamrul.dev/dynamically-add-github-actions-ip-to-aws-security-group/
-    - name: Setting environment variables..
-      run: |
-        echo "AWS_DEFAULT_REGION=ap-southeast-1" >> $GITHUB_ENV
-        echo "AWS_SG_NAME=stosc" >> $GITHUB_ENV
-
-    - name: Get Github action IP
-      id: ip
-      uses: haythem/public-ip@v1.2
-
-    - name: Add Github Actions IP to Security group
-      run: |
-          aws ec2 authorize-security-group-ingress --group-name ${{ env.AWS_SG_NAME }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32 
-      env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_GITHUB_ACTIONS }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_GITHUB_ACTIONS }}
-          AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+    # - name: Get Github action IP (we can add this to Azure NSG to allow access)
+    #   id: ip
+    #   uses: haythem/public-ip@v1.2
         
     - name: Stop the bot and clear the folder
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.BOT_HOST }}
-        username: ubuntu
+        username: azureuser
         key: ${{ secrets.BOT_HOST_KEY }}
         port: 22
         debug: false
         script: |
           ps -ef | grep 'run_stoscbot' | grep -v grep | awk '{print $2}' | xargs kill -9 2> /dev/null
-          cd /home/ubuntu/bots/stoscbot/workspace
+          cd /home/azureuser/bots/stoscbot/workspace
           rm -rf !\(.venv\)
-    # Alternative: rsync -av -e ssh --delete --exclude='.git' --exclude='.session' --exclude='.session-journal' --exclude='.venv' --exclude='*.sh' --exclude='**/__pycache__' --exclude='.gitignore' --exclude='.env' --exclude='.vscode' . vibinjk@xxxx:/home/vibinjk/stoscbot          
-    - name: Copy Files to AWS EC2
+
+    - name: Copy Files to Azure VM
       uses: horochx/deploy-via-scp@1.1.0
       with:
         local: ${{ github.workspace }}
-        remote: /home/ubuntu/bots/stoscbot/
+        remote: /home/azureuser/bots/stoscbot/
         host:  ${{ secrets.BOT_HOST }}
         port: 22
-        user: ubuntu
+        user: azureuser
         key: ${{ secrets.BOT_HOST_KEY }}
-        # Ensure the existence of the remote file path
+        # Ensure the existance of the remote file path
         ensureRemote: # optional
 
-    # sudo apt install python3.10-venv
+    # sudo apt install python3.11-venv
     - name: Install & Start the bot on Azure VM
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.BOT_HOST }}
-        username: ubuntu
+        username: azureuser
         key: ${{ secrets.BOT_HOST_KEY }}
         port: 22
         script: |
-          cd /home/ubuntu/bots/stoscbot/workspace
+          cd /home/azureuser/bots/stoscbot/workspace
           cp ../credentials/* .
           cp ../credentials/.* .
-          python3 -m venv .venv
+          python -m venv .venv
           source .venv/bin/activate
           if [ -f requirements.txt ]; then pip install --upgrade -r requirements.txt; fi
-          nohup python3 run_stoscbot.py > /dev/null 2>&1 &
-
-    - name: Remove Github Actions IP from security group
-      run: |
-        aws ec2 revoke-security-group-ingress --group-name ${{ env.AWS_SG_NAME }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
-      env:
-        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_GITHUB_ACTIONS }}
-        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_GITHUB_ACTIONS }}
-        AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
-      if: always()
+          nohup python run_stoscbot.py > /dev/null 2>&1 &
