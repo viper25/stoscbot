@@ -33,7 +33,7 @@ async def start_handler(client: Client, message: Message):
             logger.info(f"Unauthorized Member Request Code: {member_code.text}")
             if not utils.is_valid_member_code(member_code.text):
                 await message.reply_text("👎🏼 Invalid member code. Please try again: /start")
-                # Cancel the conversaion
+                # Cancel the conversation
                 await client.listen.Cancel(filters.user(message.from_user.id))
                 return
         except asyncio.TimeoutError:
@@ -80,15 +80,15 @@ async def help_handler(client: Client, message: Message):
     msg += "\nYou can control me by sending these commands or clicking the buttons at /start:\n"
     msg += "\n• /help - Show this help message"
     msg += "\n• /start - Start the bot"
-    msg += "\n• /u [member code or name] - Search for a member by member code or Name"
-    msg += "\n• /year [year in YYYY] - Show members born on this year\n"
-    msg += "\n** 🚫 The below commands are restricted use: 🚫**\n"
+    msg += "\n• /u [member code or name] - Search for a member by member code or Name e.g. `/u A001`"
+    msg += "\n• /year [year in YYYY] - Show members born on this year e.g. `/year 1976`\n"
+    msg += "\n** 🚫 The below commands are for the management committee only: 🚫**\n"
     msg += "\n• /x [member code] - Show member contributions"
     msg += "\n• /xs [member code] - Show member subscriptions"
     msg += "\n• /version or /ver - Show bot version"
     msg += "\n• /bday  - Show this week's bday list without age"
     msg += "\n• /anniv  - Show this week's anniversary list without years"
-    await message.reply_text(msg, reply_markup=keyboards.back_to_main_keyboard)
+    await message.reply_text(msg, reply_markup=keyboards.back_to_main_keyboard, disable_web_page_preview=True)
 
 
 # -------------------------------------------------
@@ -127,7 +127,7 @@ async def year_handler(client: Client, message: Message):
 @bot_auth.async_member_only
 async def member_search_cmd_handler(client: Client, message: Message):
     if len(message.command) != 2:
-        msg = "Please enter a Member Code or Name to search"
+        msg = "Please enter a Member Code or Name to search\n e.g. `/u A001`"
         await message.reply_text(msg, quote=True)
         return
     # Match member codes such as V019. One char followed by 2 or 3 digits
