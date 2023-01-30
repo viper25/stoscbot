@@ -11,6 +11,7 @@ from boto3.dynamodb.conditions import Key
 from stoscbots.xero import xero_utils
 from stoscbots.util.loggers import LOGLEVEL
 import logging
+import pickle
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Module logger
@@ -33,6 +34,7 @@ table_stosc_harvest_contributors = resource.Table('stosc_harvest_contributors')
 table_harvest_items = resource.Table("stosc_harvest_items")
 table_harvest_members = resource.Table("stosc_harvest_members")
 table_stosc_xero_accounts_of_interest = resource.Table("stosc_xero_accounts_of_interest")
+table_stosc_xero_tokens = resource.Table("stosc_xero_tokens")
 # ----------------------------------------------------------------------------------------------------------------------
 # get STOSC Member code from Telegram ID
 def getMemberCode_from_TelegramID(telegram_id: int):
@@ -296,6 +298,19 @@ def get_tracked_projects(raw_data: bool=False):
         if _item['Total']:
             msg += f"• {_item['AccountName']} - `${_item['Total']:,.2f}`\n"
     return msg
+# ----------------------------------------------------------------------------------------------------------------------
+def get_outstandings():
+    msg = "**OUTSTANDING DUES**\n"
+    msg += "➖➖➖➖➖➖➖➖\n\n"
+    if os.environ.get("ENV")=='TEST':
+        filehandler = open("C:\\DATA\\git\\viper25\\xero_helpers\\outstandings.pickle",'rb')
+    else:
+        filehandler = open(os.environ.get("OUTSTANDING_PICKLE_PATH"),'rb')
+    df = pickle.load(filehandler)
+    msg = df.to_markdown()
+    msg = f"`{msg}`"
+    return msg
+
 # ----------------------------------------------------------------------------------------------------------------------
 def is_valid_email(email:str):
     if not email:
