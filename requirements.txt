@@ -9,3 +9,4 @@ requests
 gspread
 git+https://github.com/Ripeey/Conversation-Pyrogram
 tabulate   # For rendering tables generated via dataframes
+pandas
