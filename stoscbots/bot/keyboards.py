@@ -2,7 +2,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInf
 from stoscbots.util import bot_auth
 from datetime import datetime, date
 
-web_app_pr: WebAppInfo = WebAppInfo(url="https://stosc.com/pr")
+web_app_pr: WebAppInfo = WebAppInfo(url="http://stosc.com/pr")
 
 # --------------------------------------------------------------------------------------------------
 """
