@@ -128,3 +128,15 @@ async def member_gb_ineligible(client: Client, query: CallbackQuery):
     msg = f"**GB Eligible = ** `{result[0][0]}`\n"
     msg += f"**Quorum `(25%)` = ** `{math.floor(result[0][0]/4)}`\n"
     await utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
+
+# --------------------------------------------------
+@Client.on_callback_query(dynamic_data_filter("MC"))
+@loggers.async_log_access
+# Check if there is any prayer request for this week submitted after current service starts at 7.45
+async def get_MC(client: Client, query: CallbackQuery):
+    await query.answer()
+    msg = f"**Secretary**: Don Fernandez Lawrie Norbert (D008)\n"
+    msg += f"**Lay Steward**: Sajan Chacko (S042)\n"
+    msg += f"**Ex-Officio**: Thomas Mani Padiyara (T042)\n"
+    msg += f"**Management Committee**: \n\tSiby Varghese (S053)\n\tRini Sara Reji (V018)\n\tGeorge Thomas (G006)\n\tMarkose Thomas (M029)"
+    await utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)

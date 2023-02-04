@@ -42,7 +42,7 @@ __MYDETAILS_PRAYER_REQUESTS_BUTTON = InlineKeyboardButton("🙏🏽 Submit Praye
 __MYDETAILS_LIST_OF_ACCOUNTS_BUTTON = InlineKeyboardButton("ℹ List of Accounts", callback_data = "List of Accounts")
 
 __PRAYER_REQUESTS_LISTING_BUTTON = InlineKeyboardButton("📿 Prayer Requests", callback_data = "Prayer Requests")
-
+__WHO_IS_MY_MC_BUTTON = InlineKeyboardButton("👥 Management Committee", callback_data = "MC")
 # ---------------------------------------------------------------------------------------------------
 '''
 Assemble the Buttons above to create Keyboards
@@ -54,7 +54,8 @@ back_to_main_keyboard = InlineKeyboardMarkup([
 members_menu_keyboard = InlineKeyboardMarkup([
     [__MEMBERS_BDAY_TODAY_BUTTON, __MEMBERS_ANNIVERSARY_TODAY_BUTTON],
     [__MEMBERS_BDAY_WEEK_BUTTON, __MEMBERS_ANNIVERSARY_WEEK_BUTTON],
-    [__BACK_TO_MAIN_BUTTON, __MEMBERS_GB_INELIGIBLE_BUTTON]
+    [__WHO_IS_MY_MC_BUTTON, __MEMBERS_GB_INELIGIBLE_BUTTON],
+    [__BACK_TO_MAIN_BUTTON, ]
 ])
 
 finance_menu_keyboard = InlineKeyboardMarkup([
