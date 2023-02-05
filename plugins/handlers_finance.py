@@ -241,6 +241,11 @@ async def get_finance_latest_tx(client: Client, query: CallbackQuery):
     msg="➖**TRANSACTIONS (WTD)**➖\n`No Invoice (subscription) or bill payment transactions shown`\n\n"
 
     for tx in bank_tx['BankTransactions']:
+        tx_date = xero_utils.parse_Xero_Date(tx['Date'])
+        if tx_date > datetime.now():
+            # Transactions that are future dated. These are entries made in DBS Fixed Deposit accounts 
+            # for future interest payments
+            continue
         _msg=''
         if tx['Type'] == 'RECEIVE':
             icon='🟢'
@@ -265,10 +270,9 @@ async def get_finance_latest_tx(client: Client, query: CallbackQuery):
             msg += f"💳 NETS {_msg}\n"
         else:
             msg += f"\n\n{icon} **{tx['BankAccount']['Name']}** {_msg}\n"
-
-        msg += f"`{xero_utils.parse_Xero_Date(tx['Date']):%Y-%m-%d}`\n"
+        msg += f"`{tx_date:%Y-%m-%d}`\n"
         msg += f"**${tx['Total']}**\n\n"
-    
+
     # Telegram has a 4096 byte limit for msgs
     msg=(msg[:4076] + '\n`... (truncated)`') if len(msg) > 4096 else msg
     await utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
