@@ -7,7 +7,7 @@ from datetime import datetime
 
 # To display accounts that can be paid to. This MUST match the names as they appear in DDB as entered by the Xero job 'member_contribution.py'   
 # Excluding 'Diocesan Development Fund' since that's an ad-hoc payment account
-LIST_ACCOUNTS = ['Thanksgiving Auction','Thanksgiving Donation','Catholicate Fund','Metropolitan Fund','Seminary Fund','Resisa Donation','Marriage Assistance Fund','Mission Fund','Sunday School','Self Denial Fund','Birthday Offering','Baptism and Wedding Offering','Christmas Offering','Donations & Gifts','Holy Qurbana','Holy Week Donation','Member Subscription','Offertory','Tithe','Youth Fellowship']
+LIST_ACCOUNTS = ['Thanksgiving Auction','Thanksgiving Donation','Catholicate Fund','Metropolitan Fund','Seminary Fund','Resisa Donation','Marriage Assistance Fund','Mission Fund','Sunday School','Self Denial Fund','Birthday Offering','Baptism and Wedding Offering','Christmas Offering','Donations & Gifts','Holy Qurbana','Holy Week Donation','Kohne Sunday','Member Subscription','Offertory','Tithe','Youth Fellowship']
 
 # ==================================================
 '''
