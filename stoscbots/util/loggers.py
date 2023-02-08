@@ -82,7 +82,7 @@ def update_access_metrics(telegram_id):
         logger.error("%s update failed with error: %s",telegram_id,e)
 
 
-# Log Bot user access metrics. This is to be decorated ONLY on async functionsq
+# Log Bot user access metrics. This is to be decorated ONLY on async functions
 def async_log_access(func):
     @wraps(func)
     # See: https://stackoverflow.com/questions/44169998/how-to-create-a-python-decorator-that-can-wrap-either-coroutine-or-function#comment111746175_63156433

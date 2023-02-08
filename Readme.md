@@ -64,7 +64,7 @@ Tests
 
 ## Run Tests
 
-Ensure `pytest` and `pytest-asyncio` is installed so that VSCode and "find" tests. Run the below command to run the tests.
+Ensure `pytest` and `pytest-asyncio` is installed so that VSCode and find tests. Run the below command to run the tests.
 
 ```bash
 pytest --cov=./ --cov-report=xml
@@ -86,10 +86,11 @@ We use [GitHub Actions](https://github.com/viper25/stoscbot/actions) to deploy, 
 
 ## TODO
 
+* Make better decorators. See https://youtu.be/QH5fw9kxDQA?t=843
+    * Add arguments to decorators(https://youtu.be/QH5fw9kxDQA?t=1164)
 * [Define Default Values in Dictionaries With `.get()` and `.setdefault()`](https://realpython.com/python-coding-interview-tips/#define-default-values-in-dictionaries-with-get-and-setdefault)
 * In iterating over long lists, use [generators](https://realpython.com/python-coding-interview-tips/#save-memory-with-generators)
 * Check if using `logger` or `loggers` class
-* ~~Update Build Numbers and versions~~
 * [How to make a sync function to async](https://youtu.be/GpqAQxH1Afc?t=968)
 * Split the GitHub ACtions Job `Build_Lint_Test_Coverage` to two jobs: `Build_Lint` and `Test_Coverage`. Use cache 
 
