@@ -80,7 +80,7 @@ async def get_prayer_requests(client: Client, query: CallbackQuery):
                     msg += f"\n• {_request[2]}"
 
         if len(msg) >= 4096:
-            utils.edit_and_send_msg(
+            await utils.edit_and_send_msg(
                 query,
                 "List too Long. Please check Google Sheet for full list.",
                 keyboards.get_services_keyboard(),
