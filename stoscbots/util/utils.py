@@ -293,6 +293,7 @@ def get_tracked_projects(raw_data: bool=False):
     if raw_data:
         return response["Items"]
     msg = "**TRACKED PROJECTS**\n"
+    msg += "`(current year)`\n"
     msg += "➖➖➖➖➖➖➖➖\n\n"
     for _item in response["Items"]:
         if _item['Total']:
