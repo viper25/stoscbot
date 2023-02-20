@@ -33,7 +33,7 @@ table_stosc_harvest_contributors = resource.Table('stosc_harvest_contributors')
 
 table_harvest_items = resource.Table("stosc_harvest_items")
 table_harvest_members = resource.Table("stosc_harvest_members")
-table_stosc_xero_accounts_of_interest = resource.Table("stosc_xero_accounts_of_interest")
+table_stosc_xero_accounts_tracking = resource.Table("stosc_xero_accounts_tracking")
 table_stosc_xero_tokens = resource.Table("stosc_xero_tokens")
 # ----------------------------------------------------------------------------------------------------------------------
 # get STOSC Member code from Telegram ID
@@ -289,15 +289,15 @@ def is_valid_year(year: str):
     return len(year) == 4 and (re.match('\d{4}', year) is not None)
 # ----------------------------------------------------------------------------------------------------------------------
 def get_tracked_projects(raw_data: bool=False):
-    response = table_stosc_xero_accounts_of_interest.scan()
+    response = table_stosc_xero_accounts_tracking.scan()
     if raw_data:
         return response["Items"]
     msg = "**TRACKED PROJECTS**\n"
     msg += "`(current year)`\n"
     msg += "➖➖➖➖➖➖➖➖\n\n"
     for _item in response["Items"]:
-        if _item['Total']:
-            msg += f"• {_item['AccountName']} - `${_item['Total']:,.2f}`\n"
+        if 'total' in _item:
+            msg += f"• {_item['Name']} - `${_item['total']:,.2f}`\n"
     return msg
 # ----------------------------------------------------------------------------------------------------------------------
 def get_outstandings():
