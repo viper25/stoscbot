@@ -290,10 +290,12 @@ def is_valid_year(year: str):
 # ----------------------------------------------------------------------------------------------------------------------
 def get_tracked_projects(raw_data: bool=False):
     response = table_stosc_xero_accounts_tracking.scan()
+    # Get the latest modified_ts for all the projects
+    last_udpated = max(response['Items'], key=lambda x: x.get('modified_ts','0'))['modified_ts']
     if raw_data:
         return response["Items"]
     msg = "**TRACKED PROJECTS**\n"
-    msg += "`(current year)`\n"
+    msg += f"`As of {last_udpated}`\n"
     msg += "➖➖➖➖➖➖➖➖\n\n"
     for _item in response["Items"]:
         if 'total' in _item:
