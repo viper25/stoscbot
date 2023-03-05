@@ -46,7 +46,7 @@ async def get_prayer_requests(client: Client, query: CallbackQuery):
     ]
 
     if prayer_requests_for_the_week:
-        msg = f"**Prayer Requests**\n`since {start_of_week.strftime('%b %d, %H:%M %p')}`\n"
+        msg = f"**Prayer Requests** ([Google Sheet](https://docs.google.com/spreadsheets/d/1WFDktq3uX0dR3OIWUojzFujR8uSwBS7ZBTPowA0fB4c/edit?usp=sharing))\n`since {start_of_week.strftime('%b %d, %H:%M %p')}`\n"
         msg += "➖➖➖➖➖➖➖➖\n"
 
         if departed_requests:
