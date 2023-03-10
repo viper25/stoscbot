@@ -298,8 +298,10 @@ def get_tracked_projects(raw_data: bool=False):
     msg = "**TRACKED PROJECTS**\n"
     msg += "➖➖➖➖➖➖➖➖\n"
     for _item in response["Items"]:
-        if 'total' in _item:
-            msg += f"• {_item['Name']} - `${_item['total']:,.2f}`\n"
+        income = _item['income'] if 'income' in _item else 0.0
+        expense = _item['expense'] if 'expense' in _item else 0.0
+        if income or expense:
+            msg += f"• {_item['Name']} - `${income:,.2f}` | `${expense:,.2f}`\n"
     msg += f"\n`As of: {last_udpated}`"
     return msg
 # ----------------------------------------------------------------------------------------------------------------------
