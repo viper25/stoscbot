@@ -193,9 +193,9 @@ def todays_date():
 def a_week_ago():
     return datetime.datetime.today() - timedelta(days=7)
 # ----------------------------------------------------------------------------------------------------------------------
-def get_member_auction_link(_member_code: str):
+def get_member_auction_link(_member_code: str)-> str:
     response = table_harvest_members.query(KeyConditionExpression=Key("code").eq(_member_code))
-    if len(response['Items']) > 0:
+    if response['Items']:
         return f"https://harvest.stosc.com/?id={response['Items'][0]['guid']}"
     else:
         return ""
@@ -276,33 +276,53 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
                 logger.error(f"{e2.MESSAGE}: for [{result[0][1]}]")
                 await client.send_message(chat_id=_x.from_user.id,text=msg, reply_markup=keyboard)
 # ----------------------------------------------------------------------------------------------------------------------
-def is_valid_member_code(_member_code: str):
-    if not _member_code:
+def is_valid_member_code(member_code: str) -> bool:
+    if not member_code:
         return False
-    if len(_member_code) != 4:
+    if len(member_code) != 4:
         return False
-    if not re.match('[A-Za-z]\d{3}', _member_code):
+    if not re.match(r'[A-Za-z]\d{3}', member_code):
         return False
     return True
 # ----------------------------------------------------------------------------------------------------------------------
 def is_valid_year(year: str):
-    return len(year) == 4 and (re.match('\d{4}', year) is not None)
+    """
+    Check if a given string is a valid year.
+
+    Args:
+        year (str): A string representing the year.
+
+    Returns:
+        bool: True if the year is valid, False otherwise.
+    """
+    if len(year) != 4:
+        return False
+
+    if re.match(r"\d{4}", year) is None:
+        return False
+
+    return True
 # ----------------------------------------------------------------------------------------------------------------------
 def get_tracked_projects(raw_data: bool=False):
     response = table_stosc_xero_accounts_tracking.scan()
+
     # Get the latest modified_ts for all the projects
-    last_udpated = ""
-    last_udpated = max(response['Items'], key=lambda x: x.get('modified_ts','0'))['modified_ts']
+    last_updated  = max(response['Items'], key=lambda x: x.get('modified_ts','0'))['modified_ts']
+
     if raw_data:
         return response["Items"]
+
     msg = "**TRACKED PROJECTS**\n"
     msg += "➖➖➖➖➖➖➖➖\n"
+
     for _item in response["Items"]:
-        income = _item['income'] if 'income' in _item else 0.0
-        expense = _item['expense'] if 'expense' in _item else 0.0
+        income = _item.get('income', 0.0)
+        expense = _item.get('expense', 0.0)
+
         if income or expense:
             msg += f"• {_item['Name']} - `${income:,.2f}` | `${expense:,.2f}`\n"
-    msg += f"\n`As of: {last_udpated}`"
+
+    msg += f"\n`As of: {last_updated }`"
     return msg
 # ----------------------------------------------------------------------------------------------------------------------
 def get_outstandings():
