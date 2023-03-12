@@ -92,7 +92,8 @@ We use [GitHub Actions](https://github.com/viper25/stoscbot/actions) to deploy, 
 * In iterating over long lists, use [generators](https://realpython.com/python-coding-interview-tips/#save-memory-with-generators)
 * Check if using `logger` or `loggers` class
 * [How to make a sync function to async](https://youtu.be/GpqAQxH1Afc?t=968)
-* Split the GitHub ACtions Job `Build_Lint_Test_Coverage` to two jobs: `Build_Lint` and `Test_Coverage`. Use cache 
+* Split the GitHub Actions Job `Build_Lint_Test_Coverage` to two jobs: `Build_Lint` and `Test_Coverage`. Use cache
+* Change to dictionary `_get` e.g. `income = _item.get('income', 0.0)` 
 
 ## Reference
 * [Pyrogram version updates](https://github.com/pyrogram/pyrogram/compare/v2.0.34...v2.0.35)
