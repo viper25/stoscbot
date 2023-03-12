@@ -6,6 +6,7 @@ from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
 from stoscbots.bot import keyboards
 from stoscbots.xero import xero_utils
+from pyrogram import enums
 
 # ==================================================
 
@@ -289,6 +290,5 @@ async def get_finance_tracking(client: Client, query: CallbackQuery):
 async def get_finance_outstandings(client: Client, query: CallbackQuery):
     await query.answer()
     msg = utils.get_outstandings()
-    from pyrogram import enums
     client.set_parse_mode(enums.ParseMode.MARKDOWN)
     await utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
