@@ -76,7 +76,7 @@ async def start_handler(client: Client, message: Message):
 @bot_auth.async_member_only
 async def help_handler(client: Client, message: Message):
     msg = "**Help**\n➖➖"
-    msg += "\nWatch this [YouTube video](https://youtu.be/67FAw0buXIA) to see bot the STOSC Bot works 🤖\n"
+    msg += "\nWatch this [YouTube video](https://www.youtube.com/watch?v=lp8pLmTkRR4) to see bot the STOSC Bot works 🤖\n"
     msg += "\nYou can control me by sending these commands or clicking the buttons at /start:\n"
     msg += "\n• /help - Show this help message"
     msg += "\n• /start - Start the bot"
