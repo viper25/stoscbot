@@ -43,7 +43,7 @@ async def start_handler(client: Client, message: Message):
             # Cancel the conversaion
             await client.listen.Cancel(filters.user(message.from_user.id))
             return
-        await message.reply_text("`Enter your email:`")
+        await message.reply_text("`Enter your email or mobile number as present in church records.\nThis is only used for verification purposes:`")
         try:
             email = await client.listen.Message(filters.text, id = filters.user(message.from_user.id), timeout = 30)
             logger.info(f"Unauthorized Member Request Email: {email.text}")
