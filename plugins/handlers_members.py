@@ -1,10 +1,22 @@
+from faker import Faker
+import random
+import string
 from datetime import date
 from pyrogram import Client, filters
 from pyrogram.types import CallbackQuery
 from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
-import math 
+import math
+
+fake = Faker()
+def generate_random_memberID():
+    # Choose a random character
+    char = random.choice(string.ascii_uppercase)
+    # Choose 3 random digits
+    digits = "".join(random.choices(string.digits, k=3))
+    # Concatenate the character and digits
+    return char + digits
 # ==================================================
 '''
 Handle multiple callback queries data and return filter for each
@@ -32,7 +44,7 @@ async def get_today_bdays(client: Client, query: CallbackQuery):
                 age =  date.today().year - int(_splits[2])
             else:
                 age = None
-            msg += f"• {_item[1].strip()} `({_item[0].strip()})` - {age if age else 'NA'}\n"
+            msg += f"• {fake.name()} `({generate_random_memberID()})` - {age if age else 'NA'}\n"
     await utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Member Anniversary Today Button"))
@@ -46,7 +58,7 @@ async def get_today_anniversaries(client: Client, query: CallbackQuery):
         msg="**Wedding Anniversarys today** 💍\n\n"
         for _item in result:
             anniversary_years =  date.today().year - _item[2].year
-            msg += f"• {_item[1].strip()} `({_item[0].strip()})` - {anniversary_years if anniversary_years else 'NA'}\n"
+            msg += f"• {_item[1].strip()} `({generate_random_memberID()})` - {anniversary_years if anniversary_years else 'NA'}\n"
     await utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
 # --------------------------------------------------
 @Client.on_message(filters.command(["bday"]))   # For when we want to print bdays without age
@@ -74,14 +86,14 @@ async def get_weeks_bdays(client: Client, query_or_msg):
                 age = None
             if  _day == date.today().strftime("%d") and _month == date.today().strftime("%m") :
                 if dont_show_age:
-                    msg += f"•** {_item[1].strip()}** `({_item[0].strip()})`\n"
+                    msg += f"•** {fake.name()}** `({generate_random_memberID()})`\n"
                 else:
-                    msg += f"•** {_item[1].strip()}** `({_item[0].strip()})` - **{age if age else 'NA'}**\n"
+                    msg += f"•** {fake.name()}** `({generate_random_memberID()})` - **{age if age else 'NA'}**\n"
             else:
                 if dont_show_age:
-                    msg += f"• {_item[1].strip()} `({_item[0].strip()})`\n"
+                    msg += f"• {fake.name()} `({generate_random_memberID()})`\n"
                 else:
-                    msg += f"• {_item[1].strip()} `({_item[0].strip()})` - {age if age else 'NA'}\n"
+                    msg += f"• {fake.name()} `({generate_random_memberID()})` - {age if age else 'NA'}\n"
     if type(query_or_msg) == CallbackQuery:
         await utils.edit_and_send_msg(query_or_msg, msg, keyboards.members_menu_keyboard)
     else:
@@ -107,14 +119,14 @@ async def get_weeks_anniversaries(client: Client, query_or_msg):
                 anniversary_years =  str(date.today().year - _item[2].year) + ' yrs'
             if _item[2].day == date.today().day and _item[2].month == date.today().month:
                 if dont_show_anniv_years:
-                    msg += f"•** {_item[1].strip()}** `({_item[0].strip()})`\n"
+                    msg += f"•** {fake.name()}** `({generate_random_memberID()})`\n"
                 else:
-                    msg += f"•** {_item[1].strip()}** `({_item[0].strip()})` - **{anniversary_years if anniversary_years else 'NA'}**\n"
+                    msg += f"•** {fake.name()}** `({generate_random_memberID()})` - **{anniversary_years if anniversary_years else 'NA'}**\n"
             else:
                 if dont_show_anniv_years:
-                    msg += f"• {_item[1].strip()} `({_item[0].strip()})`\n"
+                    msg += f"• {fake.name()} `({generate_random_memberID()})`\n"
                 else:
-                    msg += f"• {_item[1].strip()} `({_item[0].strip()})` - {anniversary_years if anniversary_years else 'NA'}\n"
+                    msg += f"• {fake.name()} `({generate_random_memberID()})` - {anniversary_years if anniversary_years else 'NA'}\n"
     if type(query_or_msg) == CallbackQuery:
         await utils.edit_and_send_msg(query_or_msg, msg, keyboards.members_menu_keyboard)
     else:

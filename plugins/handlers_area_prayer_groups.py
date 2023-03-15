@@ -1,9 +1,22 @@
+import random
+import string
 from pyrogram import Client, filters
 from pyrogram.types import CallbackQuery
 from stoscbots.db import db
 from stoscbots.util import loggers
 from stoscbots.bot import keyboards
 from stoscbots.util import utils
+from faker import Faker
+
+fake = Faker()
+def generate_random_memberID():
+    # Choose a random character
+    char = random.choice(string.ascii_uppercase)
+    # Choose 3 random digits
+    digits = "".join(random.choices(string.digits, k=3))
+    # Concatenate the character and digits
+    return char + digits
+
 
 '''
 Handle multiple callback queries data and return filter for each
@@ -26,5 +39,5 @@ async def get_area_prayer_group_members(client: Client, query: CallbackQuery):
     else:
         msg=f"**Members in {area_name[0][0]}** `({len(_memberlist)})` \n\n"
         for _member in _memberlist:
-            msg += f"• {_member[0].split('(')[0]}`({_member[0].split('(')[1][:4]})`\n"
+            msg += f"• {fake.name()} `({generate_random_memberID()})`\n"
     await utils.edit_and_send_msg(query, msg, keyboards.area_prayer_groups_keyboard)

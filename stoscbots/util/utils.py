@@ -1,3 +1,6 @@
+from faker import Faker
+import random
+import string
 from multiprocessing.connection import Client
 import os
 import boto3
@@ -12,6 +15,15 @@ from stoscbots.xero import xero_utils
 from stoscbots.util.loggers import LOGLEVEL
 import logging
 import pickle
+
+fake = Faker()
+def generate_random_memberID():
+    # Choose a random character
+    char = random.choice(string.ascii_uppercase)
+    # Choose 3 random digits
+    digits = "".join(random.choices(string.digits, k=3))
+    # Concatenate the character and digits
+    return char + digits
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Module logger
@@ -52,28 +64,22 @@ def get_address_details(_zip: str):
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate a Member Profile msg
 def generate_profile_msg_for_family(result: list):
-    msg = f"• Family: **{result[0][2]} ({result[0][1]})**\n"
-    msg += f"• DOB: **{result[0][20]}**\n" if (result[0][20] != "" and result[0][20] is not None) else ""
-    msg += f"• Spouse: **{result[0][6]}**\n" if (result[0][6] != "" and result[0][6] is not None) else ""
-    msg += f"• Spouse DOB: **{result[0][21]}**\n" if (result[0][21] != "" and result[0][21] is not None) else ""
-    msg += f"• Children: **{result[0][8]}**\n" if (result[0][8] != "" and result[0][8] is not None) else ""
-    msg += f"• Other family members: **{result[0][9]}**\n" if (result[0][9] != "" and result[0][9] is not None) else ""
-    if (result[0][10] != "" and result[0][10] is not None):
-        msg += f"• Add: **{result[0][10]}**"
-    if (result[0][11] != "" and result[0][11] is not None):
-        msg += f"**, {result[0][11]}**"
-    if (result[0][12] != "" and result[0][12] is not None):
-        msg += f", **{result[0][12]}**"
-    msg += "\n"
-    msg += f"• Mobile: [{result[0][13]}](tel://{result[0][13]})\n" if (result[0][13] != "" and result[0][13] is not None) else ""
-    msg += f"• Home: [{result[0][14]}](tel://{result[0][14]})\n" if (result[0][14] != "" and result[0][14] is not None) else ""
-    msg += f"• Email: **{result[0][3]}**\n" if (result[0][3] != "" and result[0][3] is not None) else ""
-    msg += f"• Spouse Email: **{result[0][7]}**\n" if (result[0][7] != "" and result[0][7] is not None and result[0][7]!=result[0][5]) else ""
-    msg += f"• Home Parish: **{result[0][15]}**\n" if (result[0][15] != "" and result[0][15] is not None) else ""
-    msg += f"• Membership Date: **{result[0][16]}**\n" if (result[0][16] != "" and result[0][16] is not None) else ""
-    msg += f"• Related Families: **{result[0][17]}**\n" if (result[0][17] != "" and result[0][17] is not None) else ""
-    msg += f"• Electoral Roll: **{result[0][18]}**\n" if (result[0][18] != "" and result[0][18] is not None) else ""
-    msg += f"• Prayer Group: **{result[0][19]}**\n" if (result[0][19] != "" and result[0][19] is not None) else ""
+    msg = f"• Family: **Johnson Family**\n"
+    msg += f"• DOB: **1979-12-25**\n"
+    msg += f"• Spouse: **Susan Mathew**\n"
+    msg += f"• Spouse DOB: **1982-05-04**\n"
+    msg += f"• Children: **{fake.name()}**\n"
+    msg += f"• Other family members: **{fake.name()}**\n"
+    msg += f"• Add: **No.01, Orchard Road, Singapore 238880**\n"
+    msg += f"• Mobile: 98799999\n"
+    msg += f"• Home: 65400000\n"
+    msg += f"• Email: **chackoman@example.com**\n"
+    msg += f"• Spouse Email: **chackowoman@example.com**\n"
+    msg += f"• Home Parish: **St. Thomas Church, Kottayam, Kerala.**\n"
+    msg += f"• Membership Date: **2005-01-05**\n"
+    msg += f"• Related Families: **C001**\n"
+    msg += f"• Electoral Roll: **Yes**\n"
+    msg += f"• Prayer Group: **Houg|Sengk|Pungg**\n"
     return msg
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -81,7 +87,7 @@ def generate_profile_msg_for_family(result: list):
 def generate_msg_xero_member_payments(name: str, _member_code: str, _year: str):
     payments = get_member_payments(_member_code, _year)
     if payments:
-        msg=f"**{name}**\n`For Year {_year}`\n"
+        msg=f"**Chacko Man**\n`For Year {_year}`\n"
         msg += "➖➖➖➖➖➖➖\n"
         if len(payments) == 0:
             msg += "No payments yet"
@@ -111,7 +117,7 @@ def generate_msg_xero_member_invoices(_member_code: str, _year: str):
        return f"Not a valid year: **{_year}**"
     _invoices=xero_utils.get_Invoices(_member_code)
     if _invoices and len(_invoices['Invoices'])> 0:
-        msg=f"--**{_invoices['Invoices'][0]['Contact']['Name']} ({_member_code})**--\n\n"
+        msg=f"--**Chacko Man (X001)**--\n\n"
         icon='🟠' 
         for invoice in _invoices["Invoices"]:
             if (
@@ -212,7 +218,7 @@ def generate_msg_member_auction_contributions(_member_code: str):
         msg += f"Items Donated: {len(response['Items'][0]['items'])}\n"
         msg += "———————\n"
         for _item in response['Items'][0]['items']:
-            msg += f"[`{_item['itemCode']:03}`] **{_item['itemName']}**: {_item['winner']} (${_item['winning_bid']:,}) ({_item['bids']} bids)\n"
+            msg += f"[`{_item['itemCode']:03}`] **{_item['itemName']}**: {fake.name()} (${_item['winning_bid']:,}) ({_item['bids']} bids)\n"
         msg += "———————\n"
         msg += f"Total sold for: **${response['Items'][0]['total_fetched']:,}**\n"
         return msg
@@ -245,17 +251,18 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
     # Send if there's a Zip code present and if Family code is searched for
     # Don't map send for person searches
     if (result[0][12] != "" and result[0][12] is not None and searched_person is None): 
-        if get_address_details(result[0][12]):
+        if get_address_details("238880"):
             lat, lon=get_address_details(result[0][12])
-            await client.send_venue(chat_id=_x.from_user.id,latitude=float(lat),longitude=float(lon),title=result[0][2],address=result[0][10],disable_notification=True)
+            title = "Mr. Chacko Man"
+            await client.send_venue(chat_id=_x.from_user.id,latitude=float(lat),longitude=float(lon),title=title,address='No.01, Orchard Road, Singapore 238880',disable_notification=True)
     try:
         # All images are png, so try looking that up first. Adding parameter to the URL to avoid stale cache 
         if searched_person:
-            person_pic_caption = f"{searched_person_name} `({result[0][1]})`"
-            await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.png?rand={hash(datetime.datetime.today())}", caption=person_pic_caption + "\n\n" + msg)
+            person_pic_caption = f"Mr. Chacko Man (`X001`)"
+            await client.send_photo(chat_id=_x.from_user.id,photo=f"https://www.shutterstock.com/image-photo/young-indian-man-wearing-denim-260nw-1448278058.jpg?rand={hash(datetime.datetime.today())}", caption=person_pic_caption + "\n\n" + msg)
         # Send family pic only for searches by member code
         if searched_person is None:
-            await client.send_photo(chat_id=_x.from_user.id,photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png?rand={hash(datetime.datetime.today())}", caption=msg, reply_markup=keyboard)
+            await client.send_photo(chat_id=_x.from_user.id,photo=f"https://thumbs.dreamstime.com/b/indian-family-three-portrait-happy-standing-indoors-56830036.jpg?rand={hash(datetime.datetime.today())}", caption=msg, reply_markup=keyboard)
     except Exception as e1:
         if e1.ID == 'MEDIA_EMPTY':
             logger.warn(f"No png image for [{result[0][1]}], trying jpg")

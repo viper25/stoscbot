@@ -1,3 +1,6 @@
+from faker import Faker
+import random
+import string
 import os
 import asyncio
 import logging
@@ -8,6 +11,15 @@ from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
 from datetime import datetime
+
+fake = Faker()
+def generate_random_memberID():
+    # Choose a random character
+    char = random.choice(string.ascii_uppercase)
+    # Choose 3 random digits
+    digits = "".join(random.choices(string.digits, k=3))
+    # Concatenate the character and digits
+    return char + digits
 
 # Module logger
 logger = logging.getLogger('Handler.Main')
@@ -105,12 +117,12 @@ async def year_handler(client: Client, message: Message):
         msg = f"**Members Born on {year}** ({len(result)})\n➖➖➖➖➖➖➖➖"
         if result:
             for member in result:
-                msg += f"\n**{member[0]}**\n"
+                msg += f"\n**{fake.name()}**\n"
                 msg += f"({member[1]})\n"
-                msg += f"{member[2]}\n"
-                msg += f"{member[3]}\n" if (member[3] != "" and member[3] is not None) else ""
-                msg += f"{member[4]}\n" if (member[4] != "" and member[4] is not None) else ""
-                msg += f"{member[5]}\n" if (member[2] != "" and member[5] is not None) else ""
+                msg += f"{fake.name()}\n"
+                msg += f"{fake.email()}\n" if (member[3] != "" and member[3] is not None) else ""
+                msg += f"{fake.phone_number()}\n" if (member[4] != "" and member[4] is not None) else ""
+                msg += f"{fake.phone_number()}\n" if (member[2] != "" and member[5] is not None) else ""
             await message.reply_text(msg, reply_markup=keyboards.back_to_main_keyboard)
         else:
             msg = f"No members born on {year}"

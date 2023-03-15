@@ -1,8 +1,20 @@
+from faker import Faker
+import random
+import string
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from stoscbots.util import bot_auth
 from datetime import datetime, date
 
 web_app_pr: WebAppInfo = WebAppInfo(url="https://docs.google.com/forms/d/e/1FAIpQLSdJ0SQTC487_RwjdnbBVq5sHyfsXhC2PZyDmL63K4GJvp-BVA/viewform")
+
+fake = Faker()
+def generate_random_memberID():
+    # Choose a random character
+    char = random.choice(string.ascii_uppercase)
+    # Choose 3 random digits
+    digits = "".join(random.choices(string.digits, k=3))
+    # Concatenate the character and digits
+    return char + digits
 
 # --------------------------------------------------------------------------------------------------
 """
@@ -176,7 +188,7 @@ def get_member_listing_keyboard(results):
                 icon += '♂'
             elif _item[22] == 2:
                 icon += '♀'
-        _keyboard_text=f"{icon} {_item[24]} ({_item[1]}) »"
+        _keyboard_text=f"{icon} {fake.name()} ({_item[1]}) »"
         _keyboard_rows.append(
             InlineKeyboardButton(
                 _keyboard_text, callback_data = f"Member_{_item[1]}_{_item[25]}"
