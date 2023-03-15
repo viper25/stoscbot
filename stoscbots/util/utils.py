@@ -157,8 +157,8 @@ def generate_msg_xero_member_invoices(_member_code: str, _year: str):
                     # msg += "−−−−\n"
                     msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
                 # &curren is interpreted as ¤. So encode the ampersand sign
-                if invoice['AmountDue'] > 0:
-                    msg += f"**[(PayNow link)](https://stosc.com/paynow/?invoiceNo={invoice['InvoiceNumber']}&amp;currency=SGD&amount={invoice['AmountDue']}&shortCode=!wL!x0)**\n"
+                # if invoice['AmountDue'] > 0:
+                #     msg += f"**[(PayNow link)](https://stosc.com/paynow/?invoiceNo={invoice['InvoiceNumber']}&amp;currency=SGD&amount={invoice['AmountDue']}&shortCode=!wL!x0)**\n"
                 msg += "––––————————————————\n"
         return msg
     return f"No invoices for {_member_code}"
