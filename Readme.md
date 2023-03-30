@@ -84,6 +84,9 @@ We use [GitHub Actions](https://github.com/viper25/stoscbot/actions) to deploy, 
 5. Subsequently run headless as ` nohup python3 run_stoscbot.py &`
 </details>
 
+## Activity 
+![Alt](https://repobeats.axiom.co/api/embed/8f7c105c760f4c1728a380d4940249878f8775b4.svg "Repobeats analytics image")
+
 ## TODO
 
 * Make better decorators. See https://youtu.be/QH5fw9kxDQA?t=843
