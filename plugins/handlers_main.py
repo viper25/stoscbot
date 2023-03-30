@@ -40,7 +40,7 @@ async def start_handler(client: Client, message: Message):
             await message.reply('Timed out, do type /start again')
             return
         if member_code and member_code.text == '/start':
-            # Cancel the conversaion
+            # Cancel the conversation
             await client.listen.Cancel(filters.user(message.from_user.id))
             return
         await message.reply_text("`Enter your email or mobile number as present in church records.\nThis is only used for verification purposes:`")
@@ -50,14 +50,14 @@ async def start_handler(client: Client, message: Message):
             #  Check if email is valid
             if not utils.is_valid_email(email.text):
                 await message.reply_text("👎🏼 Invalid email. Please try again: /start")
-                # Cancel the conversaion
+                # Cancel the conversation
                 await client.listen.Cancel(filters.user(message.from_user.id))
                 return
         except asyncio.TimeoutError:
             await message.reply('Timed out, do type /start again')
             return
         if email and email.text == '/start':
-            # Cancel the conversaion
+            # Cancel the conversation
             await client.listen.Cancel(filters.user(message.from_user.id))
             return
         if member_code and email:
