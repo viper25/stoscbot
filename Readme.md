@@ -72,16 +72,54 @@ coverage report
 ```
 </details>
 
-## Deployment
-We use [GitHub Actions](https://github.com/viper25/stoscbot/actions) to deploy, but the basic deploy steps are lsited below
+## Deployment 
+
 <details>
-<summary>Deploy on a VM</summary>
+<summary>GitHub Actions</summary>
+We use [GitHub Actions](https://github.com/viper25/stoscbot/actions) to deploy automatically on each commit to `main` branch. The basic deploy steps are lsited below
 
 1. Update server timezone to local timezone
 2. [Do not re-use](https://docs.pyrogram.org/faq/using-multiple-clients-at-once-on-the-same-account) a session file when deploying to a new instance. On a new isntance, delete any existing `.session` file and [generate a new session file](https://docs.pyrogram.org/start/auth#bot-authorization).
 3. Keep the `.env` and `.session` files in a `..\credentials\` directory. The [deployment scripts](.github\workflows\python-app.yml) will copy these files to the correct location.
 4. Copy the [Google API keys](https://console.cloud.google.com/iam-admin/serviceaccounts/details/104130143367587513093;edit=true/keys?project=api-project-57990973458) to `~/.config/gspread/service_account.json`. On Windows, it's at `C:\Users\xxx\AppData\Roaming\gspread\`
 5. Subsequently run headless as ` nohup python3 run_stoscbot.py &`
+</details>
+
+<details>
+<summary>Docker</summary>
+
+Build
+```bash
+sudo docker build --tag stoscbot:v01 -f docker/Dockerfile . 
+```
+
+Test container
+```bash
+docker run -it --rm stoscbot:v01 
+```
+
+Use the Image registry login server (stosc.azurecr.io) to tag the image:
+```bash
+sudo docker tag stoscbot:v01 stosc.azurecr.io/stoscbot:v01
+```
+
+Push image to Azure Container Registry
+```bash
+sudo docker push stosc.azurecr.io/stoscbot:v01
+```
+
+Create a container instance:
+```bash
+  az container create \
+  --name stoscbot \
+  --resource-group STOSC \
+  --image stosc.azurecr.io/stoscbot:v01 \
+  --vnet STOSC-vnet \
+  --subnet containers \
+  --registry-username stosc \
+  --registry-password xxx \
+  --cpu 2 --memory 4
+```
 </details>
 
 ## Activity 

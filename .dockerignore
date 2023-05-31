@@ -1,0 +1,36 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environments
+#.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.gitlab-ci.yml
+.gitignore
+.git/
+.github/
+
+# Database
+*.db
+db_data/
+
+# IDE
+.idea/
+.vscode/
+
+# docker
+docker/
+
+# Tests
+.coverage
+tests/
+
+# Lots
+logs/
