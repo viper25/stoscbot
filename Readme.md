@@ -90,17 +90,12 @@ We use [GitHub Actions](https://github.com/viper25/stoscbot/actions) to deploy a
 
 Build
 ```bash
-sudo docker build --tag stoscbot:v01 -f docker/Dockerfile . 
+sudo docker build --tag stosc.azurecr.io/stoscbot:v01 -f docker/Dockerfile . 
 ```
 
 Test container
 ```bash
 docker run -it --rm stoscbot:v01 
-```
-
-Use the Image registry login server (stosc.azurecr.io) to tag the image:
-```bash
-sudo docker tag stoscbot:v01 stosc.azurecr.io/stoscbot:v01
 ```
 
 Push image to Azure Container Registry
@@ -118,7 +113,7 @@ Create a container instance:
   --subnet containers \
   --registry-username stosc \
   --registry-password xxx \
-  --cpu 2 --memory 4
+  --cpu 1 --memory 1
 ```
 </details>
 
