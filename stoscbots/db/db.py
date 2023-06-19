@@ -153,7 +153,7 @@ def add_user(telegram_id, member_code, name):
         chunk = {
             'telegram_id': telegram_id,
             'member_code': member_code,
-            'name': name,
+            'Name': name,
             'hits': 0,
         }
         result = table.put_item(Item=chunk)
