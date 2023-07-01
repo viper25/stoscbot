@@ -95,7 +95,7 @@ def get_anniversaries(duration: str = 'w'):
 
 # ----------------------------------------------------------------------------------------------------------------------
 def get_members_for_area(area_code: str):
-    sql = "select f.fam_Name from family_fam f, family_custom fc where f.fam_ID=fc.fam_ID and fc.c8=%s order by fam_Name"
+    sql = "select f.fam_Name from family_fam f, family_custom fc where f.fam_ID=fc.fam_ID and f.fam_DateDeactivated is null and fc.c8=%s order by fam_Name"
     _result_members = __db_executeQuery(sql, Databases.CRM, True, area_code)
 
     sql = "select lst_OptionName from list_lst where lst_ID = 30 and lst_OptionID=%s"
