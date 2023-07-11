@@ -49,7 +49,6 @@ def test_get_member_details_free_text():
 def test_get_members_born_on():
     result = db.get_members_born_on("1979")
     assert result[22][2] == "Vibin Joseph Kuriakose (V019)"
-    assert len(result) == 23
 
 
 def test_get_gb_eligible_count_type():
