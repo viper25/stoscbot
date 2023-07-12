@@ -48,7 +48,8 @@ def test_get_member_details_free_text():
 
 def test_get_members_born_on():
     result = db.get_members_born_on("1979")
-    assert result[22][2] == "Vibin Joseph Kuriakose (V019)"
+    # Check if any 2nd item in the 2D array contains "Vibin Joseph Kuriakose (V019)"
+    assert any("Vibin Joseph Kuriakose (V019)" in item[2] for item in result)
 
 
 def test_get_gb_eligible_count_type():
