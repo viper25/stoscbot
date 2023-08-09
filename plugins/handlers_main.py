@@ -7,9 +7,7 @@ from pyrogram.types import Message, CallbackQuery
 from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
-from datetime import datetime
 
-# Module logger
 logger = logging.getLogger('Handler.Main')
 logger.setLevel(LOGLEVEL)
 VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
@@ -120,36 +118,6 @@ async def year_handler(client: Client, message: Message):
         await message.reply_text(msg, quote=True)
 
 
-# -------------------------------------------------
-# Add user via command
-# /add 6109146073 F004 John Mathew
-@Client.on_message(filters.command(["add"]))
-@loggers.async_log_access
-async def add_user_handler(client: Client, message: Message):
-    # Only allow the bot owner to add users
-    if message.from_user.id != VIBIN_TELEGRAM_ID:
-        msg = "You are not allowed to add users"
-        await message.reply_text(msg)
-        return
-    if len(message.command) < 4:
-        msg = "Please enter proper commands\ne.g. `/add [telegram_id] [member_code] [name]`"
-        await message.reply_text(msg)
-        return
-    else:
-        telegram_id,member_code = message.command[1:3]
-        name = ' '.join(message.command[3:])
-        if utils.is_valid_member_code(member_code):
-            # Add user to DB
-            result = db.add_user(telegram_id, member_code, name)
-            if result == 500:
-                msg = f"Member already exists: `{name}({member_code})`"
-                await message.reply_text(msg)
-            elif result == 200:
-                msg = f"User `{name}({member_code})` added successfully"
-                await message.reply_text(msg)
-            else:
-                msg = f"Error adding user `{name}({member_code})`"
-                await message.reply_text(msg)
 # -------------------------------------------------
 # Command Handlers
 @Client.on_message(filters.command(["u"]))

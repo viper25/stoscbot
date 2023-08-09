@@ -36,6 +36,13 @@ table_harvest_members = resource.Table("stosc_harvest_members")
 table_stosc_xero_accounts_tracking = resource.Table("stosc_xero_accounts_tracking")
 table_stosc_xero_tokens = resource.Table("stosc_xero_tokens")
 
+# ----------------------------------------------------------------------------------------------------------------------
+# get Telegram ID from STOSC Member code
+def get_TelegramID_from_MemberCode(member_code: str):
+    # Get the code from DynamoDB from the secondary index member_code-index
+    response = table_stosc_bot_member_telegram.query(IndexName='member_code-index', KeyConditionExpression=Key('member_code').eq(member_code.upper()))
+    if len(response['Items']) > 0:
+        return response['Items']
 
 # ----------------------------------------------------------------------------------------------------------------------
 # get STOSC Member code from Telegram ID
