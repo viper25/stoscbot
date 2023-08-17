@@ -10,6 +10,7 @@ import configparser
 from stoscbots.util.loggers import LOGLEVEL
 from stoscbots.db import db
 from stoscbots.util import loggers, utils
+from stoscbots.ai.answer_q import get_answer
 
 
 logger = logging.getLogger('Handler.Main')
@@ -123,3 +124,24 @@ async def send_msg(client: Client, message: Message):
             log_msg = f"Telegram message [`{msg}`] sent to `{telegram_id}` ({_member_code})"
             logger.info(log_msg)
             await message.reply_text(log_msg)
+
+# -------------------------------------------------
+# Ask Qns to bot
+# /ask "Tell me about Fire Maintenance at STOSC?"
+@Client.on_message(filters.command(["ask"]))
+@loggers.async_log_access
+async def send_msg(client: Client, message: Message):
+    # Only allow the bot owner to add users
+    if message.from_user.id != VIBIN_TELEGRAM_ID:
+        msg = "You are not allowed to execute this command"
+        await message.reply_text(msg)
+        return
+    if len(message.command) < 2:
+        msg = "Please enter proper commands\ne.g. `/ask [your question]`"
+        await message.reply_text(msg)
+        return
+    else:
+        query = message.command[1]
+        answer = get_answer(query)
+        await message.reply_text(answer)
+
