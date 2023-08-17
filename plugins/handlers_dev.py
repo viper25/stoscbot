@@ -1,26 +1,31 @@
 """
 Admin API calls
 """
+import asyncio
+import configparser
 import logging
 import os
+
 from pyrogram import Client, filters
 from pyrogram.types import Message
-from stoscbots.util import bot_auth
-import configparser
-from stoscbots.util.loggers import LOGLEVEL
-from stoscbots.db import db
-from stoscbots.util import loggers, utils
 
+from stoscbots.ai.answer_q import get_answer
+from stoscbots.db import db
+from stoscbots.util import bot_auth
+from stoscbots.util import loggers, utils
+from stoscbots.util.loggers import LOGLEVEL
 
 logger = logging.getLogger('Handler.Main')
 logger.setLevel(LOGLEVEL)
 VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
+SIMON_TELEGRAM_ID = int(os.environ.get('SIMON_TELEGRAM_ID'))
+JOSEY_TELEGRAM_ID = int(os.environ.get('JOSEY_TELEGRAM_ID'))
 
-@Client.on_message(filters.command(["version","ver"]))
+
+@Client.on_message(filters.command(["version", "ver"]))
 @loggers.async_log_access
 @bot_auth.async_management_only
 async def version_handler(client: Client, message: Message):
-
     config = configparser.ConfigParser()
     config.read(r'.VERSION')
     msg = f"Telegram Version: **{message._client.APP_VERSION}** on **{message._client.SYSTEM_VERSION}**"
@@ -30,7 +35,7 @@ async def version_handler(client: Client, message: Message):
     msg += f"\nRelease Date: `{config.get('version', 'RELEASE_DATE')}`"
     msg += f"\nBuild SHA: `{config.get('version', 'BUILD')[:7]}`"
     msg += f"\nBranch: `{config.get('version', 'BRANCH')}`"
-    
+
     await message.reply_text(msg)
 
 
@@ -65,6 +70,7 @@ async def add_user_handler(client: Client, message: Message):
                 msg = f"Error adding user `{name}({member_code})`"
                 await message.reply_text(msg)
 
+
 # -------------------------------------------------
 # Get a users Telegram ID
 # /user V019
@@ -98,6 +104,7 @@ async def get_telegram_id_handler(client: Client, message: Message):
             await message.reply_text(msg)
             return
 
+
 # -------------------------------------------------
 # Send a Telegram message to a member
 # /send 21999999 Hello World
@@ -123,3 +130,39 @@ async def send_msg(client: Client, message: Message):
             log_msg = f"Telegram message [`{msg}`] sent to `{telegram_id}` ({_member_code})"
             logger.info(log_msg)
             await message.reply_text(log_msg)
+
+
+# -------------------------------------------------
+# Ask Qns to bot
+# /ask "Tell me about Fire Maintenance at STOSC?"
+@Client.on_message(filters.command(["ask"]))
+@loggers.async_log_access
+async def send_msg(client: Client, message: Message):
+    # # Only allow the bot owner to add users
+    if message.from_user.id not in [VIBIN_TELEGRAM_ID, SIMON_TELEGRAM_ID, JOSEY_TELEGRAM_ID]:
+        msg = "You are not allowed to execute this command"
+        await message.reply_text(msg)
+        return
+    if len(message.command) < 2:
+        msg = "Please enter proper commands\ne.g. `/ask [your question]`"
+        await message.reply_text(msg)
+        return
+    else:
+        query = ' '.join(message.command[1:])
+        message = await message.reply_text("Please wait ... ⌛")
+        answer = get_answer(query)
+        await client.edit_message_text(chat_id=message.chat.id, text=answer, message_id=message.id)
+
+        try:
+            # Wait for the next message
+            while True:
+                query = await client.listen.Message(filters.text, id=filters.user(message.chat.id), timeout=30)
+                if query.text == '/cancel':
+                    await message.reply('Cancelled')
+                    return
+                logger.info(f"In conversation query: {query.text}")
+                answer = get_answer(query.text)
+                await message.reply_text(answer)
+        except asyncio.TimeoutError:
+            await message.reply('Conversation has ended. Do type /ask <question> to ask another Q again')
+            return
