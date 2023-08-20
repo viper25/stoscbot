@@ -148,21 +148,24 @@ async def send_msg(client: Client, message: Message):
         await message.reply_text(msg)
         return
     else:
+        chat_history = []
         query = ' '.join(message.command[1:])
         message = await message.reply_text("Please wait ... ⌛")
-        answer = get_answer(query)
+        answer = get_answer(question=query, chat_history=chat_history)
         await client.edit_message_text(chat_id=message.chat.id, text=answer, message_id=message.id)
 
         try:
             # Wait for the next message
             while True:
                 query = await client.listen.Message(filters.text, id=filters.user(message.chat.id), timeout=30)
-                if query.text == '/cancel':
+                if (query.text == '/cancel') or (query.text == '/end'):
+                    chat_history = []
                     await message.reply('Cancelled')
                     return
                 logger.info(f"In conversation query: {query.text}")
-                answer = get_answer(query.text)
+                answer = get_answer(question=query.text, chat_history=chat_history)
                 await message.reply_text(answer)
         except asyncio.TimeoutError:
             await message.reply('Conversation has ended. Do type /ask <question> to ask another Q again')
+            chat_history = []
             return
