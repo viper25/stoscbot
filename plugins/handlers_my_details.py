@@ -49,7 +49,7 @@ async def show_my_contributions(client: Client, query: CallbackQuery):
     _year = str(datetime.now().year)
     _member_code = utils.getMemberCode_from_TelegramID(query.from_user.id)
     result = db.get_member_details(_member_code, 'code')
-    msg = utils.generate_msg_xero_member_payments(result[0][1], _member_code, _year)
+    msg = utils.generate_msg_xero_member_payments(f"{result[0][2]} `({result[0][1]})`", _member_code, _year)
     await utils.edit_and_send_msg(query, msg, keyboards.my_details_menu_keyboard)
 
 
