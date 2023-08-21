@@ -133,3 +133,14 @@ def xero_get_bank_transactions():
 def parse_Xero_Date(_date: str):
     logger.debug(f"Parsing Xero date: {_date}")
     return datetime.fromtimestamp(int(_date[6:-2].split('+')[0])/1000)
+#-----------------------------------------------------------------------------------
+def get_chart_of_accounts(class_type: str = None) -> list[dict]:
+    logger.info(f"Initializing Chart of Accounts")
+    # https://api.xero.com/api.xro/2.0/Accounts?where=Status="ACTIVE"&&Class="REVENUE"
+    # doesn't seem to filter at server side.
+    url = f'https://api.xero.com/api.xro/2.0/Accounts'
+    accounts = __xero_get(url)['Accounts']
+    accounts = [x for x in accounts if x['Status'] == 'ACTIVE']
+    if class_type:
+        accounts = [x for x in accounts if x['Class'] == class_type]
+    return accounts
