@@ -4,15 +4,12 @@ from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils
 from datetime import datetime
+from stoscbots.xero import xero_utils
 
-# To display accounts that can be paid to. This MUST match the names as they appear in DDB as entered by the Xero job 'member_contribution.py'   
-# Excluding 'Diocesan Development Fund' since that's an ad-hoc payment account
+LIST_ACCOUNTS = xero_utils.get_chart_of_accounts(class_type='REVENUE')
+LIST_ACCOUNTS = [x for x in LIST_ACCOUNTS if x['Code'] != '3230']   # Interest Income
+LIST_ACCOUNTS = [x for x in LIST_ACCOUNTS if x['Code'] != '3231']   # Fixed Deposit Interest
 
-LIST_ACCOUNTS = ['Thanksgiving Auction', 'Thanksgiving Donation', 'Cathedral Fellowship', 'Catholicate Fund',
-                 'Metropolitan Fund', 'Seminary Fund', 'Resisa Donation', 'Marriage Assistance Fund', 'Mission Fund',
-                 'Sunday School', 'Self Denial Fund', 'Birthday Offering', 'Baptism and Wedding Offering',
-                 'Christmas Offering', 'Donations & Gifts', 'Holy Qurbana', 'Holy Week Donation', 'Kohne Sunday',
-                 'Member Subscription', 'Offertory', 'Tithe', 'Youth Fellowship', 'Snehasparsham & Vanitha Dinam']
 # ==================================================
 '''
 Handle multiple callback queries data and return filter for each
@@ -52,7 +49,7 @@ async def show_my_contributions(client: Client, query: CallbackQuery):
     _year = str(datetime.now().year)
     _member_code = utils.getMemberCode_from_TelegramID(query.from_user.id)
     result = db.get_member_details(_member_code, 'code')
-    msg = utils.generate_msg_xero_member_payments(result[0][1], _member_code, _year)
+    msg = utils.generate_msg_xero_member_payments(f"{result[0][2]} `({result[0][1]})`", _member_code, _year)
     await utils.edit_and_send_msg(query, msg, keyboards.my_details_menu_keyboard)
 
 
@@ -77,15 +74,14 @@ async def show_list_accounts(client: Client, query: CallbackQuery):
                                          str(datetime.now().year))
     msg = "**List of Accounts**\n"
     msg += "➖➖➖➖➖➖\n"
-    msg += "You may contribute towards the following accounts:\n"
+    msg += "You may contribute towards the following accounts:\n\n"
     for account in LIST_ACCOUNTS:
         payment_account_head_added = False
         for payment in payments:
-            if payment.get('Account', '').startswith(account):
-                msg += f"• **{account} `(${payment['LineAmount']:,.2f})`**\n"
+            if payment['AccountCode'].split('_')[1] == account['Code']:
+                msg += f"• **{account['Name']} `(${payment['LineAmount']:,.0f})`**\n"
                 payment_account_head_added = True  # To avoid duplicate lines being printed
         if not payment_account_head_added:
-            msg += f"• {account}\n"
-            payment_account_head_added = False
-    msg += "\n`*` **Bold** `indicates that you have contributed towards this account head`"
+            msg += f"• {account['Name']}\n"
+    msg += "\n__**Bold** indicates that you have contributed towards this account head__"
     await utils.edit_and_send_msg(query, msg, keyboards.my_details_menu_keyboard)
