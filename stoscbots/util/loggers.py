@@ -15,32 +15,31 @@ load_dotenv()
 LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 ENV = os.environ.get("ENV").upper()
 
+# Configuration
+def get_config(key, default=None):
+    return os.environ.get(key, default)
+
+# Logger Initialization
 def logger_init():
     print(f"Initializing Logger - logger_init() - {__name__}")
+    logger = logging.getLogger()  # root logger
 
-    ## get logger
-    #logger = logging.getLogger(__name__) ## this was my mistake, to init a module logger here
-    logger = logging.getLogger() ## root logger
-        
     # File handler
-    rf_handler = RotatingFileHandler(os.environ.get("STOSC_LOGS"), maxBytes=1000000, backupCount=5, encoding='utf-8')
+    log_path = get_config("STOSC_LOGS")
+    rf_handler = RotatingFileHandler(log_path, maxBytes=1000000, backupCount=5, encoding='utf-8')
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     rf_handler.setFormatter(formatter)
     rf_handler.setLevel(LOGLEVEL)
 
     # Stream handler
     stream = logging.StreamHandler()
-    #streamformat = logging.Formatter("%(asctime)s [%(levelname)s:%(module)s] %(message)s")
     streamformat = logging.Formatter("%(asctime)s [%(levelname)s]: %(name)s: %(message)s")
     stream.setLevel(LOGLEVEL)
     stream.setFormatter(streamformat)
 
-    # Adding all handlers to the logs
-    if ENV == "PRO":
-        # No need to stream in PRO
-        logger.addHandler(rf_handler)
-    else:
-        logger.addHandler(rf_handler)
+    # Adding handlers
+    logger.addHandler(rf_handler)
+    if ENV != "PRO":
         logger.addHandler(stream)
 
 logger_init() ## init root logger
@@ -59,6 +58,12 @@ table_stosc_bot_member_telegram = resource.Table("stosc_bot_member_telegram")
 log_metrics = hashlib.md5(os.environ.get("STOSC_TELEGRAM_BOT_TOKEN").encode()).hexdigest() == "7ede2e8fe6780662b3e06de38e61c132"
 
 # Log Bot user access metrics
+def handle_error(e, telegram_id):
+    if isinstance(e, botocore.exceptions.ClientError) and e.response['Error']['Code'] == 'ValidationException':
+        logger.warning(f"{telegram_id} is not a member, skipping update of access metrics")
+    else:
+        logger.error(f"{telegram_id} update failed with error: {e}", exc_info=True)
+
 def update_access_metrics(telegram_id):
     '''
     If this is a non-member, i.e. a random user who stumbled by this bot, the insert will fail on account of there being no record to
@@ -70,16 +75,11 @@ def update_access_metrics(telegram_id):
             UpdateExpression = "SET hits = hits + :inc, last_seen = :modified_ts_val",
             ExpressionAttributeValues = {
                 ':inc': 1,
-                ":modified_ts_val": datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S") 
+                ":modified_ts_val": datetime.datetime.now().strftime("%Y/%m/%d %H:%M:%S")
             }
         )
-    except botocore.exceptions.ClientError as e:
-        if e.response['Error']['Code'] == 'ValidationException':
-            logger.warn("%s is not a member, skipping update of access metrics",telegram_id)
-        else:
-            logger.error("%s update failed with error: %s",telegram_id,e)
     except Exception as e:
-        logger.error("%s update failed with error: %s",telegram_id,e)
+        handle_error(e, telegram_id)
 
 
 # Log Bot user access metrics. This is to be decorated ONLY on async functions
