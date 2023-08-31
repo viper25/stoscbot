@@ -149,6 +149,7 @@ def generate_msg_xero_member_payments(name: str, member_code: str, year: str) ->
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+# Return a list of member payments for a year
 def get_member_payments(member_code: str, year: str) -> list:
     """
     Fetches member payments for a given member code and year.
