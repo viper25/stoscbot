@@ -210,7 +210,7 @@ async def edit_and_send_msg(query: CallbackQuery, msg: str, keyboard: InlineKeyb
         await query.message.edit_text(text=msg, reply_markup=keyboard, disable_web_page_preview=True)
     except Exception as e:
         if e.ID == 'MESSAGE_NOT_MODIFIED':
-            logger.warn(e.MESSAGE)
+            logger.warning(e.MESSAGE)
         else:
             logger.error(e.MESSAGE)
 
@@ -320,7 +320,7 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
                                     caption=msg, reply_markup=keyboard)
     except Exception as e1:
         if e1.ID == 'MEDIA_EMPTY':
-            logger.warn(f"No png image for [{result[0][1]}], trying jpg")
+            logger.warning(f"No png image for [{result[0][1]}], trying jpg")
         else:
             logger.error(f"{e1.MESSAGE}: for [{result[0][1]}]")
         try:
@@ -335,7 +335,7 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
                                     caption=msg, reply_markup=keyboard)
         except Exception as e2:
             if e2.ID == 'MEDIA_EMPTY':
-                logger.warn(f"No png or jpg image for [{result[0][1]}]")
+                logger.warning(f"No png or jpg image for [{result[0][1]}]")
                 # No Image found, send details without photo then
                 await client.send_message(chat_id=_x.from_user.id, text=msg, reply_markup=keyboard)
             else:
