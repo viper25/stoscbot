@@ -1,8 +1,11 @@
-import os 
-from stoscbots.util import utils
+import os
 from decimal import Decimal
+from unittest.mock import patch
+
+from stoscbots.util import utils
 
 VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
+
 
 def test_getMemberCode_from_TelegramID_Bad_value():
     memberCode = utils.getMemberCode_from_TelegramID("wrongID")
@@ -49,8 +52,8 @@ def test_generate_profile_msg():
     ]
     x = utils.generate_profile_msg_for_family(result)
     assert (
-        "• Family: **John Mathai (A001)**\n• DOB: **1979-12-25**\n• Spouse: **John Wife**\n• Spouse DOB: **1985-12-25**\n• Children: **Johnson**\n• Other family members: **John Mother**\n• Add: **Address 1**, **Address 2**, **547777**\n• Mobile: [99999999](tel://99999999)\n• Home: [66666666](tel://66666666)\n• Email: **john@example.com**\n• Spouse Email: **john_wife@example.com**\n• Home Parish: **Home Parish**\n• Membership Date: **2005-07-05**\n• Related Families: **A003**\n• Electoral Roll: **true**\n• Prayer Group: **Houg|Sengk|Pungg**\n"
-        == x
+            "• Family: **John Mathai (A001)**\n• DOB: **1979-12-25**\n• Spouse: **John Wife**\n• Spouse DOB: **1985-12-25**\n• Children: **Johnson**\n• Other family members: **John Mother**\n• Add: **Address 1**, **Address 2**, **547777**\n• Mobile: [99999999](tel://99999999)\n• Home: [66666666](tel://66666666)\n• Email: **john@example.com**\n• Spouse Email: **john_wife@example.com**\n• Home Parish: **Home Parish**\n• Membership Date: **2005-07-05**\n• Related Families: **A003**\n• Electoral Roll: **true**\n• Prayer Group: **Houg|Sengk|Pungg**\n"
+            == x
     )
 
 
@@ -91,53 +94,88 @@ def test_get_member_payments():
     assert expected == result
 
 
+def test_get_member_payments_1():
+    # Mocking the xero_utils.get_xero_ContactID method
+    with patch('stoscbots.xero.xero_utils.get_xero_ContactID') as mock_get_contact_id:
+        # Mocking the table_member_payments.query method
+        with patch('stoscbots.util.utils.table_member_payments.query') as mock_query:
+            # Test when contact_id is None
+            mock_get_contact_id.return_value = None
+            result = utils.get_member_payments("test_code", "2023")
+            assert result is None
+
+            # Test when contact_id is not None and there are items in response
+            mock_get_contact_id.return_value = "12345"
+            mock_query.return_value = {'Items': ['item1', 'item2']}
+            result = utils.get_member_payments("test_code", "2023")
+            assert result == ['item1', 'item2']
+
+            # Test when contact_id is not None and there are no items in response
+            mock_get_contact_id.return_value = "12345"
+            mock_query.return_value = {'Items': []}
+            result = utils.get_member_payments("test_code", "2023")
+            assert result == []
+
+
 def test_is_valid_member_code_valid():
     result = utils.is_valid_member_code("V123")
     assert result
+
 
 def test_is_valid_member_code_invalid_1():
     result = utils.is_valid_member_code("V12")
     assert result is False
 
+
 def test_is_valid_member_code_invalid_2():
     result = utils.is_valid_member_code("V1234")
     assert result is False
+
 
 def test_is_valid_member_code_invalid_3():
     result = utils.is_valid_member_code("V")
     assert result is False
 
+
 def test_is_valid_member_code_invalid_4():
     result = utils.is_valid_member_code("")
     assert result is False
+
 
 def test_is_valid_member_code_invalid_5():
     result = utils.is_valid_member_code("V12C")
     assert result is False
 
+
 def test_is_valid_email():
     result = utils.is_valid_email("sample@example.com")
     assert result
+
 
 def test_is_valid_email_invalid_1():
     result = utils.is_valid_email("abc")
     assert result is False
 
+
 def test_is_valid_email_invalid_2():
     result = utils.is_valid_email("abc@")
     assert result is False
+
 
 def test_is_valid_year():
     result = utils.is_valid_year("2004")
     assert result
 
+
 def test_is_valid_year_invalid_1():
     result = utils.is_valid_year("04")
     assert result is False
 
+
 def test_is_valid_year_invalid_2():
     result = utils.is_valid_year("20014")
     assert result is False
+
 
 def test_is_valid_year_invalid_1():
     result = utils.is_valid_year("abcd")
