@@ -55,13 +55,13 @@ def test_generate_profile_msg():
 
 
 def test_generate_msg_xero_member_payments_2020():
-    result = utils.generate_msg_xero_member_payments(name="John", _member_code="V019", _year="2020")
+    result = utils.generate_msg_xero_member_payments(name="John", member_code="V019", year="2020")
     expected = "**John**\n`For Year 2020`\n➖➖➖➖➖➖➖\n► Birthday Offering: **$30**\n► Christmas Offering: **$70**\n► Annual Thanksgiving Auction: **$1265**\n\n`As of: 30/04/2021 18:23`"
     assert expected == result
 
 
 def test_get_member_payments():
-    result = utils.get_member_payments(_member_code="V019", _year="2020")
+    result = utils.get_member_payments(member_code="V019", year="2020")
     expected = [
         {
             "ContactID": "23c1849f-01b3-46fd-80b7-846a5c03b1ef",
