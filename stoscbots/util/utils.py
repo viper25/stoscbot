@@ -113,32 +113,63 @@ def generate_profile_msg_for_family(result: list) -> str:
 
 # ----------------------------------------------------------------------------------------------------------------------
 # This method can be called from a Telegram button or command such as /x V019
-def generate_msg_xero_member_payments(name: str, _member_code: str, _year: str):
-    payments = get_member_payments(_member_code, _year)
-    if payments:
-        msg = f"**{name}**\n`For Year {_year}`\n"
-        msg += "➖➖➖➖➖➖➖\n"
-        if len(payments) == 0:
-            msg += "No payments yet"
-        latest_ts = ''
-        for item in payments:
-            msg += f"► {item['Account']}: **${str(item['LineAmount'])}**\n"
-            latest_ts = item['modfied_ts'] if (item['modfied_ts'] > latest_ts) else latest_ts
-        if latest_ts != '':
-            msg += f"\n`As of: {latest_ts[:16]}`"
+def generate_msg_xero_member_payments(name: str, member_code: str, year: str) -> str:
+    """
+    Generate a message detailing a member's payments for a given year.
+
+    :param name: Name of the member.
+    :param member_code: Unique code for the member.
+    :param year: Year for which the payments are to be fetched.
+    :return: Formatted message string.
+    """
+
+    payments = get_member_payments(member_code, year)
+
+    # If no payments are found
+    if not payments:
+        return f"No contributions for **{name}** for year **{year}**"
+
+    msg = f"**{name}**\n`For Year {year}`\n"
+    msg += "➖➖➖➖➖➖➖\n"
+
+    # If payments list is empty
+    if len(payments) == 0:
+        msg += "No payments yet"
         return msg
-    return f"No contributions for **{name}** for year **{_year}**"
+
+    # Extracting payment details and finding the latest timestamp
+    latest_ts = max(item['modfied_ts'] for item in payments)
+
+    for item in payments:
+        msg += f"► {item['Account']}: **${item['LineAmount']}**\n"
+
+    msg += f"\n`As of: {latest_ts[:16]}`"
+
+    return msg
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# Return a list of member payments for a year
-def get_member_payments(_member_code: str, _year: str) -> list:
-    xero_contactID = xero_utils.get_xero_ContactID(_member_code)
-    if xero_contactID is not None:
-        response = table_member_payments.query(
-            KeyConditionExpression=Key('ContactID').eq(xero_contactID) & Key('AccountCode').begins_with(_year))
-    else:
+def get_member_payments(member_code: str, year: str) -> list:
+    """
+    Fetches member payments for a given member code and year.
+
+    Args:
+    - member_code (str): The code of the member.
+    - year (str): The year for which payments are to be fetched.
+
+    Returns:
+    - list: A list of payment items for the member in the given year.
+    """
+
+    contact_id = xero_utils.get_xero_ContactID(member_code)
+
+    if contact_id is None:
         return None
+
+    response = table_member_payments.query(
+        KeyConditionExpression=Key('ContactID').eq(contact_id) & Key('AccountCode').begins_with(year)
+    )
+
     return response['Items']
 
 
