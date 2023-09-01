@@ -6,6 +6,8 @@ import re
 from datetime import date
 import datetime
 from datetime import timedelta
+
+from pyrogram.errors import MessageNotModified, BadRequest
 from pyrogram.types import CallbackQuery, InlineKeyboardMarkup
 from boto3.dynamodb.conditions import Key
 from stoscbots.xero import xero_utils
@@ -235,11 +237,10 @@ def generate_msg_xero_member_invoices(member_code: str, year: str):
 async def edit_and_send_msg(query: CallbackQuery, msg: str, keyboard: InlineKeyboardMarkup = None):
     try:
         await query.message.edit_text(text=msg, reply_markup=keyboard, disable_web_page_preview=True)
-    except Exception as e:
-        if e.ID == 'MESSAGE_NOT_MODIFIED':
-            logger.warning(e.MESSAGE)
-        else:
-            logger.error(e.MESSAGE)
+    except MessageNotModified as e:
+        logger.warning(str(e))
+    except BadRequest as e:
+        logger.error(str(e))
 
 
 # ----------------------------------------------------------------------------------------------------------------------
