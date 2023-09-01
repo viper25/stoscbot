@@ -471,4 +471,42 @@ async def test_send_profile_address_and_pic(mock_get_address_details):
     mock_client.send_venue.assert_called_once()
     mock_client.send_photo.assert_called_once()
 
+
 # ------------------------------------------------------------
+# Sample mock data
+mock_data = {
+    'Items': [
+        {'Name': 'Project1', 'income': 100.50, 'expense': 50.25, 'modified_ts': '2023-08-30'},
+        {'Name': 'Project2', 'income': 0, 'expense': 0, 'modified_ts': '2023-08-29'},
+        {'Name': 'Project3', 'income': 200.00, 'expense': 150.00, 'modified_ts': '2023-08-31'}
+    ]
+}
+
+def test_raw_data_true(monkeypatch):
+    monkeypatch.setattr('stoscbots.util.utils.table_stosc_xero_accounts_tracking.scan', lambda: mock_data)
+    result = utils.get_tracked_projects(raw_data=True)
+    assert result == mock_data['Items']
+
+def test_raw_data_false(monkeypatch):
+    monkeypatch.setattr('stoscbots.util.utils.table_stosc_xero_accounts_tracking.scan', lambda: mock_data)
+    result = utils.get_tracked_projects(raw_data=False)
+    expected_output = (
+        "**TRACKED PROJECTS**\n"
+        "➖➖➖➖➖➖➖➖\n"
+        "• Project1 - `$100.50` | `$50.25`\n"
+        "• Project3 - `$200.00` | `$150.00`\n"
+        "\n"
+        "`As of: 2023-08-31`"
+    )
+    assert result == expected_output
+
+def test_no_tracked_projects(monkeypatch):
+    monkeypatch.setattr('stoscbots.util.utils.table_stosc_xero_accounts_tracking.scan', lambda: {'Items': []})
+    result = utils.get_tracked_projects(raw_data=False)
+    expected_output = (
+        "**TRACKED PROJECTS**\n"
+        "➖➖➖➖➖➖➖➖\n"
+        "\n\n"
+        "`As of: 0`"
+    )
+    assert result == expected_output

@@ -1,21 +1,21 @@
-from multiprocessing.connection import Client
+import datetime
+import logging
 import os
+import pickle
+import re
+from datetime import date
+from datetime import timedelta
+from multiprocessing.connection import Client
 from typing import Optional
 
 import boto3
 import requests
-import re
-from datetime import date
-import datetime
-from datetime import timedelta
-
+from boto3.dynamodb.conditions import Key
 from pyrogram.errors import MessageNotModified, BadRequest
 from pyrogram.types import CallbackQuery, InlineKeyboardMarkup
-from boto3.dynamodb.conditions import Key
-from stoscbots.xero import xero_utils
+
 from stoscbots.util.loggers import LOGLEVEL
-import logging
-import pickle
+from stoscbots.xero import xero_utils
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Module logger
@@ -40,13 +40,16 @@ table_harvest_members = resource.Table("stosc_harvest_members")
 table_stosc_xero_accounts_tracking = resource.Table("stosc_xero_accounts_tracking")
 table_stosc_xero_tokens = resource.Table("stosc_xero_tokens")
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 # get Telegram ID from STOSC Member code
 def get_TelegramID_from_MemberCode(member_code: str):
     # Get the code from DynamoDB from the secondary index member_code-index
-    response = table_stosc_bot_member_telegram.query(IndexName='member_code-index', KeyConditionExpression=Key('member_code').eq(member_code.upper()))
+    response = table_stosc_bot_member_telegram.query(IndexName='member_code-index',
+                                                     KeyConditionExpression=Key('member_code').eq(member_code.upper()))
     if len(response['Items']) > 0:
         return response['Items']
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # get STOSC Member code from Telegram ID
@@ -71,6 +74,7 @@ def get_address_details(_zip: str):
 # Generate a Member Profile msg
 def generate_profile_msg_for_family(result: list) -> str:
     """Generate a profile message for a family based on the given result."""
+
     # Helper function to format the message
     def format_msg(label: str, value: str, index: int, link: bool = False) -> str:
         if value and value != "":
@@ -249,6 +253,8 @@ async def edit_and_send_msg(query: CallbackQuery, msg: str, keyboard: InlineKeyb
 # Return Jan 1 of current year. For Xero accounting methods
 def year_start():
     return date(date.today().year, 1, 1).strftime("%Y-%m-%d")
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -417,6 +423,7 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
 def is_valid_member_code(member_code: str) -> bool:
     return bool(re.fullmatch(r'[A-Za-z]\d{3}', member_code))
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 def is_valid_year(year: str) -> bool:
     """
@@ -434,26 +441,32 @@ def is_valid_year(year: str) -> bool:
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def get_tracked_projects(raw_data: bool = False):
-    response = table_stosc_xero_accounts_tracking.scan()
+from typing import Union, List, Dict
 
-    # Get the latest modified_ts for all the projects
-    last_updated = max(response['Items'], key=lambda x: x.get('modified_ts', '0'))['modified_ts']
+
+def get_tracked_projects(raw_data: bool = False) -> Union[str, List[Dict]]:
+    response_items = table_stosc_xero_accounts_tracking.scan()['Items']
+
+    # Initialize last_updated to a very old date
+    last_updated = '0'
+    modified_ts = '0'
+
+    # Using list comprehension to build the message
+    tracked_projects = [
+        f"• {_item['Name']} - `${_item.get('income', 0.0):,.2f}` | `${_item.get('expense', 0.0):,.2f}`"
+        for _item in response_items if _item.get('income') or _item.get('expense')
+    ]
+
+    # Update last_updated while iterating
+    for _item in response_items:
+        modified_ts = _item.get('modified_ts', '0')
+    if modified_ts > last_updated:
+        last_updated = modified_ts
 
     if raw_data:
-        return response["Items"]
+        return response_items
 
-    msg = "**TRACKED PROJECTS**\n"
-    msg += "➖➖➖➖➖➖➖➖\n"
-
-    for _item in response["Items"]:
-        income = _item.get('income', 0.0)
-        expense = _item.get('expense', 0.0)
-
-        if income or expense:
-            msg += f"• {_item['Name']} - `${income:,.2f}` | `${expense:,.2f}`\n"
-
-    msg += f"\n`As of: {last_updated}`"
+    msg = "**TRACKED PROJECTS**\n" + "➖" * 8 + "\n" + "\n".join(tracked_projects) + f"\n\n`As of: {last_updated}`"
     return msg
 
 
