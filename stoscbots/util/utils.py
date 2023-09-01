@@ -418,7 +418,7 @@ def is_valid_member_code(member_code: str) -> bool:
     return bool(re.fullmatch(r'[A-Za-z]\d{3}', member_code))
 
 # ----------------------------------------------------------------------------------------------------------------------
-def is_valid_year(year: str):
+def is_valid_year(year: str) -> bool:
     """
     Check if a given string is a valid year.
 
@@ -428,13 +428,9 @@ def is_valid_year(year: str):
     Returns:
         bool: True if the year is valid, False otherwise.
     """
-    if len(year) != 4:
+    if not isinstance(year, str):
         return False
-
-    if re.match(r"\d{4}", year) is None:
-        return False
-
-    return True
+    return len(year) == 4 and re.match(r"^\d{4}$", year) is not None
 
 
 # ----------------------------------------------------------------------------------------------------------------------

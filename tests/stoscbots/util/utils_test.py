@@ -156,24 +156,20 @@ def test_is_valid_email_invalid_2():
     assert result is False
 
 
-def test_is_valid_year():
-    result = utils.is_valid_year("2004")
-    assert result
-
-
-def test_is_valid_year_invalid_1():
-    result = utils.is_valid_year("04")
-    assert result is False
-
-
-def test_is_valid_year_invalid_2():
-    result = utils.is_valid_year("20014")
-    assert result is False
-
-
-def test_is_valid_year_invalid_1():
-    result = utils.is_valid_year("abcd")
-    assert result is False
+@pytest.mark.parametrize("year, expected", [
+    ("2023", True),
+    ("0000", True),
+    ("abcd", False),
+    ("12345", False),
+    ("123", False),
+    ("", False),
+    (" 2023", False),
+    ("2023 ", False),
+    ("20 23", False),
+    (2023, False)  # Testing an integer input
+])
+def test_is_valid_year(year, expected):
+    assert utils.is_valid_year(year) == expected
 
 
 # ------------------------------------------------------------
