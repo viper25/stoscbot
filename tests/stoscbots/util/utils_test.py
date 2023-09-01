@@ -1,6 +1,6 @@
 import os
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import patch, AsyncMock
 
 import pytest
 
@@ -435,5 +435,52 @@ def test_generate_msg_member_auction_purchases_with_bids():
             "Total: **$1,000**"
         )
         assert result == expected_msg
+
+
+# ------------------------------------------------------------
+
+@pytest.mark.asyncio
+@patch('stoscbots.util.utils.get_address_details')
+async def test_send_profile_address_and_pic(mock_get_address_details):
+    # Mock client and callback query
+    mock_client = AsyncMock()
+    mock_query = AsyncMock()
+    mock_query.from_user.id = 12345  # Mock user ID
+
+    # Test scenario: Zip code present and no searched_person
+    mock_get_address_details.return_value = (12.34, 56.78)  # Mock latitude and longitude
+    # Mock result list
+    result = [
+        [
+            123,  # ID
+            'A001',  # Code
+            'Alice Anderson',  # Full Name
+            'alice@example.com',  # Email 1
+            'Alice Anderson',  # Name 1
+            'alice1@example.com',  # Email 2
+            'Bob Anderson',  # Name 2
+            'bob@example.com',  # Email 3
+            'Charlie Anderson',  # Child Name
+            None,  # Email 4
+            '650 Yio Chu kang Road',  # Address 1
+            '',  # Address 2
+            '787075',  # Zip Code
+            '12345678',  # Phone 1
+            '87654321',  # Phone 2
+            '',  # Church
+            '',  # Baptism Date
+            'B002',  # Child Code
+            'true',  # Some Boolean Value
+            'Mock|City|Area',  # Area
+            '1990-01-01',  # Birthdate 1
+            '1992-02-02',  # Birthdate 2
+            1,  # Some Integer Value
+            1  # Some Integer Value
+        ],
+    ]
+
+    await utils.send_profile_address_and_pic(mock_client, mock_query, "test message", result)
+    mock_client.send_venue.assert_called_once()
+    mock_client.send_photo.assert_called_once()
 
 # ------------------------------------------------------------
