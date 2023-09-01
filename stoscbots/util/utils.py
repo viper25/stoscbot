@@ -366,48 +366,51 @@ def generate_msg_member_auction_purchases(member_code: str) -> str:
 async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list,
                                        searched_person: str = None, searched_person_name: str = None,
                                        keyboard: InlineKeyboardMarkup = None):
+    ZIP_CODE_INDEX = 12
+    FAMILY_CODE_INDEX = 0
+    PERSON_NAME_INDEX = 1
+    ADDRESS_INDEX = 10
+    TITLE_INDEX = 2
+
     # Send if there's a Zip code present and if Family code is searched for
     # Don't map send for person searches
-    if (result[0][12] != "" and result[0][12] is not None and searched_person is None):
-        if get_address_details(result[0][12]):
-            lat, lon = get_address_details(result[0][12])
-            await client.send_venue(chat_id=_x.from_user.id, latitude=float(lat), longitude=float(lon),
-                                    title=result[0][2], address=result[0][10], disable_notification=True)
-    try:
-        # All images are png, so try looking that up first. Adding parameter to the URL to avoid stale cache 
+
+    # Helper function to send photo
+    async def send_photo(extension: str):
         if searched_person:
-            person_pic_caption = f"{searched_person_name} `({result[0][1]})`"
-            await client.send_photo(chat_id=_x.from_user.id,
-                                    photo=f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.png?rand={hash(datetime.datetime.today())}",
-                                    caption=person_pic_caption + "\n\n" + msg)
-        # Send family pic only for searches by member code
-        if searched_person is None:
-            await client.send_photo(chat_id=_x.from_user.id,
-                                    photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png?rand={hash(datetime.datetime.today())}",
-                                    caption=msg, reply_markup=keyboard)
-    except Exception as e1:
-        if e1.ID == 'MEDIA_EMPTY':
-            logger.warning(f"No png image for [{result[0][1]}], trying jpg")
+            person_pic_caption = f"{searched_person_name} `({result[0][PERSON_NAME_INDEX]})`"
+            # All images are png, so try looking that up first. Adding parameter to the URL to avoid stale cache
+            photo_url = f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.{extension}?rand={hash(datetime.datetime.today())}"
+            await client.send_photo(chat_id=_x.from_user.id, photo=photo_url, caption=person_pic_caption + "\n\n" + msg)
         else:
-            logger.error(f"{e1.MESSAGE}: for [{result[0][1]}]")
-        try:
-            # If no png, try looking for a jpg
-            if searched_person:
-                person_pic_caption = f"{searched_person_name} `({result[0][1]})`"
-                await client.send_photo(chat_id=_x.from_user.id,
-                                        photo=f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.jpg?rand={hash(datetime.datetime.today())}",
-                                        caption=person_pic_caption)
-            await client.send_photo(chat_id=_x.from_user.id,
-                                    photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.jpg?rand={hash(datetime.datetime.today())}",
-                                    caption=msg, reply_markup=keyboard)
-        except Exception as e2:
-            if e2.ID == 'MEDIA_EMPTY':
-                logger.warning(f"No png or jpg image for [{result[0][1]}]")
-                # No Image found, send details without photo then
+            photo_url = f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][FAMILY_CODE_INDEX]}.{extension}?rand={hash(datetime.datetime.today())}"
+            await client.send_photo(chat_id=_x.from_user.id, photo=photo_url, caption=msg, reply_markup=keyboard)
+
+    # Send venue if conditions are met
+    if result[0][ZIP_CODE_INDEX] and not searched_person:
+        address_details = get_address_details(result[0][ZIP_CODE_INDEX])
+        if address_details:
+            lat, lon = address_details
+            await client.send_venue(chat_id=_x.from_user.id, latitude=float(lat), longitude=float(lon),
+                                    title=result[0][TITLE_INDEX], address=result[0][ADDRESS_INDEX],
+                                    disable_notification=True)
+
+    try:
+        await send_photo('png')
+    except Exception as e1:
+        if hasattr(e1, 'ID') and e1.ID == 'MEDIA_EMPTY':
+            logger.warning(f"No png image for [{result[0][PERSON_NAME_INDEX]}], trying jpg")
+            try:
+                await send_photo('jpg')
+            except Exception as e2:
+                if hasattr(e2, 'ID') and e2.ID == 'MEDIA_EMPTY':
+                    logger.warning(f"No png or jpg image for [{result[0][PERSON_NAME_INDEX]}]")
+                else:
+                    logger.error(f"{getattr(e2, 'MESSAGE', str(e2))}: for [{result[0][PERSON_NAME_INDEX]}]")
                 await client.send_message(chat_id=_x.from_user.id, text=msg, reply_markup=keyboard)
-            else:
-                logger.error(f"{e2.MESSAGE}: for [{result[0][1]}]")
-                await client.send_message(chat_id=_x.from_user.id, text=msg, reply_markup=keyboard)
+        else:
+            logger.error(f"{getattr(e1, 'MESSAGE', str(e1))}: for [{result[0][PERSON_NAME_INDEX]}]")
+            await client.send_message(chat_id=_x.from_user.id, text=msg, reply_markup=keyboard)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
