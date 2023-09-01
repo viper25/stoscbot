@@ -321,26 +321,45 @@ def generate_msg_member_auction_contributions(member_code: str) -> Optional[str]
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def generate_msg_member_auction_purchases(_member_code: str):
+def generate_msg_member_auction_purchases(member_code: str) -> str:
+    """
+    Generate a message for a member's auction purchases.
+
+    Args:
+    - member_code (str): The code of the member.
+
+    Returns:
+    - str: A formatted message.
+    """
     try:
-        response = table_stosc_harvest_winners.query(KeyConditionExpression=Key("member_code").eq(_member_code))
+        response = table_stosc_harvest_winners.query(KeyConditionExpression=Key("member_code").eq(member_code))
+        items = response.get('Items', [])
+
+        # Check if there are any items in the response
+        if not items or not items[0].get('items'):
+            return "~ No bids or purchases yet ~\n"
+
+        # Construct the message
+        auction_items = items[0]['items']
+        msg = [
+            "**Auction Wins**",
+            "➖➖➖➖➖➖➖",
+            f"Items Won: {len(auction_items)}",
+            "———————"
+        ]
+
+        for item in auction_items:
+            item_msg = f"[`{item['itemCode']:03}`] **{item['itemName']}**: ${item['winning_bid']:,} ({item['bids']} bids)"
+            msg.append(item_msg)
+
+        msg.append("———————")
+        msg.append(f"Total: **${items[0]['total_bid']:,}**")
+
+        return "\n".join(msg)
+
     except Exception as e:
         logger.error(e)
         return "No Data"
-    if len(response['Items']) > 0:
-        if len(response['Items'][0]['items']) != 0:
-            msg = f"**Auction Wins**\n"
-            msg += "➖➖➖➖➖➖➖\n"
-            if len(response['Items'][0]['items']) > 0:
-                msg += f"Items Won: {len(response['Items'][0]['items'])}\n"
-                msg += "———————\n"
-                for _item in response['Items'][0]['items']:
-                    msg += f"[`{_item['itemCode']:03}`] **{_item['itemName']}**: ${_item['winning_bid']:,} ({_item['bids']} bids)\n"
-            msg += "———————\n"
-            msg += f"Total: **${response['Items'][0]['total_bid']:,}**\n"
-    else:
-        msg = "~ No bids or purchases yet ~\n"
-    return msg
 
 
 # ----------------------------------------------------------------------------------------------------------------------
