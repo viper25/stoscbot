@@ -2,6 +2,8 @@ import os
 from decimal import Decimal
 from unittest.mock import patch
 
+import pytest
+
 from stoscbots.util import utils
 
 VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
@@ -180,3 +182,29 @@ def test_is_valid_year_invalid_2():
 def test_is_valid_year_invalid_1():
     result = utils.is_valid_year("abcd")
     assert result is False
+
+
+# Mocking the get_member_payments function
+def mock_get_member_payments(member_code, year):
+    if member_code == "12345" and year == "2023":
+        return [
+            {"Account": "Account1", "LineAmount": "100.00", "modfied_ts": "2023-08-31 12:00:00"},
+            {"Account": "Account2", "LineAmount": "200.00", "modfied_ts": "2023-08-31 14:00:00"}
+        ]
+    return []
+
+
+@pytest.mark.parametrize(
+    "name, member_code, year, expected_output",
+    [
+        ("John Doe", "12345", "2023",
+         "**John Doe**\n`For Year 2023`\n➖➖➖➖➖➖➖\n► Account1: **$100.00**\n► Account2: **$200.00**\n\n`As of: 2023-08-31 14:00`"),
+        ("Jane Doe", "67890", "2023", "No contributions for **Jane Doe** for year **2023**")
+    ]
+)
+def test_generate_msg_xero_member_payments(name, member_code, year, expected_output, monkeypatch):
+    # Patching the get_member_payments function with our mock
+    monkeypatch.setattr("stoscbots.util.utils.get_member_payments", mock_get_member_payments)
+
+    result = utils.generate_msg_xero_member_payments(name, member_code, year)
+    assert result == expected_output
