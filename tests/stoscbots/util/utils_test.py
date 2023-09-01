@@ -308,3 +308,83 @@ def test_generate_msg_xero_member_invoices_invoice_number_patterns():
     expected_output = "--**John Doe (123)**--\n\n**[HF-21-001] - ****$100.00**: DUE 🟠\n  `Item 1-$50.00`\n  `Item 2-$50.00`\n––––————————————————\n"
     with patch("stoscbots.util.utils.xero_utils.get_Invoices", return_value=invoices):
         assert utils.generate_msg_xero_member_invoices(member_code, year) == expected_output
+
+# ------------------------------------------------------------
+# Mocking the table_stosc_harvest_contributors.query method
+class MockTable:
+    @staticmethod
+    def query_with_items(KeyConditionExpression):
+        # This is a mock response. Adjust as needed.
+        return {
+            'Items': [{
+                'items': [
+                    {'itemCode': '001', 'itemName': 'ItemA', 'winner': 'John', 'winning_bid': 100, 'bids': 5},
+                    {'itemCode': '002', 'itemName': 'ItemB', 'winner': 'Doe', 'winning_bid': 200, 'bids': 10}
+                ],
+                'total_fetched': 300
+            }]
+        }
+
+    @staticmethod
+    def query_without_items(KeyConditionExpression):
+        return {'Items': []}
+
+    @staticmethod
+    def query_raises_exception(KeyConditionExpression):
+        raise Exception("Database error")
+
+@pytest.fixture
+def mock_table_with_items(monkeypatch):
+    monkeypatch.setattr('stoscbots.util.utils.table_stosc_harvest_contributors.query', MockTable.query_with_items)
+
+@pytest.fixture
+def mock_table_without_items(monkeypatch):
+    monkeypatch.setattr('stoscbots.util.utils.table_stosc_harvest_contributors.query', MockTable.query_without_items)
+
+@pytest.fixture
+def mock_table_raises_exception(monkeypatch):
+    monkeypatch.setattr('stoscbots.util.utils.table_stosc_harvest_contributors.query', MockTable.query_raises_exception)
+
+@pytest.fixture
+def mock_table(monkeypatch):
+    def mock_query(*args, **kwargs):
+        return MockTable.query_with_items(*args, **kwargs)
+
+    monkeypatch.setattr('stoscbots.util.utils.table_stosc_harvest_contributors.query', mock_query)
+
+def test_generate_msg_member_auction_contributions(mock_table):
+    member_code = "test_code"
+    expected_output = (
+        "**Auction Donations**\n"
+        "➖➖➖➖➖➖➖\n"
+        "Items Donated: 2\n"
+        "———————\n"
+        "[`001`] **ItemA**: John ($100) (5 bids)\n"
+        "[`002`] **ItemB**: Doe ($200) (10 bids)\n"
+        "———————\n"
+        "Total sold for: **$300**"
+    )
+    result = utils.generate_msg_member_auction_contributions(member_code)
+    assert result == expected_output
+
+def test_generate_msg_with_items(mock_table_with_items):
+    member_code = "test_code"
+    expected_output = (
+        "**Auction Donations**\n"
+        "➖➖➖➖➖➖➖\n"
+        "Items Donated: 2\n"
+        "———————\n"
+        "[`001`] **ItemA**: John ($100) (5 bids)\n"
+        "[`002`] **ItemB**: Doe ($200) (10 bids)\n"
+        "———————\n"
+        "Total sold for: **$300**"
+    )
+    result = utils.generate_msg_member_auction_contributions(member_code)
+    assert result == expected_output
+
+def test_generate_msg_raises_exception(mock_table_raises_exception, caplog):
+    member_code = "test_code"
+    result = utils.generate_msg_member_auction_contributions(member_code)
+    assert "Database error" in caplog.text
+    assert result is None
+# ------------------------------------------------------------
