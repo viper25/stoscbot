@@ -246,8 +246,8 @@ async def edit_and_send_msg(query: CallbackQuery, msg: str, keyboard: InlineKeyb
 # ----------------------------------------------------------------------------------------------------------------------
 # Return Jan 1 of current year. For Xero accounting methods
 def year_start():
-    return date(date.today().year, 1, 1).strftime("%Y-%m-%d") \
-        # ----------------------------------------------------------------------------------------------------------------------
+    return date(date.today().year, 1, 1).strftime("%Y-%m-%d")
+# ----------------------------------------------------------------------------------------------------------------------
 
 
 # Return the start of the week (from Sunday 7.45 AM onwards)
