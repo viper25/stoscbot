@@ -119,34 +119,26 @@ def test_get_member_payments_1():
             assert result == []
 
 
-def test_is_valid_member_code_valid():
-    result = utils.is_valid_member_code("V123")
-    assert result
+def test_valid_member_codesis_valid_member_code():
+    valid_codes = ["V019", "A023", "Z999", "W001"]
+    for code in valid_codes:
+        assert utils.is_valid_member_code(code) == True, f"Expected {code} to be valid"
 
 
-def test_is_valid_member_code_invalid_1():
-    result = utils.is_valid_member_code("V12")
-    assert result is False
-
-
-def test_is_valid_member_code_invalid_2():
-    result = utils.is_valid_member_code("V1234")
-    assert result is False
-
-
-def test_is_valid_member_code_invalid_3():
-    result = utils.is_valid_member_code("V")
-    assert result is False
-
-
-def test_is_valid_member_code_invalid_4():
-    result = utils.is_valid_member_code("")
-    assert result is False
-
-
-def test_is_valid_member_code_invalid_5():
-    result = utils.is_valid_member_code("V12C")
-    assert result is False
+def test_is_valid_member_code_invalid():
+    invalid_codes = [
+        "",  # Empty string
+        "V01",  # Too short
+        "V0199",  # Too long
+        "019V",  # Starts with a number
+        "VV19",  # Starts with two letters
+        "V01A",  # Ends with a letter
+        "V0A9",  # Contains a letter in the middle
+        "V0 9",  # Contains a space
+        "V0@9"  # Contains a special character
+    ]
+    for code in invalid_codes:
+        assert utils.is_valid_member_code(code) == False, f"Expected {code} to be invalid"
 
 
 def test_is_valid_email():
