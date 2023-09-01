@@ -73,19 +73,34 @@ async def start_handler(client: Client, message: Message):
 @loggers.async_log_access
 @bot_auth.async_member_only
 async def help_handler(client: Client, message: Message):
-    msg = "**Help**\n➖➖"
-    msg += "\nWatch this [YouTube video](https://www.youtube.com/watch?v=lp8pLmTkRR4) to see bot the STOSC Bot works 🤖\n"
-    msg += "\nYou can control me by sending these commands or clicking the buttons at /start:\n"
-    msg += "\n• /help - Show this help message"
-    msg += "\n• /start - Start the bot"
-    msg += "\n• /u [member code or name] - Search for a member by member code or Name e.g. `/u A001`"
-    msg += "\n• /year [year in YYYY] - Show members born on this year e.g. `/year 1976`\n"
-    msg += "\n** 🚫 The below commands are for the management committee only: 🚫**\n"
-    msg += "\n• /x [member code] - Show member contributions"
-    msg += "\n• /xs [member code] - Show member subscriptions"
-    msg += "\n• /version or /ver - Show bot version"
-    msg += "\n• /bday  - Show this week's bday list without age"
-    msg += "\n• /anniv  - Show this week's anniversary list without years"
+    """
+    Handle the help command by sending a list of available commands to the user.
+
+    :param client: The client instance.
+    :param message: The incoming message object.
+    """
+
+    # Construct the help message using a list
+    help_msg = [
+        "**Help**",
+        "➖➖",
+        "Watch this [YouTube video](https://www.youtube.com/watch?v=lp8pLmTkRR4) to see how the STOSC Bot works \U0001F916",
+        "\nYou can control me by sending these commands or clicking the buttons at /start:",
+        "\n• /help - Show this help message",
+        "• /start - Start the bot",
+        "• /u [member code or name] - Search for a member by member code or Name e.g. `/u A001`",
+        "• /year [year in YYYY] - Show members born on this year e.g. `/year 1976`",
+        "\n** \U0001F6AB The below commands are for the management committee only: \U0001F6AB**",
+        "\n• /x [member code] - Show member contributions",
+        "• /xs [member code] - Show member subscriptions",
+        "• /version or /ver - Show bot version",
+        "• /bday  - Show this week's bday list without age",
+        "• /anniv  - Show this week's anniversary list without years"
+    ]
+
+    # Join the list to form the final message
+    msg = '\n'.join(help_msg)
+
     await message.reply_text(msg, reply_markup=keyboards.back_to_main_keyboard, disable_web_page_preview=True)
 
 
