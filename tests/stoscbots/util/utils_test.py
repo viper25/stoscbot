@@ -283,6 +283,7 @@ def test_generate_msg_xero_member_invoices_invoice_type_and_status():
     with patch("stoscbots.util.utils.xero_utils.get_Invoices", return_value=invoices):
         assert utils.generate_msg_xero_member_invoices(member_code, year) == expected_output
 
+
 def test_generate_msg_xero_member_invoices_invoice_number_patterns():
     member_code = "123"
     year = "2021"
