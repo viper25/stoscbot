@@ -208,3 +208,102 @@ def test_generate_msg_xero_member_payments(name, member_code, year, expected_out
 
     result = utils.generate_msg_xero_member_payments(name, member_code, year)
     assert result == expected_output
+
+
+def test_generate_msg_xero_member_invoices():
+    member_code = "123"
+    year = "2021"
+    expected_output = "--**John Doe (123)**--\n\n**[INV-21-001] - ****$100.00**: DUE 🟠\n  `Item 1-$50.00`\n  `Item 2-$50.00`\n––––————————————————\n"
+    # Mock the get_Invoices function to return test data
+    invoices = {
+        "Invoices": [
+            {
+                "Contact": {"Name": "John Doe"},
+                "Type": "ACCREC",
+                "InvoiceNumber": "INV-21-001",
+                "AmountDue": 100.0,
+                "Total": 100.0,
+                "Status": "AUTHORISED",
+                "DateString": "2021-01-01",
+                "LineItems": [
+                    {"Description": "Item 1", "LineAmount": 50.0},
+                    {"Description": "Item 2", "LineAmount": 50.0},
+                ],
+            }
+        ]
+    }
+    with patch("stoscbots.util.utils.xero_utils.get_Invoices", return_value=invoices):
+        assert utils.generate_msg_xero_member_invoices(member_code, year) == expected_output
+
+
+def test_generate_msg_xero_member_invoices_invalid_year():
+    member_code = "123"
+    year = "abcd"
+    expected_output = "Not a valid year: **abcd**"
+    with patch("stoscbots.util.utils.xero_utils.get_Invoices", return_value={}):
+        assert utils.generate_msg_xero_member_invoices(member_code, year) == expected_output
+
+
+def test_generate_msg_xero_member_invoices_no_invoices():
+    member_code = "123"
+    year = "2021"
+    expected_output = "No invoices for 123"
+    with patch("stoscbots.util.utils.xero_utils.get_Invoices", return_value={}):
+        assert utils.generate_msg_xero_member_invoices(member_code, year) == expected_output
+
+
+def test_generate_msg_xero_member_invoices_invoice_type_and_status():
+    member_code = "123"
+    year = "2021"
+    # Test for ACCREC type and PAID status
+    invoices = {
+        "Invoices": [
+            {
+                "Contact": {"Name": "John Doe"},
+                "Type": "ACCREC",
+                "InvoiceNumber": "INV-21-001",
+                "AmountDue": 0.0,
+                "Total": 100.0,
+                "Status": "PAID",
+                "DateString": "2021-01-01",
+                "LineItems": [
+                    {"Description": "Item 1", "LineAmount": 50.0},
+                    {"Description": "Item 2", "LineAmount": 50.0},
+                ],
+            }
+        ]
+    }
+    expected_output = "--**John Doe (123)**--\n\n**[INV-21-001] - ****$100.00**: PAID 🟢\n  `Item 1-$50.00`\n  `Item 2-$50.00`\n––––————————————————\n"
+    with patch("stoscbots.util.utils.xero_utils.get_Invoices", return_value=invoices):
+        assert utils.generate_msg_xero_member_invoices(member_code, year) == expected_output
+
+    # Test for ACCREC type and DRAFT status
+    invoices["Invoices"][0]["Status"] = "DRAFT"
+    expected_output = "--**John Doe (123)**--\n\n**[INV-21-001] - ****$100.00**: DRAFT 🟠\n  `Item 1-$50.00`\n  `Item 2-$50.00`\n––––————————————————\n"
+    with patch("stoscbots.util.utils.xero_utils.get_Invoices", return_value=invoices):
+        assert utils.generate_msg_xero_member_invoices(member_code, year) == expected_output
+
+def test_generate_msg_xero_member_invoices_invoice_number_patterns():
+    member_code = "123"
+    year = "2021"
+    # Test for HF-<year> pattern
+    invoices = {
+        "Invoices": [
+            {
+                "Contact": {"Name": "John Doe"},
+                "Type": "ACCREC",
+                "InvoiceNumber": "HF-21-001",
+                "AmountDue": 100.0,
+                "Total": 100.0,
+                "Status": "AUTHORISED",
+                "DateString": "2021-01-01",
+                "LineItems": [
+                    {"Description": "Item 1", "LineAmount": 50.0},
+                    {"Description": "Item 2", "LineAmount": 50.0},
+                ],
+            }
+        ]
+    }
+    expected_output = "--**John Doe (123)**--\n\n**[HF-21-001] - ****$100.00**: DUE 🟠\n  `Item 1-$50.00`\n  `Item 2-$50.00`\n––––————————————————\n"
+    with patch("stoscbots.util.utils.xero_utils.get_Invoices", return_value=invoices):
+        assert utils.generate_msg_xero_member_invoices(member_code, year) == expected_output

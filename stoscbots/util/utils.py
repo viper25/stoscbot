@@ -177,62 +177,57 @@ def get_member_payments(member_code: str, year: str) -> list:
 # ----------------------------------------------------------------------------------------------------------------------
 # This method can be called from a Telegram button or command such as /xs V019
 # Returns a list of all Invoices paid and due for a member
-def generate_msg_xero_member_invoices(_member_code: str, _year: str):
-    if not is_valid_year(_year):
-        return f"Not a valid year: **{_year}**"
-    _invoices = xero_utils.get_Invoices(_member_code)
-    if _invoices and len(_invoices['Invoices']) > 0:
-        msg = f"--**{_invoices['Invoices'][0]['Contact']['Name']} ({_member_code})**--\n\n"
-        icon = '🟠'
-        for invoice in _invoices["Invoices"]:
-            if (
-                    # Show only Invoices and not Bills
-                    invoice["Type"] == "ACCREC"
-                    # Don't show VOID invoices
-                    and not invoice["InvoiceNumber"].endswith("-VOID")
-                    and (
-                    # Show only invoices that are INV-<year> or HF-<year> or created in <year> or status = AUTHORIZED
-                    invoice["InvoiceNumber"].startswith(f"INV-{_year[2:]}")
-                    or invoice["InvoiceNumber"].startswith(f"HF-{_year[2:]}")  # Show all pending invoices upto <year>
-                    or (invoice["Status"] == "AUTHORISED" and int(invoice["DateString"].split("-")[0]) <= int(_year))
-            )
-            ):
-                if invoice["InvoiceNumber"].endswith("-VOID"):
-                    # Skip invoices that were VOIDED. These have a -VOID at the end
-                    continue
-                logger.debug(f"Invoice No: {invoice['InvoiceNumber']} for amount: {invoice['AmountDue']}")
-                if invoice["Status"] == "PAID":
-                    icon = "🟢"
-                elif invoice["Status"] == "AUTHORISED":
-                    invoice["Status"] = "DUE"
-                    icon = "🟠"
-                elif invoice["Status"] == "VOIDED":
-                    # Don't show VOIDED invoices
-                    continue
-                elif invoice["Status"] == "DRAFT":
-                    icon = "🟠"
-                elif invoice["Status"] == "DELETED":
-                    # Don't show DELETED invoices
-                    continue
-                msg += (
-                    f"**[{invoice['InvoiceNumber']}] - **"
-                    if (invoice["InvoiceNumber"] != "" and invoice["InvoiceNumber"] is not None)
-                    else "[`-NA-`] - "
-                )
-                # For a neater display
-                if invoice["AmountDue"] == 0 or invoice["AmountDue"] == invoice["Total"]:
-                    msg += f"**${invoice['Total']:,.2f}**: {invoice['Status']} {icon}\n"
-                else:
-                    msg += f"**${invoice['Total']:,.2f}**: ${invoice['AmountDue']:,.2f} {invoice['Status']} {icon}\n"
-                for line in invoice["LineItems"]:
-                    # msg += "−−−−\n"
-                    msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
-                # &curren is interpreted as ¤. So encode the ampersand sign
-                # if invoice['AmountDue'] > 0:
-                #     msg += f"**[(PayNow link)](https://stosc.com/paynow/?invoiceNo={invoice['InvoiceNumber']}&amp;currency=SGD&amount={invoice['AmountDue']}&shortCode=!wL!x0)**\n"
-                msg += "––––————————————————\n"
-        return msg
-    return f"No invoices for {_member_code}"
+def generate_msg_xero_member_invoices(member_code: str, year: str):
+    # Validate the year
+    if not is_valid_year(year):
+        return f"Not a valid year: **{year}**"
+
+    # Fetch invoices
+    invoices = xero_utils.get_Invoices(member_code)
+
+    if not invoices or len(invoices['Invoices']) == 0:
+        return f"No invoices for {member_code}"
+
+    # Status to icon mapping
+    status_to_icon = {
+        "PAID": "🟢",
+        "AUTHORISED": "🟠",
+        "DRAFT": "🟠"
+    }
+
+    msg = f"--**{invoices['Invoices'][0]['Contact']['Name']} ({member_code})**--\n\n"
+
+    for invoice in invoices["Invoices"]:
+        # Filter invoices based on conditions
+        if (
+                invoice["Type"] == "ACCREC"
+                and not invoice["InvoiceNumber"].endswith("-VOID")
+                and (
+                invoice["InvoiceNumber"].startswith(f"INV-{year[2:]}")
+                or invoice["InvoiceNumber"].startswith(f"HF-{year[2:]}")
+                or (invoice["Status"] == "AUTHORISED" and int(invoice["DateString"].split("-")[0]) <= int(year))
+        )
+        ):
+            # Get icon based on status
+            icon = status_to_icon.get(invoice["Status"], "")
+            if invoice["Status"] == "AUTHORISED":
+                invoice["Status"] = "DUE"
+
+            # Build the message
+            invoice_number_display = invoice['InvoiceNumber'] if invoice['InvoiceNumber'] else "-NA-"
+            msg += f"**[{invoice_number_display}] - **"
+
+            if invoice["AmountDue"] == 0 or invoice["AmountDue"] == invoice["Total"]:
+                msg += f"**${invoice['Total']:,.2f}**: {invoice['Status']} {icon}\n"
+            else:
+                msg += f"**${invoice['Total']:,.2f}**: ${invoice['AmountDue']:,.2f} {invoice['Status']} {icon}\n"
+
+            for line in invoice["LineItems"]:
+                msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
+
+            msg += "––––————————————————\n"
+
+    return msg
 
 
 # ----------------------------------------------------------------------------------------------------------------------
