@@ -120,6 +120,7 @@ def test_get_member_payments_1():
             assert result == []
 
 
+# ------------------------------------------------------------
 def test_valid_member_codesis_valid_member_code():
     valid_codes = ["V019", "A023", "Z999", "W001"]
     for code in valid_codes:
@@ -142,21 +143,27 @@ def test_is_valid_member_code_invalid():
         assert utils.is_valid_member_code(code) == False, f"Expected {code} to be invalid"
 
 
-def test_is_valid_email():
-    result = utils.is_valid_email("sample@example.com")
-    assert result
+# ------------------------------------------------------------
+def test_valid_email():
+    assert utils.is_valid_email("test@example.com") == True
+    assert utils.is_valid_email("test.email+filter@example.co.uk") == True
 
 
-def test_is_valid_email_invalid_1():
-    result = utils.is_valid_email("abc")
-    assert result is False
+def test_invalid_email():
+    assert utils.is_valid_email("") == False
+    assert utils.is_valid_email("test") == False
+    assert utils.is_valid_email("test@.com") == False
+    assert utils.is_valid_email("test@com") == False
+    assert utils.is_valid_email("@example.com") == False
+    assert utils.is_valid_email("test@example") == False
+    assert utils.is_valid_email("test@example..com") == False
 
 
-def test_is_valid_email_invalid_2():
-    result = utils.is_valid_email("abc@")
-    assert result is False
+def test_none_email():
+    assert utils.is_valid_email(None) == False
 
 
+# ------------------------------------------------------------
 @pytest.mark.parametrize("year, expected", [
     ("2023", True),
     ("0000", True),
@@ -548,3 +555,5 @@ def test_get_outstandings():
         result = utils.get_outstandings()
 
     assert result == expected_output
+
+# ------------------------------------------------------------
