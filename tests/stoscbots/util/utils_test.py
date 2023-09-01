@@ -1,7 +1,8 @@
 import os
 from decimal import Decimal
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch, AsyncMock, mock_open
 
+import pandas as pd
 import pytest
 
 from stoscbots.util import utils
@@ -482,10 +483,12 @@ mock_data = {
     ]
 }
 
+
 def test_raw_data_true(monkeypatch):
     monkeypatch.setattr('stoscbots.util.utils.table_stosc_xero_accounts_tracking.scan', lambda: mock_data)
     result = utils.get_tracked_projects(raw_data=True)
     assert result == mock_data['Items']
+
 
 def test_raw_data_false(monkeypatch):
     monkeypatch.setattr('stoscbots.util.utils.table_stosc_xero_accounts_tracking.scan', lambda: mock_data)
@@ -500,6 +503,7 @@ def test_raw_data_false(monkeypatch):
     )
     assert result == expected_output
 
+
 def test_no_tracked_projects(monkeypatch):
     monkeypatch.setattr('stoscbots.util.utils.table_stosc_xero_accounts_tracking.scan', lambda: {'Items': []})
     result = utils.get_tracked_projects(raw_data=False)
@@ -509,4 +513,38 @@ def test_no_tracked_projects(monkeypatch):
         "\n\n"
         "`As of: 0`"
     )
+    assert result == expected_output
+
+
+# ------------------------------------------------------------
+def test_get_outstandings():
+    # Expected markdown
+    expected_output = (
+        ('**OUTSTANDING DUES**\n'
+         '➖➖➖➖➖➖➖➖\n'
+         '\n'
+         '`|    | Inv   | Total     | Due      |\n'
+         '|---:|:------|:----------|:---------|\n'
+         '|  0 | S-18  | $ 2,140   | $ 1,720  |\n'
+         '|  1 | S-19  | $ 9,902   | $ 6,580  |\n'
+         '|  2 | S-20  | $ 41,962  | $ 6,940  |\n'
+         '|  3 | S-21  | $ 126,262 | $ 6,460  |\n'
+         '|  4 | H-22  | $ 115,705 | $ 785    |\n'
+         '|  5 | S-22  | $ 126,468 | $ 11,010 |\n'
+         '|  6 | S-23  | $ 130,296 | $ 33,450 |`')
+    )
+
+    # Mock data to be returned by pickle.load
+    mock_df = pd.DataFrame({
+        'Inv': ['S-18', 'S-19', 'S-20', 'S-21', 'H-22', 'S-22', 'S-23'],
+        'Total': ['$ 2,140', '$ 9,902', '$ 41,962', '$ 126,262', '$ 115,705', '$ 126,468', '$ 130,296'],
+        'Due': ['$ 1,720', '$ 6,580', '$ 6,940', '$ 6,460', '$ 785', '$ 11,010', '$ 33,450']
+    })
+
+    # Mocking environment variable and file I/O
+    with patch('os.environ.get', side_effect=['TEST', 'DUMMY_PATH']), \
+            patch('builtins.open', mock_open()), \
+            patch('pickle.load', return_value=mock_df):
+        result = utils.get_outstandings()
+
     assert result == expected_output

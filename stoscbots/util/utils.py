@@ -472,15 +472,24 @@ def get_tracked_projects(raw_data: bool = False) -> Union[str, List[Dict]]:
 
 # ----------------------------------------------------------------------------------------------------------------------
 def get_outstandings():
-    msg = "**OUTSTANDING DUES**\n"
-    msg += "➖➖➖➖➖➖➖➖\n\n"
+    """
+    Fetch outstanding dues from a pickle file and return as a markdown formatted string.
+    """
+
+    # Determine the path based on the environment
     if os.environ.get("ENV") == 'TEST':
-        filehandler = open("C:\\DATA\\git\\viper25\\xero_helpers\\outstandings.pickle", 'rb')
+        pickle_path = "C:\\DATA\\git\\viper25\\xero_helpers\\outstandings.pickle"
     else:
-        filehandler = open(os.environ.get("OUTSTANDING_PICKLE_PATH"), 'rb')
-    df = pickle.load(filehandler)
-    msg = df.to_markdown()
-    msg = f"`{msg}`"
+        pickle_path = os.environ.get("OUTSTANDING_PICKLE_PATH")
+
+    # Use context manager for file handling
+    with open(pickle_path, 'rb') as filehandler:
+        df = pickle.load(filehandler)
+
+    # Convert dataframe to markdown and format the message
+    markdown_data = df.to_markdown()
+    msg = f"**OUTSTANDING DUES**\n➖➖➖➖➖➖➖➖\n\n`{markdown_data}`"
+
     return msg
 
 
