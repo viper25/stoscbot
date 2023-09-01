@@ -184,6 +184,7 @@ def test_is_valid_year_invalid_1():
     assert result is False
 
 
+# ------------------------------------------------------------
 # Mocking the get_member_payments function
 def mock_get_member_payments(member_code, year):
     if member_code == "12345" and year == "2023":
@@ -210,6 +211,7 @@ def test_generate_msg_xero_member_payments(name, member_code, year, expected_out
     assert result == expected_output
 
 
+# ------------------------------------------------------------
 def test_generate_msg_xero_member_invoices():
     member_code = "123"
     year = "2021"
@@ -309,6 +311,7 @@ def test_generate_msg_xero_member_invoices_invoice_number_patterns():
     with patch("stoscbots.util.utils.xero_utils.get_Invoices", return_value=invoices):
         assert utils.generate_msg_xero_member_invoices(member_code, year) == expected_output
 
+
 # ------------------------------------------------------------
 # Mocking the table_stosc_harvest_contributors.query method
 class MockTable:
@@ -333,17 +336,21 @@ class MockTable:
     def query_raises_exception(KeyConditionExpression):
         raise Exception("Database error")
 
+
 @pytest.fixture
 def mock_table_with_items(monkeypatch):
     monkeypatch.setattr('stoscbots.util.utils.table_stosc_harvest_contributors.query', MockTable.query_with_items)
+
 
 @pytest.fixture
 def mock_table_without_items(monkeypatch):
     monkeypatch.setattr('stoscbots.util.utils.table_stosc_harvest_contributors.query', MockTable.query_without_items)
 
+
 @pytest.fixture
 def mock_table_raises_exception(monkeypatch):
     monkeypatch.setattr('stoscbots.util.utils.table_stosc_harvest_contributors.query', MockTable.query_raises_exception)
+
 
 @pytest.fixture
 def mock_table(monkeypatch):
@@ -351,6 +358,7 @@ def mock_table(monkeypatch):
         return MockTable.query_with_items(*args, **kwargs)
 
     monkeypatch.setattr('stoscbots.util.utils.table_stosc_harvest_contributors.query', mock_query)
+
 
 def test_generate_msg_member_auction_contributions(mock_table):
     member_code = "test_code"
@@ -367,6 +375,7 @@ def test_generate_msg_member_auction_contributions(mock_table):
     result = utils.generate_msg_member_auction_contributions(member_code)
     assert result == expected_output
 
+
 def test_generate_msg_with_items(mock_table_with_items):
     member_code = "test_code"
     expected_output = (
@@ -382,9 +391,49 @@ def test_generate_msg_with_items(mock_table_with_items):
     result = utils.generate_msg_member_auction_contributions(member_code)
     assert result == expected_output
 
+
 def test_generate_msg_raises_exception(mock_table_raises_exception, caplog):
     member_code = "test_code"
     result = utils.generate_msg_member_auction_contributions(member_code)
     assert "Database error" in caplog.text
     assert result is None
+
+
+# ------------------------------------------------------------
+
+def test_generate_msg_member_auction_purchases_no_data():
+    with patch('stoscbots.util.utils.table_stosc_harvest_winners.query', side_effect=Exception()):
+        result = utils.generate_msg_member_auction_purchases("test_code")
+        assert result == "No Data"
+
+
+def test_generate_msg_member_auction_purchases_no_bids():
+    mock_response = {'Items': []}
+    with patch('stoscbots.util.utils.table_stosc_harvest_winners.query', return_value=mock_response):
+        result = utils.generate_msg_member_auction_purchases("test_code")
+        assert result == "~ No bids or purchases yet ~\n"
+
+
+def test_generate_msg_member_auction_purchases_with_bids():
+    mock_response = {
+        'Items': [{
+            'items': [
+                {'itemCode': '001', 'itemName': 'TestItem', 'winning_bid': 1000, 'bids': 5},
+            ],
+            'total_bid': 1000
+        }]
+    }
+    with patch('stoscbots.util.utils.table_stosc_harvest_winners.query', return_value=mock_response):
+        result = utils.generate_msg_member_auction_purchases("test_code")
+        expected_msg = (
+            "**Auction Wins**\n"
+            "➖➖➖➖➖➖➖\n"
+            "Items Won: 1\n"
+            "———————\n"
+            "[`001`] **TestItem**: $1,000 (5 bids)\n"
+            "———————\n"
+            "Total: **$1,000**"
+        )
+        assert result == expected_msg
+
 # ------------------------------------------------------------
