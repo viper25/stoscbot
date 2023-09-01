@@ -556,4 +556,39 @@ def test_get_outstandings():
 
     assert result == expected_output
 
+
+# ------------------------------------------------------------
+# Mock the DynamoDB call
+@patch('stoscbots.util.utils.table_stosc_bot_member_telegram.query')
+def test_get_telegram_id_found(mock_query):
+    # Mock the response from DynamoDB
+    mock_query.return_value = {
+        'Items': [{'member_code': 'TEST123', 'telegram_id': '123456789'}]
+    }
+
+    result = utils.get_TelegramID_from_MemberCode('TEST123')
+    assert result['telegram_id'] == '123456789'
+
+
+@patch('stoscbots.util.utils.table_stosc_bot_member_telegram.query')
+def test_get_telegram_id_not_found(mock_query):
+    # Mock an empty response from DynamoDB
+    mock_query.return_value = {'Items': []}
+
+    result = utils.get_TelegramID_from_MemberCode('NONEXISTENT')
+    assert result is None
+
+
+@patch('stoscbots.util.utils.table_stosc_bot_member_telegram.query')
+def test_get_telegram_id_error(mock_query, capfd):
+    mock_query.side_effect = Exception("DynamoDB error")
+
+    result = utils.get_TelegramID_from_MemberCode('TEST123')
+
+    # Capture the printed output
+    captured = capfd.readouterr()
+
+    assert "Error fetching Telegram ID for member code TEST123: DynamoDB error" in captured.out
+    assert result is None
+
 # ------------------------------------------------------------

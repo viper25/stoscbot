@@ -42,13 +42,28 @@ table_stosc_xero_tokens = resource.Table("stosc_xero_tokens")
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-# get Telegram ID from STOSC Member code
 def get_TelegramID_from_MemberCode(member_code: str):
-    # Get the code from DynamoDB from the secondary index member_code-index
-    response = table_stosc_bot_member_telegram.query(IndexName='member_code-index',
-                                                     KeyConditionExpression=Key('member_code').eq(member_code.upper()))
-    if len(response['Items']) > 0:
-        return response['Items']
+    """
+    Fetches the Telegram ID associated with a given member code from DynamoDB.
+
+    Args:
+    - member_code (str): The member code to search for.
+
+    Returns:
+    - dict: The item from DynamoDB if found, otherwise None.
+    """
+    try:
+        response = table_stosc_bot_member_telegram.query(
+            IndexName='member_code-index',
+            KeyConditionExpression=Key('member_code').eq(member_code.upper())
+        )
+
+        # Return the first item if found, otherwise return None.
+        return response['Items'][0] if response['Items'] else None
+
+    except Exception as e:
+        print(f"Error fetching Telegram ID for member code {member_code}: {e}")
+        return None
 
 
 # ----------------------------------------------------------------------------------------------------------------------
