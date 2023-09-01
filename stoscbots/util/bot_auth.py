@@ -27,7 +27,7 @@ async def send_access_denied_msg(client, msg_or_query):
         await msg_or_query.reply_text(text=ACCESS_DENIED_MEMBERS_TEXT,quote=True,disable_web_page_preview=True)
         arg_msg=f"'{msg_or_query.text}'"
         # arg_msg=f" with args={message.command[0]}"
-        logger.warn(f"Unauthorized Access by [{msg_or_query.from_user.id}:{msg_or_query.from_user.username}:{msg_or_query.from_user.first_name}]. Command sent: {arg_msg}")
+        logger.warning(f"Unauthorized Access by [{msg_or_query.from_user.id}:{msg_or_query.from_user.username}:{msg_or_query.from_user.first_name}]. Command sent: {arg_msg}")
     elif hasattr(msg_or_query, 'data') and msg_or_query.data:
         #Button callback
         await msg_or_query.answer()
@@ -35,7 +35,7 @@ async def send_access_denied_msg(client, msg_or_query):
         await client.send_message(chat_id=msg_or_query.from_user.id, text=ACCESS_DENIED_MEMBERS_TEXT, disable_web_page_preview=True)
         # The Callback text for the Button
         arg_msg=f"'{msg_or_query.data}'"
-        logger.warn(f"Unauthorized Access by [{msg_or_query.from_user.id}:{msg_or_query.from_user.username}:{msg_or_query.from_user.first_name}]. Button clicked: {arg_msg}")
+        logger.warning(f"Unauthorized Access by [{msg_or_query.from_user.id}:{msg_or_query.from_user.username}:{msg_or_query.from_user.first_name}]. Button clicked: {arg_msg}")
 
     # Notify Vibin on Unauthorized access
     unauth_msg=f"Unauthorized Access by **[{msg_or_query.from_user.id}:{msg_or_query.from_user.username}:{msg_or_query.from_user.first_name}]**\nCmd/Button: `{arg_msg}`"

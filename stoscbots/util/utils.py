@@ -1,17 +1,21 @@
-from multiprocessing.connection import Client
+import datetime
+import logging
 import os
-import boto3
-import requests
+import pickle
 import re
 from datetime import date
-import datetime
 from datetime import timedelta
-from pyrogram.types import CallbackQuery, InlineKeyboardMarkup
+from multiprocessing.connection import Client
+from typing import Optional
+
+import boto3
+import requests
 from boto3.dynamodb.conditions import Key
-from stoscbots.xero import xero_utils
+from pyrogram.errors import MessageNotModified, BadRequest
+from pyrogram.types import CallbackQuery, InlineKeyboardMarkup
+
 from stoscbots.util.loggers import LOGLEVEL
-import logging
-import pickle
+from stoscbots.xero import xero_utils
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Module logger
@@ -36,13 +40,31 @@ table_harvest_members = resource.Table("stosc_harvest_members")
 table_stosc_xero_accounts_tracking = resource.Table("stosc_xero_accounts_tracking")
 table_stosc_xero_tokens = resource.Table("stosc_xero_tokens")
 
+
 # ----------------------------------------------------------------------------------------------------------------------
-# get Telegram ID from STOSC Member code
 def get_TelegramID_from_MemberCode(member_code: str):
-    # Get the code from DynamoDB from the secondary index member_code-index
-    response = table_stosc_bot_member_telegram.query(IndexName='member_code-index', KeyConditionExpression=Key('member_code').eq(member_code.upper()))
-    if len(response['Items']) > 0:
-        return response['Items']
+    """
+    Fetches the Telegram ID associated with a given member code from DynamoDB.
+
+    Args:
+    - member_code (str): The member code to search for.
+
+    Returns:
+    - dict: The item from DynamoDB if found, otherwise None.
+    """
+    try:
+        response = table_stosc_bot_member_telegram.query(
+            IndexName='member_code-index',
+            KeyConditionExpression=Key('member_code').eq(member_code.upper())
+        )
+
+        # Return the first item if found, otherwise return None.
+        return response['Items'][0] if response['Items'] else None
+
+    except Exception as e:
+        print(f"Error fetching Telegram ID for member code {member_code}: {e}")
+        return None
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # get STOSC Member code from Telegram ID
@@ -65,125 +87,170 @@ def get_address_details(_zip: str):
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate a Member Profile msg
-def generate_profile_msg_for_family(result: list):
-    msg = f"• Family: **{result[0][2]} ({result[0][1]})**\n"
-    msg += f"• DOB: **{result[0][20]}**\n" if (result[0][20] != "" and result[0][20] is not None) else ""
-    msg += f"• Spouse: **{result[0][6]}**\n" if (result[0][6] != "" and result[0][6] is not None) else ""
-    msg += f"• Spouse DOB: **{result[0][21]}**\n" if (result[0][21] != "" and result[0][21] is not None) else ""
-    msg += f"• Children: **{result[0][8]}**\n" if (result[0][8] != "" and result[0][8] is not None) else ""
-    msg += f"• Other family members: **{result[0][9]}**\n" if (result[0][9] != "" and result[0][9] is not None) else ""
-    if (result[0][10] != "" and result[0][10] is not None):
-        msg += f"• Add: **{result[0][10]}**"
-    if (result[0][11] != "" and result[0][11] is not None):
-        msg += f"**, {result[0][11]}**"
-    if (result[0][12] != "" and result[0][12] is not None):
-        msg += f", **{result[0][12]}**"
-    msg += "\n"
-    msg += f"• Mobile: [{result[0][13]}](tel://{result[0][13]})\n" if (
-                result[0][13] != "" and result[0][13] is not None) else ""
-    msg += f"• Home: [{result[0][14]}](tel://{result[0][14]})\n" if (
-                result[0][14] != "" and result[0][14] is not None) else ""
-    msg += f"• Email: **{result[0][3]}**\n" if (result[0][3] != "" and result[0][3] is not None) else ""
-    msg += f"• Spouse Email: **{result[0][7]}**\n" if (
-                result[0][7] != "" and result[0][7] is not None and result[0][7] != result[0][5]) else ""
-    msg += f"• Home Parish: **{result[0][15]}**\n" if (result[0][15] != "" and result[0][15] is not None) else ""
-    msg += f"• Membership Date: **{result[0][16]}**\n" if (result[0][16] != "" and result[0][16] is not None) else ""
-    msg += f"• Related Families: **{result[0][17]}**\n" if (result[0][17] != "" and result[0][17] is not None) else ""
-    msg += f"• Electoral Roll: **{result[0][18]}**\n" if (result[0][18] != "" and result[0][18] is not None) else ""
-    msg += f"• Prayer Group: **{result[0][19]}**\n" if (result[0][19] != "" and result[0][19] is not None) else ""
+def generate_profile_msg_for_family(result: list) -> str:
+    """Generate a profile message for a family based on the given result."""
+
+    # Helper function to format the message
+    def format_msg(label: str, value: str, index: int, link: bool = False) -> str:
+        if value and value != "":
+            if link:
+                return f"• {label}: [{value}](tel://{value})\n"
+            else:
+                return f"• {label}: **{value}**\n"
+        return ""
+
+    # Extract the first row from the result
+    row = result[0]
+
+    # Start with the family name and head
+    msg = f"• Family: **{row[2]} ({row[1]})**\n"
+
+    # Add other details
+    msg += format_msg("DOB", row[20], 20)
+    msg += format_msg("Spouse", row[6], 6)
+    msg += format_msg("Spouse DOB", row[21], 21)
+    msg += format_msg("Children", row[8], 8)
+    msg += format_msg("Other family members", row[9], 9)
+
+    # Handle address concatenation
+    address_parts = [row[i] for i in range(10, 13) if row[i] and row[i] != ""]
+    if address_parts:
+        msg += "• Add: " + ", ".join([f"**{part}**" for part in address_parts]) + "\n"
+
+    # Add contact details
+    msg += format_msg("Mobile", row[13], 13, link=True)
+    msg += format_msg("Home", row[14], 14, link=True)
+    msg += format_msg("Email", row[3], 3)
+    if row[7] and row[7] != "" and row[7] != row[5]:
+        msg += format_msg("Spouse Email", row[7], 7)
+
+    # Add other details
+    msg += format_msg("Home Parish", row[15], 15)
+    msg += format_msg("Membership Date", row[16], 16)
+    msg += format_msg("Related Families", row[17], 17)
+    msg += format_msg("Electoral Roll", row[18], 18)
+    msg += format_msg("Prayer Group", row[19], 19)
+
     return msg
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # This method can be called from a Telegram button or command such as /x V019
-def generate_msg_xero_member_payments(name: str, _member_code: str, _year: str):
-    payments = get_member_payments(_member_code, _year)
-    if payments:
-        msg = f"**{name}**\n`For Year {_year}`\n"
-        msg += "➖➖➖➖➖➖➖\n"
-        if len(payments) == 0:
-            msg += "No payments yet"
-        latest_ts = ''
-        for item in payments:
-            msg += f"► {item['Account']}: **${str(item['LineAmount'])}**\n"
-            latest_ts = item['modfied_ts'] if (item['modfied_ts'] > latest_ts) else latest_ts
-        if latest_ts != '':
-            msg += f"\n`As of: {latest_ts[:16]}`"
+def generate_msg_xero_member_payments(name: str, member_code: str, year: str) -> str:
+    """
+    Generate a message detailing a member's payments for a given year.
+
+    :param name: Name of the member.
+    :param member_code: Unique code for the member.
+    :param year: Year for which the payments are to be fetched.
+    :return: Formatted message string.
+    """
+
+    payments = get_member_payments(member_code, year)
+
+    # If no payments are found
+    if not payments:
+        return f"No contributions for **{name}** for year **{year}**"
+
+    msg = f"**{name}**\n`For Year {year}`\n"
+    msg += "➖➖➖➖➖➖➖\n"
+
+    # If payments list is empty
+    if len(payments) == 0:
+        msg += "No payments yet"
         return msg
-    return f"No contributions for **{name}** for year **{_year}**"
+
+    # Extracting payment details and finding the latest timestamp
+    latest_ts = max(item['modfied_ts'] for item in payments)
+
+    for item in payments:
+        msg += f"► {item['Account']}: **${item['LineAmount']}**\n"
+
+    msg += f"\n`As of: {latest_ts[:16]}`"
+
+    return msg
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Return a list of member payments for a year
-def get_member_payments(_member_code: str, _year: str) -> list:
-    xero_contactID = xero_utils.get_xero_ContactID(_member_code)
-    if xero_contactID is not None:
-        response = table_member_payments.query(
-            KeyConditionExpression=Key('ContactID').eq(xero_contactID) & Key('AccountCode').begins_with(_year))
-    else:
+def get_member_payments(member_code: str, year: str) -> list:
+    """
+    Fetches member payments for a given member code and year.
+
+    Args:
+    - member_code (str): The code of the member.
+    - year (str): The year for which payments are to be fetched.
+
+    Returns:
+    - list: A list of payment items for the member in the given year.
+    """
+
+    contact_id = xero_utils.get_xero_ContactID(member_code)
+
+    if contact_id is None:
         return None
+
+    response = table_member_payments.query(
+        KeyConditionExpression=Key('ContactID').eq(contact_id) & Key('AccountCode').begins_with(year)
+    )
+
     return response['Items']
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # This method can be called from a Telegram button or command such as /xs V019
 # Returns a list of all Invoices paid and due for a member
-def generate_msg_xero_member_invoices(_member_code: str, _year: str):
-    if not is_valid_year(_year):
-        return f"Not a valid year: **{_year}**"
-    _invoices = xero_utils.get_Invoices(_member_code)
-    if _invoices and len(_invoices['Invoices']) > 0:
-        msg = f"--**{_invoices['Invoices'][0]['Contact']['Name']} ({_member_code})**--\n\n"
-        icon = '🟠'
-        for invoice in _invoices["Invoices"]:
-            if (
-                    # Show only Invoices and not Bills
-                    invoice["Type"] == "ACCREC"
-                    # Don't show VOID invoices
-                    and not invoice["InvoiceNumber"].endswith("-VOID")
-                    and (
-                    # Show only invoices that are INV-<year> or HF-<year> or created in <year> or status = AUTHORIZED
-                    invoice["InvoiceNumber"].startswith(f"INV-{_year[2:]}")
-                    or invoice["InvoiceNumber"].startswith(f"HF-{_year[2:]}")  # Show all pending invoices upto <year>
-                    or (invoice["Status"] == "AUTHORISED" and int(invoice["DateString"].split("-")[0]) <= int(_year))
-            )
-            ):
-                if invoice["InvoiceNumber"].endswith("-VOID"):
-                    # Skip invoices that were VOIDED. These have a -VOID at the end
-                    continue
-                logger.debug(f"Invoice No: {invoice['InvoiceNumber']} for amount: {invoice['AmountDue']}")
-                if invoice["Status"] == "PAID":
-                    icon = "🟢"
-                elif invoice["Status"] == "AUTHORISED":
-                    invoice["Status"] = "DUE"
-                    icon = "🟠"
-                elif invoice["Status"] == "VOIDED":
-                    # Don't show VOIDED invoices
-                    continue
-                elif invoice["Status"] == "DRAFT":
-                    icon = "🟠"
-                elif invoice["Status"] == "DELETED":
-                    # Don't show DELETED invoices
-                    continue
-                msg += (
-                    f"**[{invoice['InvoiceNumber']}] - **"
-                    if (invoice["InvoiceNumber"] != "" and invoice["InvoiceNumber"] is not None)
-                    else "[`-NA-`] - "
-                )
-                # For a neater display
-                if invoice["AmountDue"] == 0 or invoice["AmountDue"] == invoice["Total"]:
-                    msg += f"**${invoice['Total']:,.2f}**: {invoice['Status']} {icon}\n"
-                else:
-                    msg += f"**${invoice['Total']:,.2f}**: ${invoice['AmountDue']:,.2f} {invoice['Status']} {icon}\n"
-                for line in invoice["LineItems"]:
-                    # msg += "−−−−\n"
-                    msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
-                # &curren is interpreted as ¤. So encode the ampersand sign
-                # if invoice['AmountDue'] > 0:
-                #     msg += f"**[(PayNow link)](https://stosc.com/paynow/?invoiceNo={invoice['InvoiceNumber']}&amp;currency=SGD&amount={invoice['AmountDue']}&shortCode=!wL!x0)**\n"
-                msg += "––––————————————————\n"
-        return msg
-    return f"No invoices for {_member_code}"
+def generate_msg_xero_member_invoices(member_code: str, year: str):
+    # Validate the year
+    if not is_valid_year(year):
+        return f"Not a valid year: **{year}**"
+
+    # Fetch invoices
+    invoices = xero_utils.get_Invoices(member_code)
+
+    if not invoices or len(invoices['Invoices']) == 0:
+        return f"No invoices for {member_code}"
+
+    # Status to icon mapping
+    status_to_icon = {
+        "PAID": "🟢",
+        "AUTHORISED": "🟠",
+        "DRAFT": "🟠"
+    }
+
+    msg = f"--**{invoices['Invoices'][0]['Contact']['Name']} ({member_code})**--\n\n"
+
+    for invoice in invoices["Invoices"]:
+        # Filter invoices based on conditions
+        if (
+                invoice["Type"] == "ACCREC"
+                and not invoice["InvoiceNumber"].endswith("-VOID")
+                and (
+                invoice["InvoiceNumber"].startswith(f"INV-{year[2:]}")
+                or invoice["InvoiceNumber"].startswith(f"HF-{year[2:]}")
+                or (invoice["Status"] == "AUTHORISED" and int(invoice["DateString"].split("-")[0]) <= int(year))
+        )
+        ):
+            # Get icon based on status
+            icon = status_to_icon.get(invoice["Status"], "")
+            if invoice["Status"] == "AUTHORISED":
+                invoice["Status"] = "DUE"
+
+            # Build the message
+            invoice_number_display = invoice['InvoiceNumber'] if invoice['InvoiceNumber'] else "-NA-"
+            msg += f"**[{invoice_number_display}] - **"
+
+            if invoice["AmountDue"] == 0 or invoice["AmountDue"] == invoice["Total"]:
+                msg += f"**${invoice['Total']:,.2f}**: {invoice['Status']} {icon}\n"
+            else:
+                msg += f"**${invoice['Total']:,.2f}**: ${invoice['AmountDue']:,.2f} {invoice['Status']} {icon}\n"
+
+            for line in invoice["LineItems"]:
+                msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
+
+            msg += "––––————————————————\n"
+
+    return msg
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -191,18 +258,19 @@ def generate_msg_xero_member_invoices(_member_code: str, _year: str):
 async def edit_and_send_msg(query: CallbackQuery, msg: str, keyboard: InlineKeyboardMarkup = None):
     try:
         await query.message.edit_text(text=msg, reply_markup=keyboard, disable_web_page_preview=True)
-    except Exception as e:
-        if e.ID == 'MESSAGE_NOT_MODIFIED':
-            logger.warn(e.MESSAGE)
-        else:
-            logger.error(e.MESSAGE)
+    except MessageNotModified as e:
+        logger.warning(str(e))
+    except BadRequest as e:
+        logger.error(str(e))
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Return Jan 1 of current year. For Xero accounting methods
 def year_start():
-    return date(date.today().year, 1, 1).strftime("%Y-%m-%d") \
-        # ----------------------------------------------------------------------------------------------------------------------
+    return date(date.today().year, 1, 1).strftime("%Y-%m-%d")
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 
 
 # Return the start of the week (from Sunday 7.45 AM onwards)
@@ -235,110 +303,144 @@ def get_member_auction_link(_member_code: str) -> str:
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def generate_msg_member_auction_contributions(_member_code: str):
+def generate_msg_member_auction_contributions(member_code: str) -> Optional[str]:
+    """
+    Generate a message detailing a member's auction contributions.
+
+    Args:
+    - member_code (str): The code identifying the member.
+
+    Returns:
+    - str: A formatted message detailing the member's auction contributions or None if there's an error or no contributions.
+    """
     try:
-        response = table_stosc_harvest_contributors.query(KeyConditionExpression=Key("member_code").eq(_member_code))
+        response = table_stosc_harvest_contributors.query(KeyConditionExpression=Key("member_code").eq(member_code))
+        items = response.get('Items', [])
+
+        if not items:
+            return None
+
+        items_donated = items[0].get('items', [])
+        lines = [
+            "**Auction Donations**",
+            "➖➖➖➖➖➖➖",
+            f"Items Donated: {len(items_donated)}",
+            "———————"
+        ]
+        lines.extend(
+            f"[`{_item['itemCode']:03}`] **{_item['itemName']}**: {_item['winner']} (${_item['winning_bid']:,}) ({_item['bids']} bids)"
+            for _item in items_donated
+        )
+        lines.append("———————")
+        lines.append(f"Total sold for: **${items[0]['total_fetched']:,}**")
+
+        return "\n".join(lines)
+
     except Exception as e:
         logger.error(e)
-        return None
-    if len(response['Items']) > 0:
-        msg = f"**Auction Donations**\n"
-        msg += "➖➖➖➖➖➖➖\n"
-        msg += f"Items Donated: {len(response['Items'][0]['items'])}\n"
-        msg += "———————\n"
-        for _item in response['Items'][0]['items']:
-            msg += f"[`{_item['itemCode']:03}`] **{_item['itemName']}**: {_item['winner']} (${_item['winning_bid']:,}) ({_item['bids']} bids)\n"
-        msg += "———————\n"
-        msg += f"Total sold for: **${response['Items'][0]['total_fetched']:,}**\n"
-        return msg
-    else:
         return None
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def generate_msg_member_auction_purchases(_member_code: str):
+def generate_msg_member_auction_purchases(member_code: str) -> str:
+    """
+    Generate a message for a member's auction purchases.
+
+    Args:
+    - member_code (str): The code of the member.
+
+    Returns:
+    - str: A formatted message.
+    """
     try:
-        response = table_stosc_harvest_winners.query(KeyConditionExpression=Key("member_code").eq(_member_code))
+        response = table_stosc_harvest_winners.query(KeyConditionExpression=Key("member_code").eq(member_code))
+        items = response.get('Items', [])
+
+        # Check if there are any items in the response
+        if not items or not items[0].get('items'):
+            return "~ No bids or purchases yet ~\n"
+
+        # Construct the message
+        auction_items = items[0]['items']
+        msg = [
+            "**Auction Wins**",
+            "➖➖➖➖➖➖➖",
+            f"Items Won: {len(auction_items)}",
+            "———————"
+        ]
+
+        for item in auction_items:
+            item_msg = f"[`{item['itemCode']:03}`] **{item['itemName']}**: ${item['winning_bid']:,} ({item['bids']} bids)"
+            msg.append(item_msg)
+
+        msg.append("———————")
+        msg.append(f"Total: **${items[0]['total_bid']:,}**")
+
+        return "\n".join(msg)
+
     except Exception as e:
         logger.error(e)
         return "No Data"
-    if len(response['Items']) > 0:
-        if len(response['Items'][0]['items']) != 0:
-            msg = f"**Auction Wins**\n"
-            msg += "➖➖➖➖➖➖➖\n"
-            if len(response['Items'][0]['items']) > 0:
-                msg += f"Items Won: {len(response['Items'][0]['items'])}\n"
-                msg += "———————\n"
-                for _item in response['Items'][0]['items']:
-                    msg += f"[`{_item['itemCode']:03}`] **{_item['itemName']}**: ${_item['winning_bid']:,} ({_item['bids']} bids)\n"
-            msg += "———————\n"
-            msg += f"Total: **${response['Items'][0]['total_bid']:,}**\n"
-    else:
-        msg = "~ No bids or purchases yet ~\n"
-    return msg
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list,
                                        searched_person: str = None, searched_person_name: str = None,
                                        keyboard: InlineKeyboardMarkup = None):
+    ZIP_CODE_INDEX = 12
+    FAMILY_CODE_INDEX = 0
+    PERSON_NAME_INDEX = 1
+    ADDRESS_INDEX = 10
+    TITLE_INDEX = 2
+
     # Send if there's a Zip code present and if Family code is searched for
     # Don't map send for person searches
-    if (result[0][12] != "" and result[0][12] is not None and searched_person is None):
-        if get_address_details(result[0][12]):
-            lat, lon = get_address_details(result[0][12])
-            await client.send_venue(chat_id=_x.from_user.id, latitude=float(lat), longitude=float(lon),
-                                    title=result[0][2], address=result[0][10], disable_notification=True)
-    try:
-        # All images are png, so try looking that up first. Adding parameter to the URL to avoid stale cache 
+
+    # Helper function to send photo
+    async def send_photo(extension: str):
         if searched_person:
-            person_pic_caption = f"{searched_person_name} `({result[0][1]})`"
-            await client.send_photo(chat_id=_x.from_user.id,
-                                    photo=f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.png?rand={hash(datetime.datetime.today())}",
-                                    caption=person_pic_caption + "\n\n" + msg)
-        # Send family pic only for searches by member code
-        if searched_person is None:
-            await client.send_photo(chat_id=_x.from_user.id,
-                                    photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.png?rand={hash(datetime.datetime.today())}",
-                                    caption=msg, reply_markup=keyboard)
-    except Exception as e1:
-        if e1.ID == 'MEDIA_EMPTY':
-            logger.warn(f"No png image for [{result[0][1]}], trying jpg")
+            person_pic_caption = f"{searched_person_name} `({result[0][PERSON_NAME_INDEX]})`"
+            # All images are png, so try looking that up first. Adding parameter to the URL to avoid stale cache
+            photo_url = f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.{extension}?rand={hash(datetime.datetime.today())}"
+            await client.send_photo(chat_id=_x.from_user.id, photo=photo_url, caption=person_pic_caption + "\n\n" + msg)
         else:
-            logger.error(f"{e1.MESSAGE}: for [{result[0][1]}]")
-        try:
-            # If no png, try looking for a jpg
-            if searched_person:
-                person_pic_caption = f"{searched_person_name} `({result[0][1]})`"
-                await client.send_photo(chat_id=_x.from_user.id,
-                                        photo=f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.jpg?rand={hash(datetime.datetime.today())}",
-                                        caption=person_pic_caption)
-            await client.send_photo(chat_id=_x.from_user.id,
-                                    photo=f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][0]}.jpg?rand={hash(datetime.datetime.today())}",
-                                    caption=msg, reply_markup=keyboard)
-        except Exception as e2:
-            if e2.ID == 'MEDIA_EMPTY':
-                logger.warn(f"No png or jpg image for [{result[0][1]}]")
-                # No Image found, send details without photo then
+            photo_url = f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][FAMILY_CODE_INDEX]}.{extension}?rand={hash(datetime.datetime.today())}"
+            await client.send_photo(chat_id=_x.from_user.id, photo=photo_url, caption=msg, reply_markup=keyboard)
+
+    # Send venue if conditions are met
+    if result[0][ZIP_CODE_INDEX] and not searched_person:
+        address_details = get_address_details(result[0][ZIP_CODE_INDEX])
+        if address_details:
+            lat, lon = address_details
+            await client.send_venue(chat_id=_x.from_user.id, latitude=float(lat), longitude=float(lon),
+                                    title=result[0][TITLE_INDEX], address=result[0][ADDRESS_INDEX],
+                                    disable_notification=True)
+
+    try:
+        await send_photo('png')
+    except Exception as e1:
+        if hasattr(e1, 'ID') and e1.ID == 'MEDIA_EMPTY':
+            logger.warning(f"No png image for [{result[0][PERSON_NAME_INDEX]}], trying jpg")
+            try:
+                await send_photo('jpg')
+            except Exception as e2:
+                if hasattr(e2, 'ID') and e2.ID == 'MEDIA_EMPTY':
+                    logger.warning(f"No png or jpg image for [{result[0][PERSON_NAME_INDEX]}]")
+                else:
+                    logger.error(f"{getattr(e2, 'MESSAGE', str(e2))}: for [{result[0][PERSON_NAME_INDEX]}]")
                 await client.send_message(chat_id=_x.from_user.id, text=msg, reply_markup=keyboard)
-            else:
-                logger.error(f"{e2.MESSAGE}: for [{result[0][1]}]")
-                await client.send_message(chat_id=_x.from_user.id, text=msg, reply_markup=keyboard)
+        else:
+            logger.error(f"{getattr(e1, 'MESSAGE', str(e1))}: for [{result[0][PERSON_NAME_INDEX]}]")
+            await client.send_message(chat_id=_x.from_user.id, text=msg, reply_markup=keyboard)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 def is_valid_member_code(member_code: str) -> bool:
-    if not member_code:
-        return False
-    if len(member_code) != 4:
-        return False
-    if not re.match(r'[A-Za-z]\d{3}', member_code):
-        return False
-    return True
+    return bool(re.fullmatch(r'[A-Za-z]\d{3}', member_code))
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def is_valid_year(year: str):
+def is_valid_year(year: str) -> bool:
     """
     Check if a given string is a valid year.
 
@@ -348,57 +450,69 @@ def is_valid_year(year: str):
     Returns:
         bool: True if the year is valid, False otherwise.
     """
-    if len(year) != 4:
+    if not isinstance(year, str):
         return False
-
-    if re.match(r"\d{4}", year) is None:
-        return False
-
-    return True
+    return len(year) == 4 and re.match(r"^\d{4}$", year) is not None
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def get_tracked_projects(raw_data: bool = False):
-    response = table_stosc_xero_accounts_tracking.scan()
+from typing import Union, List, Dict
 
-    # Get the latest modified_ts for all the projects
-    last_updated = max(response['Items'], key=lambda x: x.get('modified_ts', '0'))['modified_ts']
+
+def get_tracked_projects(raw_data: bool = False) -> Union[str, List[Dict]]:
+    response_items = table_stosc_xero_accounts_tracking.scan()['Items']
+
+    # Initialize last_updated to a very old date
+    last_updated = '0'
+    modified_ts = '0'
+
+    # Using list comprehension to build the message
+    tracked_projects = [
+        f"• {_item['Name']} - `${_item.get('income', 0.0):,.2f}` | `${_item.get('expense', 0.0):,.2f}`"
+        for _item in response_items if _item.get('income') or _item.get('expense')
+    ]
+
+    # Update last_updated while iterating
+    for _item in response_items:
+        modified_ts = _item.get('modified_ts', '0')
+    if modified_ts > last_updated:
+        last_updated = modified_ts
 
     if raw_data:
-        return response["Items"]
+        return response_items
 
-    msg = "**TRACKED PROJECTS**\n"
-    msg += "➖➖➖➖➖➖➖➖\n"
-
-    for _item in response["Items"]:
-        income = _item.get('income', 0.0)
-        expense = _item.get('expense', 0.0)
-
-        if income or expense:
-            msg += f"• {_item['Name']} - `${income:,.2f}` | `${expense:,.2f}`\n"
-
-    msg += f"\n`As of: {last_updated}`"
+    msg = "**TRACKED PROJECTS**\n" + "➖" * 8 + "\n" + "\n".join(tracked_projects) + f"\n\n`As of: {last_updated}`"
     return msg
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 def get_outstandings():
-    msg = "**OUTSTANDING DUES**\n"
-    msg += "➖➖➖➖➖➖➖➖\n\n"
+    """
+    Fetch outstanding dues from a pickle file and return as a markdown formatted string.
+    """
+
+    # Determine the path based on the environment
     if os.environ.get("ENV") == 'TEST':
-        filehandler = open("C:\\DATA\\git\\viper25\\xero_helpers\\outstandings.pickle", 'rb')
+        pickle_path = "C:\\DATA\\git\\viper25\\xero_helpers\\outstandings.pickle"
     else:
-        filehandler = open(os.environ.get("OUTSTANDING_PICKLE_PATH"), 'rb')
-    df = pickle.load(filehandler)
-    msg = df.to_markdown()
-    msg = f"`{msg}`"
+        pickle_path = os.environ.get("OUTSTANDING_PICKLE_PATH")
+
+    # Use context manager for file handling
+    with open(pickle_path, 'rb') as filehandler:
+        df = pickle.load(filehandler)
+
+    # Convert dataframe to markdown and format the message
+    markdown_data = df.to_markdown()
+    msg = f"**OUTSTANDING DUES**\n➖➖➖➖➖➖➖➖\n\n`{markdown_data}`"
+
     return msg
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-def is_valid_email(email: str):
+
+def is_valid_email(email: str) -> bool:
     if not email:
         return False
-    if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
-        return False
-    return True
+    # This regex checks for a more standard email format.
+    pattern = r"^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$"
+    return bool(re.match(pattern, email))
