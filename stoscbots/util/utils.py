@@ -415,14 +415,7 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
 
 # ----------------------------------------------------------------------------------------------------------------------
 def is_valid_member_code(member_code: str) -> bool:
-    if not member_code:
-        return False
-    if len(member_code) != 4:
-        return False
-    if not re.match(r'[A-Za-z]\d{3}', member_code):
-        return False
-    return True
-
+    return bool(re.fullmatch(r'[A-Za-z]\d{3}', member_code))
 
 # ----------------------------------------------------------------------------------------------------------------------
 def is_valid_year(year: str):
