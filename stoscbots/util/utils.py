@@ -475,8 +475,8 @@ def get_tracked_projects(raw_data: bool = False) -> Union[str, List[Dict]]:
     # Update last_updated while iterating
     for _item in response_items:
         modified_ts = _item.get('modified_ts', '0')
-    if modified_ts > last_updated:
-        last_updated = modified_ts
+        if modified_ts > last_updated:
+            last_updated = modified_ts
 
     if raw_data:
         return response_items
