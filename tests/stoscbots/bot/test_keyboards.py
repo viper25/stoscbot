@@ -1,4 +1,5 @@
 from datetime import date
+from unittest import mock
 
 import pytest
 from pyrogram.types import InlineKeyboardButton
@@ -37,7 +38,6 @@ def test_get_icon(item, expected_icon):
     assert keyboards.get_icon(item) == expected_icon
 
 
-
 @pytest.mark.parametrize(
     "results, expected",
     [
@@ -51,7 +51,7 @@ def test_get_icon(item, expected_icon):
              [InlineKeyboardButton(
                  text=f"{keyboards.get_icon((1, 'A001', 'Test User', 'test@example.com', 'Test User', 'test@example.com', 'Test Spouse', 'spouse@example.com', 'Test Child1,Test Child2', None, '123 Test Street', '#123 Test Building', '123456', '12345678', '', 'Test Church', '2000-01-01', '', 'false', 'Test Area', '1980-01-01', '1985-01-01', 1, 1, 'Test User', 1000))} Test User (A001) »",
                  callback_data="Member_A001_1000"),
-             InlineKeyboardButton(text='🔙 Return to Main menu', callback_data='Main Menu')]
+                 InlineKeyboardButton(text='🔙 Return to Main menu', callback_data='Main Menu')]
          ]),
 
         # Test case 3: List with an even number of items
@@ -103,11 +103,47 @@ def test_get_icon(item, expected_icon):
                  InlineKeyboardButton(
                      text=f"{keyboards.get_icon((3, 'A003', 'Test User3', 'test3@example.com', 'Test User3', 'test3@example.com', 'Test Spouse3', 'spouse3@example.com', 'Test Child5,Test Child6', None, '789 Test Street', '#789 Test Building', '789123', '78912345', '', 'Test Church3', '2010-01-01', '', 'false', 'Test Area', '2000-01-01', '2005-01-01', 3, 3, 'Test User3', 3000))} Test User3 (A003) »",
                      callback_data="Member_A003_3000")
-             ,
-             InlineKeyboardButton(text='🔙 Return to Main menu', callback_data='Main Menu')]
+                 ,
+                 InlineKeyboardButton(text='🔙 Return to Main menu', callback_data='Main Menu')]
          ])
     ]
 )
 def test_get_member_listing_keyboard(results, expected):
     assert keyboards.get_member_listing_keyboard(results).inline_keyboard == expected
 
+
+def test_create_button():
+    # Test 1: Create button without web_app parameter
+    button = keyboards.create_button("Test Button", "TEST_CALLBACK")
+    assert button.text == "Test Button"
+    assert button.callback_data == "TEST_CALLBACK"
+    assert button.web_app is None
+
+    # Test 2: Create button with web_app parameter
+    web_app = keyboards.WebAppInfo(url="https://example.com")
+    button = keyboards.create_button("Test Button with Web App", "TEST_CALLBACK", web_app)
+    assert button.text == "Test Button with Web App"
+    assert button.callback_data == "TEST_CALLBACK"
+    assert button.web_app == web_app
+
+
+def test_get_main_keyboard():
+    with mock.patch('stoscbots.util.bot_auth.is_mgmt_member') as mock_mgmt_member, \
+            mock.patch('stoscbots.util.bot_auth.is_st_marys_member') as mock_st_marys_member:
+        # Test 1: Management member keyboard
+        mock_mgmt_member.return_value = True
+        mock_st_marys_member.return_value = False
+        keyboard = keyboards.get_main_keyboard('mgmt')
+        assert len(keyboard.inline_keyboard) == 5  # Adjust based on the expected number of rows
+
+        # Test 2: St. Marys member keyboard
+        mock_mgmt_member.return_value = False
+        mock_st_marys_member.return_value = True
+        keyboard = keyboards.get_main_keyboard('st_marys')
+        assert len(keyboard.inline_keyboard) == 4  # Adjust based on the expected number of rows
+
+        # Test 3: Normal member keyboard
+        mock_mgmt_member.return_value = False
+        mock_st_marys_member.return_value = False
+        keyboard = keyboards.get_main_keyboard('normal')
+        assert len(keyboard.inline_keyboard) == 3  # Adjust based on the expected number of rows
