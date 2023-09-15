@@ -161,7 +161,7 @@ def generate_msg_xero_member_payments(name: str, member_code: str, year: str) ->
         return msg
 
     # Extracting payment details and finding the latest timestamp
-    latest_ts = max(item['modfied_ts'] for item in payments)
+    latest_ts = max(item['modified_ts'] for item in payments)
 
     for item in payments:
         msg += f"► {item['Account']}: **${item['LineAmount']}**\n"

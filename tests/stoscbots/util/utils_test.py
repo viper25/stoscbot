@@ -74,7 +74,7 @@ def test_get_member_payments():
             "Account": "Birthday Offering",
             "ContactName": "Vibin Joseph Kuriakose",
             "LineAmount": Decimal("30"),
-            "modfied_ts": "30/04/2021 18:23:43",
+            "modified_ts": "30/04/2021 18:23:43",
             "AccountCode": "2020_3050",
         },
         {
@@ -82,7 +82,7 @@ def test_get_member_payments():
             "Account": "Christmas Offering",
             "ContactName": "Vibin Joseph Kuriakose",
             "LineAmount": Decimal("70"),
-            "modfied_ts": "30/04/2021 18:23:43",
+            "modified_ts": "30/04/2021 18:23:43",
             "AccountCode": "2020_3090",
         },
         {
@@ -90,7 +90,7 @@ def test_get_member_payments():
             "Account": "Annual Thanksgiving Auction",
             "ContactName": "Vibin Joseph Kuriakose",
             "LineAmount": Decimal("1265"),
-            "modfied_ts": "30/04/2021 18:23:43",
+            "modified_ts": "30/04/2021 18:23:43",
             "AccountCode": "2020_3200",
         },
     ]
@@ -185,8 +185,8 @@ def test_is_valid_year(year, expected):
 def mock_get_member_payments(member_code, year):
     if member_code == "12345" and year == "2023":
         return [
-            {"Account": "Account1", "LineAmount": "100.00", "modfied_ts": "2023-08-31 12:00:00"},
-            {"Account": "Account2", "LineAmount": "200.00", "modfied_ts": "2023-08-31 14:00:00"}
+            {"Account": "Account1", "LineAmount": "100.00", "modified_ts": "2023-08-31 12:00:00"},
+            {"Account": "Account2", "LineAmount": "200.00", "modified_ts": "2023-08-31 14:00:00"}
         ]
     return []
 
