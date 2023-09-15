@@ -65,8 +65,13 @@ def _get_access_token():
     return response_data['access_token']
 
 
-# Set the access token on bot startup
-_access_token = _get_access_token()
+_access_token = None
+
+def get_access_token():
+    global _access_token
+    if _access_token is None:
+        _access_token = _get_access_token()
+    return _access_token
 
 # ----------------------------------------------------------------------------------------------------------------------
 # HTTP Request Management
@@ -82,7 +87,7 @@ def __xero_get(url: str, **extra_headers):
 
     def get_headers():
         return {
-            'Authorization': 'Bearer ' + _access_token,
+            'Authorization': 'Bearer ' + get_access_token(),
             'Accept': 'application/json',
             'Xero-tenant-id': XERO_TENANT_ID,
             **extra_headers,
