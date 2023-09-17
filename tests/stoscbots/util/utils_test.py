@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 from stoscbots.util import utils
+from stoscbots.util.utils import format_telegram_message
 
 VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
 
@@ -590,5 +591,15 @@ def test_get_telegram_id_error(mock_query, capfd):
 
     assert "Error fetching Telegram ID for member code TEST123: DynamoDB error" in captured.out
     assert result is None
+
+
+# ------------------------------------------------------------
+
+def test_format_telegram_message():
+    msg = "a" * 4050
+    assert format_telegram_message(msg) == msg
+
+    msg = "a" * 4100
+    assert format_telegram_message(msg) == ("a" * 4076 + '\n`... (truncated)`')
 
 # ------------------------------------------------------------

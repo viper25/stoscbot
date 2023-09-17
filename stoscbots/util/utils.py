@@ -516,3 +516,8 @@ def is_valid_email(email: str) -> bool:
     # This regex checks for a more standard email format.
     pattern = r"^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$"
     return bool(re.match(pattern, email))
+
+
+def format_telegram_message(msg):
+    """Formats the message to comply with Telegram's message length limit."""
+    return (msg[:4076] + '\n`... (truncated)`') if len(msg) > 4096 else msg

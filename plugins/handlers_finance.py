@@ -8,6 +8,7 @@ from pyrogram.types import Message, CallbackQuery
 from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
+from stoscbots.util.utils import format_telegram_message
 from stoscbots.xero import xero_utils
 
 # ==================================================
@@ -51,11 +52,6 @@ async def get_member_code_and_year(message: Message):
     member_code = message.command[1].upper()
     year = message.command[2] if len(message.command) == 3 else str(datetime.now().year)
     return member_code, year
-
-
-def format_telegram_message(msg):
-    """Formats the message to comply with Telegram's message length limit."""
-    return (msg[:4076] + '\n`... (truncated)`') if len(msg) > 4096 else msg
 
 
 # --------------------------------------------------
