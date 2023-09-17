@@ -5,7 +5,6 @@ from datetime import datetime
 import boto3
 import requests
 from boto3.dynamodb.conditions import Key
-from requests.sessions import Session
 
 from stoscbots.util import utils
 from stoscbots.util.loggers import LOGLEVEL
@@ -67,18 +66,17 @@ def _get_access_token():
 
 _access_token = None
 
+
 def get_access_token():
     global _access_token
     if _access_token is None:
         _access_token = _get_access_token()
     return _access_token
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 # HTTP Request Management
 # ----------------------------------------------------------------------------------------------------------------------
-
-session = Session()
-
 
 # Make the GET HTTP call to XERO API
 def __xero_get(url: str, **extra_headers):
@@ -93,13 +91,13 @@ def __xero_get(url: str, **extra_headers):
             **extra_headers,
         }
 
-    response = session.get(url, headers=get_headers())
+    response = requests.get(url, headers=get_headers())
     if response.status_code == 401:
-        # Access token has expired. Get a new one and set globally 
+        # Access token has expired. Get a new one and set globally
         LOGGER.info("Access Token has expired. Getting a new one.")
         _access_token = _get_access_token()
         # Make the call again with new access token
-        response = session.get(url, headers=get_headers())
+        response = requests.get(url, headers=get_headers())
 
     if response.status_code == 200:
         return response.json()
@@ -166,7 +164,7 @@ def xero_get_trial_balance(_paymentsOnly: bool = False):
 
 # ----------------------------------------------------------------------------------------------------------------------
 def xero_get_payments():
-    LOGGER.debug(f"Getting Payments")
+    LOGGER.debug(f"xero_get_payments: Getting Payments")
     _week_ago = utils.a_week_ago()
     url = construct_url('Payments',
                         where=f"Date>DateTime({_week_ago.year}, {_week_ago.month}, {_week_ago.day})",
@@ -187,7 +185,7 @@ def xero_get_bank_transactions():
 # -----------------------------------------------------------------------------------
 # Xero dates are weird. Parse
 def parse_Xero_Date(_date: str):
-    LOGGER.debug(f"Parsing Xero date: {_date}")
+    LOGGER.debug(f"parse_Xero_Date: Parsing Xero date: {_date}")
     return datetime.fromtimestamp(int(_date[6:-2].split('+')[0]) / 1000)
 
 
