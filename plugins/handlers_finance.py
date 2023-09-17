@@ -1,12 +1,14 @@
-from datetime import datetime
 import logging
+from datetime import datetime
+
 from pyrogram import Client, filters
+from pyrogram import enums
 from pyrogram.types import Message, CallbackQuery
+
+from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
-from stoscbots.bot import keyboards
 from stoscbots.xero import xero_utils
-from pyrogram import enums
 
 # ==================================================
 
@@ -35,68 +37,101 @@ def dynamic_data_filter_starts_with(data):
     )
 
 
+async def get_member_code_and_year(message: Message):
+    """
+    Utility function to get member code and year from message command
+    """
+    if len(message.command) < 2 or not utils.is_valid_member_code(message.command[1].upper()):
+        await message.reply("Please enter a valid Member Code to search", quote=True)
+        return None, None
+
+    member_code = message.command[1].upper()
+    year = message.command[2] if len(message.command) == 3 else str(datetime.now().year)
+    return member_code, year
+
 # --------------------------------------------------
-@Client.on_message(filters.command(["x"]))
+@Client.on_message(filters.command(["x", "xs"]))
 @loggers.async_log_access
 @bot_auth.async_management_only
-async def finance_search_member_payments(client: Client, message: Message):
-    member_code = None
-    if len(message.command) >= 2:
-        member_code = message.command[1].upper()
-        # There is at least a member code sent
-        # Match member codes such as V019. One char followed by 2 or 3 digits
-        if utils.is_valid_member_code(member_code) is None:
-            msg = "Please enter a Member Code to search"
-            await message.reply(msg, quote=True)
-            return
-    # A member code has been sent
-    if member_code:
-        result = db.get_member_details(member_code, 'code')
-        if len(result) == 0:
-            await message.reply("No such Member")
-            return
-        elif len(result) >= 1:
-            # Figure out the year of accounts we want to retrieve 
-            # /x v019 2020
-            if len(message.command) == 3:
-                _year = message.command[2]
-            # /x v019
-            elif len(message.command) == 2:
-                _year = str(datetime.now().year)
-            msg = utils.generate_msg_xero_member_payments(f"{result[0][2]} ({result[0][1]})", member_code, _year)
-            await message.reply(msg)
+async def finance_search_member(client: Client, message: Message):
+    member_code, year = await get_member_code_and_year(message)
+    if not member_code:
+        return
+
+    result = db.get_member_details(member_code, 'code')
+    if not result:
+        await message.reply("No such Member")
+        return
+
+    if message.command[0] == "x":
+        msg = utils.generate_msg_xero_member_payments(result[0][2], member_code, year)
+    elif message.command[0] == "xs":
+        msg = utils.generate_msg_xero_member_invoices(member_code, year)
+
+    await message.reply(msg)
+
+# --------------------------------------------------
+# @Client.on_message(filters.command(["x"]))
+# @loggers.async_log_access
+# @bot_auth.async_management_only
+# async def finance_search_member_payments(client: Client, message: Message):
+#     member_code = None
+#     if len(message.command) >= 2:
+#         member_code = message.command[1].upper()
+#         # There is at least a member code sent
+#         # Match member codes such as V019. One char followed by 2 or 3 digits
+#         if utils.is_valid_member_code(member_code) is None:
+#             msg = "Please enter a Member Code to search"
+#             await message.reply(msg, quote=True)
+#             return
+#     # A member code has been sent
+#     if member_code:
+#         result = db.get_member_details(member_code, 'code')
+#         if len(result) == 0:
+#             await message.reply("No such Member")
+#             return
+#         elif len(result) >= 1:
+#             # Figure out the year of accounts we want to retrieve
+#             # /x v019 2020
+#             if len(message.command) == 3:
+#                 _year = message.command[2]
+#             # /x v019
+#             elif len(message.command) == 2:
+#                 _year = str(datetime.now().year)
+#             msg = utils.generate_msg_xero_member_payments(f"{result[0][2]} ({result[0][1]})", member_code, _year)
+#             await message.reply(msg)
 
 
 # --------------------------------------------------
-@Client.on_message(filters.command(["xs"]))
-@loggers.async_log_access
-@bot_auth.async_management_only
-async def finance_search_member_sub(client: Client, message: Message):
-    member_code = None
-    if len(message.command) >= 2:
-        member_code = message.command[1].upper()
-        # There is atleast a member code sent
-        # Match member codes such as V019. One char followed by 2 or 3 digits
-        if utils.is_valid_member_code(member_code) is None:
-            msg = "Please enter a Member Code to search"
-            await message.reply(msg, quote=True)
-            return
-    # A member code has been sent
-    if member_code:
-        result = db.get_member_details(member_code, 'code')
-        if len(result) == 0:
-            await message.reply("No such Member")
-            return
-        elif len(result) >= 1:
-            # Figure out the year of accounts we want to retrieve
-            # /xs v019 2020. As of now, we only support current year
-            if len(message.command) == 3:
-                _year = message.command[2]
-            # /x v019
-            elif len(message.command) == 2:
-                _year = str(datetime.now().year)
-            msg = utils.generate_msg_xero_member_invoices(member_code, _year)
-            await message.reply(msg)
+# @Client.on_message(filters.command(["xs"]))
+# @loggers.async_log_access
+# @bot_auth.async_management_only
+# async def finance_search_member_sub(client: Client, message: Message):
+#     member_code = None
+#     if len(message.command) >= 2:
+#         member_code = message.command[1].upper()
+#         # There is atleast a member code sent
+#         # Match member codes such as V019. One char followed by 2 or 3 digits
+#         if utils.is_valid_member_code(member_code) is None:
+#             msg = "Please enter a Member Code to search"
+#             await message.reply(msg, quote=True)
+#             return
+#     # A member code has been sent
+#     if member_code:
+#         result = db.get_member_details(member_code, 'code')
+#         if len(result) == 0:
+#             await message.reply("No such Member")
+#             return
+#         elif len(result) >= 1:
+#             # Figure out the year of accounts we want to retrieve
+#             # /xs v019 2020. As of now, we only support current year
+#             if len(message.command) == 3:
+#                 _year = message.command[2]
+#             # /x v019
+#             elif len(message.command) == 2:
+#                 _year = str(datetime.now().year)
+#             msg = utils.generate_msg_xero_member_invoices(member_code, _year)
+#             await message.reply(msg)
 
 
 # --------------------------------------------------
