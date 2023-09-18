@@ -128,23 +128,14 @@ def test_create_button():
 
 
 def test_get_main_keyboard():
-    with mock.patch('stoscbots.util.bot_auth.is_mgmt_member') as mock_mgmt_member, \
-            mock.patch('stoscbots.util.bot_auth.is_st_marys_member') as mock_st_marys_member:
+    with mock.patch('stoscbots.util.bot_auth.is_mgmt_member') as mock_mgmt_member:
         # Test 1: Management member keyboard
         mock_mgmt_member.return_value = True
-        mock_st_marys_member.return_value = False
         keyboard = keyboards.get_main_keyboard('mgmt')
-        assert len(keyboard.inline_keyboard) == 5  # Adjust based on the expected number of rows
-
-        # Test 2: St. Marys member keyboard
-        mock_mgmt_member.return_value = False
-        mock_st_marys_member.return_value = True
-        keyboard = keyboards.get_main_keyboard('st_marys')
         assert len(keyboard.inline_keyboard) == 4  # Adjust based on the expected number of rows
 
-        # Test 3: Normal member keyboard
+        # Test 2: Normal member keyboard
         mock_mgmt_member.return_value = False
-        mock_st_marys_member.return_value = False
         keyboard = keyboards.get_main_keyboard('normal')
         assert len(keyboard.inline_keyboard) == 3  # Adjust based on the expected number of rows
 

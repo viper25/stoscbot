@@ -22,7 +22,6 @@ __MAIN_SERVICES_BUTTON = InlineKeyboardButton("✝ Services", callback_data="Ser
 __MAIN_MEMBERS_BUTTON = InlineKeyboardButton("👨‍👩‍👦 Members", callback_data="Members Menu")
 __MAIN_PRAYER_GROUPS_BUTTON = InlineKeyboardButton("🤲🏻 Prayer Groups", callback_data="Prayer Groups Menu")
 __MAIN_FINANCE_BUTTON = InlineKeyboardButton("💲 Finance", callback_data="Finance Menu")
-__MAIN_ST_MARYS_BUTTON = InlineKeyboardButton("👩🏻 St. Marys", callback_data="St. Marys Menu")
 __MAIN_MY_DETAILS_BUTTON = InlineKeyboardButton("👨🏻 My Details 👩🏻", callback_data="My Details Menu")
 __MAIN_MY_HARVEST_BUTTON = InlineKeyboardButton("🌽 My Harvest Festival", callback_data="My Harvest Festival Menu")
 __MAIN_PAYNOW_BUTTON = InlineKeyboardButton("💵 PayNow", callback_data="PayNow Menu")
@@ -47,9 +46,6 @@ __FINANCE_LATEST_TX_BUTTON = InlineKeyboardButton("Latest Transactions",
                                                   callback_data="Finance Latest Transactions Button")
 __FINANCE_OUTSTANDINGS_BUTTON = InlineKeyboardButton("Outstanding", callback_data="Finance Outstanding Button")
 __FINANCE_TRACK_BUTTON = InlineKeyboardButton("Projects", callback_data="Finance Projects Button")
-
-__ST_MARYS_EXEC_SUMMARY_BUTTON = InlineKeyboardButton("📊 Projects Summary",
-                                                      callback_data="St. Marys Project Summary Button")
 
 __MYDETAILS_MY_PROFILE_BUTTON = InlineKeyboardButton("🧾 My Profile", callback_data="My Profile")
 __MYDETAILS_MY_CONTRIBUTIONS_BUTTON = InlineKeyboardButton("💳 My Contributions", callback_data="My Contributions")
@@ -79,11 +75,6 @@ finance_menu_keyboard = InlineKeyboardMarkup([
     [__FINANCE_TRIAL_INC_BAL_BUTTON, __FINANCE_TRIAL_EXP_BAL_BUTTON],
     [__FINANCE_LATEST_TX_BUTTON, __FINANCE_PAYMENTS_WTD_BUTTON],
     [__FINANCE_OUTSTANDINGS_BUTTON, __FINANCE_TRACK_BUTTON],
-    [BACK_TO_MAIN_BUTTON]
-])
-
-stmarys_menu_keyboard = InlineKeyboardMarkup([
-    [__ST_MARYS_EXEC_SUMMARY_BUTTON],
     [BACK_TO_MAIN_BUTTON]
 ])
 
@@ -125,16 +116,8 @@ Dynamic keyboards that have to be created at runtime:
 def get_main_keyboard(telegram_id):
     if bot_auth.is_mgmt_member(telegram_id):
         buttons = [
-            [__MAIN_SERVICES_BUTTON],
-            [__MAIN_MEMBERS_BUTTON, __MAIN_PRAYER_GROUPS_BUTTON],
-            [__MAIN_FINANCE_BUTTON, __MAIN_ST_MARYS_BUTTON],
-            [__MAIN_MY_DETAILS_BUTTON, __MAIN_MY_HARVEST_BUTTON],
-            [__MAIN_PAYNOW_BUTTON]
-        ]
-    elif bot_auth.is_st_marys_member(telegram_id):
-        buttons = [
-            [__MAIN_MEMBERS_BUTTON, __MAIN_PRAYER_GROUPS_BUTTON],
-            [__MAIN_ST_MARYS_BUTTON],
+            [__MAIN_SERVICES_BUTTON, __MAIN_MEMBERS_BUTTON],
+            [__MAIN_PRAYER_GROUPS_BUTTON, __MAIN_FINANCE_BUTTON],
             [__MAIN_MY_DETAILS_BUTTON, __MAIN_MY_HARVEST_BUTTON],
             [__MAIN_PAYNOW_BUTTON]
         ]
