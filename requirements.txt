@@ -10,6 +10,13 @@ gspread
 git+https://github.com/Ripeey/Conversation-Pyrogram
 tabulate   # For rendering tables generated via dataframes
 pandas
+convopyro
+
+# Install the below for testing
+# pytest-asyncio  # For testing
+# pytest  # For testing
+# pytest-cov # for coverage. Use as pytest --cov
+
 # OpenAI
 langchain
 openai

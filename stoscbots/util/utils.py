@@ -161,7 +161,7 @@ def generate_msg_xero_member_payments(name: str, member_code: str, year: str) ->
         return msg
 
     # Extracting payment details and finding the latest timestamp
-    latest_ts = max(item['modfied_ts'] for item in payments)
+    latest_ts = max(item['modified_ts'] for item in payments)
 
     for item in payments:
         msg += f"► {item['Account']}: **${item['LineAmount']}**\n"
@@ -475,8 +475,8 @@ def get_tracked_projects(raw_data: bool = False) -> Union[str, List[Dict]]:
     # Update last_updated while iterating
     for _item in response_items:
         modified_ts = _item.get('modified_ts', '0')
-    if modified_ts > last_updated:
-        last_updated = modified_ts
+        if modified_ts > last_updated:
+            last_updated = modified_ts
 
     if raw_data:
         return response_items
@@ -516,3 +516,8 @@ def is_valid_email(email: str) -> bool:
     # This regex checks for a more standard email format.
     pattern = r"^[a-zA-Z0-9._%+-]+@([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$"
     return bool(re.match(pattern, email))
+
+
+def format_telegram_message(msg):
+    """Formats the message to comply with Telegram's message length limit."""
+    return (msg[:4076] + '\n`... (truncated)`') if len(msg) > 4096 else msg

@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 from stoscbots.util import utils
+from stoscbots.util.utils import format_telegram_message
 
 VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
 
@@ -74,7 +75,7 @@ def test_get_member_payments():
             "Account": "Birthday Offering",
             "ContactName": "Vibin Joseph Kuriakose",
             "LineAmount": Decimal("30"),
-            "modfied_ts": "30/04/2021 18:23:43",
+            "modified_ts": "30/04/2021 18:23:43",
             "AccountCode": "2020_3050",
         },
         {
@@ -82,7 +83,7 @@ def test_get_member_payments():
             "Account": "Christmas Offering",
             "ContactName": "Vibin Joseph Kuriakose",
             "LineAmount": Decimal("70"),
-            "modfied_ts": "30/04/2021 18:23:43",
+            "modified_ts": "30/04/2021 18:23:43",
             "AccountCode": "2020_3090",
         },
         {
@@ -90,7 +91,7 @@ def test_get_member_payments():
             "Account": "Annual Thanksgiving Auction",
             "ContactName": "Vibin Joseph Kuriakose",
             "LineAmount": Decimal("1265"),
-            "modfied_ts": "30/04/2021 18:23:43",
+            "modified_ts": "30/04/2021 18:23:43",
             "AccountCode": "2020_3200",
         },
     ]
@@ -185,8 +186,8 @@ def test_is_valid_year(year, expected):
 def mock_get_member_payments(member_code, year):
     if member_code == "12345" and year == "2023":
         return [
-            {"Account": "Account1", "LineAmount": "100.00", "modfied_ts": "2023-08-31 12:00:00"},
-            {"Account": "Account2", "LineAmount": "200.00", "modfied_ts": "2023-08-31 14:00:00"}
+            {"Account": "Account1", "LineAmount": "100.00", "modified_ts": "2023-08-31 12:00:00"},
+            {"Account": "Account2", "LineAmount": "200.00", "modified_ts": "2023-08-31 14:00:00"}
         ]
     return []
 
@@ -590,5 +591,15 @@ def test_get_telegram_id_error(mock_query, capfd):
 
     assert "Error fetching Telegram ID for member code TEST123: DynamoDB error" in captured.out
     assert result is None
+
+
+# ------------------------------------------------------------
+
+def test_format_telegram_message():
+    msg = "a" * 4050
+    assert format_telegram_message(msg) == msg
+
+    msg = "a" * 4100
+    assert format_telegram_message(msg) == ("a" * 4076 + '\n`... (truncated)`')
 
 # ------------------------------------------------------------

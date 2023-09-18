@@ -9,6 +9,7 @@ from convopyro import Conversation
 # Module logger
 logger = logging.getLogger('Bot')
 logger.setLevel(LOGLEVEL)
+logger.info(f"Log Level: {LOGLEVEL}. Set in Environment Variable LOGLEVEL")
 # ------------------------------------------------------------------
 
 test_mode = True

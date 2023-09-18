@@ -235,15 +235,6 @@ async def show_finance_menu(client: Client, query: CallbackQuery):
 
 
 # --------------------------------------------------
-@Client.on_callback_query(dynamic_data_filter1("St. Marys Menu"))
-@loggers.async_log_access
-async def show_st_marys_menu(client: Client, query: CallbackQuery):
-    await query.answer()
-    msg = "➖➖**St. Mary's Menu**➖➖"
-    await query.message.reply_text(msg, reply_markup=keyboards.stmarys_menu_keyboard)
-
-
-# --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("My Details Menu"))
 @loggers.async_log_access
 async def show_my_details_menu(client: Client, query: CallbackQuery):
