@@ -18,7 +18,7 @@ convopyro
 # pytest-cov # for coverage. Use as pytest --cov
 
 # OpenAI
-langchain
 openai
+langchain
 chromadb
-tiktoken
+sentence-transformers # For sentence embeddings from HuggingFaceEmbeddings

@@ -11,4 +11,5 @@ coverage.xml
 *.toml
 *.pickle
 *.idea/
-chroma_db/
+*.bin
+chroma.sqlite3
