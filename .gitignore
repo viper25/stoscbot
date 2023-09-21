@@ -11,3 +11,5 @@ coverage.xml
 *.toml
 *.pickle
 *.idea/
+*.bin
+chroma.sqlite3
