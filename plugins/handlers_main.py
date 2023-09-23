@@ -284,6 +284,14 @@ async def show_paynow_menu(client: Client, query: CallbackQuery):
         reply_markup=keyboards.back_to_main_keyboard,
     )
 
+# --------------------------------------------------
+@Client.on_callback_query(dynamic_data_filter1("Streaming Menu"))
+@loggers.async_log_access
+async def show_streaming_menu(client: Client, query: CallbackQuery):
+    await query.answer()
+    msg = "➖➖**Streaming Menu**➖➖"
+    await utils.edit_and_send_msg(query, msg, keyboards.streaming_menu_keyboard)
+
 
 # --------------------------------------------------
 # Handler for buttons generated from /u MyName search command
