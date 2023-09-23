@@ -3,6 +3,8 @@ from collections import Counter
 from itertools import combinations
 
 def generate_badminton_doubles_schedule(player_names: list[str], num_matches: int):
+    if len(player_names) < 4:
+        raise ValueError("⚠️ There must be at least 4 players to schedule a doubles match")
     # Create all possible pairs
     all_pairs = list(combinations(player_names, 2))
 
@@ -45,6 +47,7 @@ if __name__ == "__main__":
     player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vinct", "Liju", "Jithin", "Prdip", "Vibin", "Dibu"]
     player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vinct", "Liju", "Jithin", "Prdip", "Vibin"]
     player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vinct", "Liju", "Jithin", "Prdip"]
+    player_names = ["Anub", "Jubin", "Simon", "Ajsh"]
     schedule, player_count = generate_badminton_doubles_schedule(player_names, num_matches)
 
     # img = create_schedule_image(schedule, player_count, player_names)

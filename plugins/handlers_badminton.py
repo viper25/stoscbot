@@ -8,7 +8,7 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 from tabulate import tabulate
 
-from plugins.badminton_util import generate_badminton_doubles_schedule
+from stoscbots.util.badminton_util import generate_badminton_doubles_schedule
 from stoscbots.util import bot_auth
 from stoscbots.util import loggers
 from stoscbots.util.loggers import LOGLEVEL
@@ -17,19 +17,14 @@ logger = logging.getLogger('Handler.Badminton')
 logger.setLevel(LOGLEVEL)
 VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
 SIMON_TELEGRAM_ID = int(os.environ.get('SIMON_TELEGRAM_ID'))
-JOSEY_TELEGRAM_ID = int(os.environ.get('JOSEY_TELEGRAM_ID'))
-DON_TELEGRAM_ID = int(os.environ.get('DON_TELEGRAM_ID'))
-SAJAN_TELEGRAM_ID = int(os.environ.get('SAJAN_TELEGRAM_ID'))
-AVG_TIME_PER_MATCH = (10 + 14) // 2  # Average between 10 and 14 minutes per match
-
 
 # /game 20, Vibin, Jubin, Simon, Ajsh, Vinct, Liju, Jithin, Prdip, Vibin, Dibu
 @Client.on_message(filters.command(["game"]))
 @loggers.async_log_access
 @bot_auth.async_management_only
 async def badminton_scheduler(client: Client, message: Message):
-    if message.from_user.id != VIBIN_TELEGRAM_ID:
-        msg = "You are not allowed to add users"
+    if message.from_user.id not in [VIBIN_TELEGRAM_ID, SIMON_TELEGRAM_ID]:
+        msg = "You are not allowed to use this function"
         await message.reply_text(msg)
         return
     if len(message.command) < 3:
@@ -43,7 +38,12 @@ async def badminton_scheduler(client: Client, message: Message):
         # Splitting the combined string on commas to get individual player names
         players = [player.strip() for player in _players.split(',') if player.strip()]
 
-        schedule, player_count = generate_badminton_doubles_schedule(players, num_matches)
+        try:
+            schedule, player_count = generate_badminton_doubles_schedule(players, num_matches)
+        except ValueError as e:
+            logger.error(e)
+            await message.reply_text(e)
+            return
 
         # Display the schedule in table format
         table_data = []
