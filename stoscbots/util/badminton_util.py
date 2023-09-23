@@ -8,6 +8,37 @@ def generate_badminton_doubles_schedule(player_names: list[str], num_matches: in
     # Create all possible pairs
     all_pairs = list(combinations(player_names, 2))
 
+    possible_matches = generate_possible_match_combinations(all_pairs)
+
+    # Initialize match counter for each player
+    player_played_match_counter = Counter()
+
+    # Generate a fair schedule
+    schedule = []
+    for i in range(num_matches):
+        # If the number of possible matches reduces to 0 and we have not reached the required number of matches,
+        # reseed the possible matches
+        if possible_matches == [] and len(schedule) != num_matches:
+            possible_matches = generate_possible_match_combinations(all_pairs)
+        for match in possible_matches:
+            team1, team2 = match
+
+            # Calculate the sum of all player's current matches in this potential match
+            total_count = sum(player_played_match_counter[player] for player in team1 + team2)
+
+            if len(schedule) < num_matches and total_count == min(
+                    sum(player_played_match_counter[player] for player in m[0] + m[1]) for m in possible_matches
+            ):
+                schedule.append(match)
+                for player in team1 + team2:
+                    player_played_match_counter[player] += 1
+                possible_matches.remove(match)
+                break
+
+    return schedule, player_played_match_counter
+
+
+def generate_possible_match_combinations(all_pairs):
     # Create all possible matches
     possible_matches = []
     for pair1 in all_pairs:
@@ -15,29 +46,8 @@ def generate_badminton_doubles_schedule(player_names: list[str], num_matches: in
             if len(set(pair1 + pair2)) == 4:  # No repeated players in a match
                 possible_matches.append((pair1, pair2))
     random.shuffle(possible_matches)
+    return possible_matches
 
-    # Initialize match counter for each player
-    player_count = Counter()
-
-    # Generate a fair schedule
-    schedule = []
-    for i in range(num_matches):
-        for match in possible_matches:
-            team1, team2 = match
-
-            # Calculate the sum of all player's current matches in this potential match
-            total_count = sum(player_count[player] for player in team1 + team2)
-
-            if len(schedule) < num_matches and total_count == min(
-                    sum(player_count[player] for player in m[0] + m[1]) for m in possible_matches
-            ):
-                schedule.append(match)
-                for player in team1 + team2:
-                    player_count[player] += 1
-                possible_matches.remove(match)
-                break
-
-    return schedule, player_count
 
 # Main Function
 if __name__ == "__main__":
@@ -48,6 +58,7 @@ if __name__ == "__main__":
     player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vinct", "Liju", "Jithin", "Prdip", "Vibin"]
     player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vinct", "Liju", "Jithin", "Prdip"]
     player_names = ["Anub", "Jubin", "Simon", "Ajsh"]
+    player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vibin"]
     schedule, player_count = generate_badminton_doubles_schedule(player_names, num_matches)
 
     # img = create_schedule_image(schedule, player_count, player_names)
