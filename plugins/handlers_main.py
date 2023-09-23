@@ -10,7 +10,6 @@ from stoscbots.util import loggers, utils, bot_auth
 
 logger = logging.getLogger('Handler.Main')
 logger.setLevel(LOGLEVEL)
-VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
 
 # ==================================================
 # Command Handlers
@@ -22,7 +21,7 @@ async def start_handler(client: Client, message: Message):
     # Check if user is authorized
     if not bot_auth.is_member(message.from_user.id):
         unauth_msg=f"Unauthorized Access by **[{message.from_user.id}:{message.from_user.username}:{message.from_user.first_name}]**\nCmd `/start`"
-        await client.send_message(chat_id=VIBIN_TELEGRAM_ID,text=unauth_msg)
+        await client.send_message(chat_id=bot_auth.get_super_admin_id(),text=unauth_msg)
         # Start a conversation with the user to ask for Member Code and Email
         await client.send_sticker(chat_id=message.from_user.id, sticker='CAACAgIAAxkBAAIFJV-X6UKaAAEDx4Nqup6acSBW6DlThgACoAMAAvoLtgj5yjtMiAXK4hsE')
         await message.reply_text("**You are not authorized to use this bot**\nHowever, if you are a STOSC member, do provide your details for access.\n\n`Enter your member code:`", disable_web_page_preview=True)
@@ -61,7 +60,7 @@ async def start_handler(client: Client, message: Message):
         if member_code and email:
             await message.reply_text(f"I'll inform the Managing Committee of your request. Once your ID is verified, they shall add you for access to the Bot.\n\n**Details submitted:**\n`Member Code: {member_code.text}\nEmail: {email.text}`")
             # Send Telegram message to Managing Committee
-            await client.send_message(chat_id=VIBIN_TELEGRAM_ID,text=f"New member request:\nMember Code: `{member_code.text}`\nEmail: `{email.text}`\nTelegram ID: `{message.from_user.id}`")
+            await client.send_message(chat_id=bot_auth.get_super_admin_id(),text=f"New member request:\nMember Code: `{member_code.text}`\nEmail: `{email.text}`\nTelegram ID: `{message.from_user.id}`")
         else:
             await message.reply_text("Sorry try again")
     else:

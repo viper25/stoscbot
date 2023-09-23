@@ -7,7 +7,7 @@ telegram_query = CallbackQuery(id="123456", from_user=telegram_member_mc, chat_i
 
 
 def test_is_member_True():
-    assert bot_auth.is_member(os.environ.get("VIBIN_TELEGRAM_ID")) is True
+    assert bot_auth.is_member(bot_auth.get_super_admin_id()) is True
     assert bot_auth.is_member(telegram_member_mc.id) is True
     assert bot_auth.is_member(telegram_member_area_prayer_coordinator.id) is True
     assert bot_auth.is_member(telegram_member_harvest_admin.id) is True
@@ -20,7 +20,7 @@ def test_is_member_False():
 
 
 def test_is_mgmt_member_True():
-    assert bot_auth.is_mgmt_member(os.environ.get("VIBIN_TELEGRAM_ID")) is True
+    assert bot_auth.is_mgmt_member(bot_auth.get_super_admin_id()) is True
     assert bot_auth.is_mgmt_member(telegram_member_mc.id) is True
 
 
@@ -33,7 +33,7 @@ def test_is_mgmt_member_False():
 
 
 def test_is_smo_member_True():
-    assert bot_auth.is_smo_member(os.environ.get("VIBIN_TELEGRAM_ID")) is True
+    assert bot_auth.is_smo_member(bot_auth.get_super_admin_id()) is True
     assert bot_auth.is_smo_member(telegram_member_smo.id) is True
     assert bot_auth.is_smo_member(telegram_member_mc.id) is True
 
@@ -46,7 +46,7 @@ def test_is_smo_member_False():
 
 
 def test_is_area_prayer_coordinator_True():
-    assert bot_auth.is_area_prayer_coordinator_member(os.environ.get("VIBIN_TELEGRAM_ID")) is True
+    assert bot_auth.is_area_prayer_coordinator_member(bot_auth.get_super_admin_id()) is True
     assert bot_auth.is_area_prayer_coordinator_member(telegram_member_area_prayer_coordinator.id) is True
     assert bot_auth.is_area_prayer_coordinator_member(telegram_member_mc.id) is True
 
