@@ -22,3 +22,8 @@ openai
 langchain
 chromadb
 sentence-transformers # For sentence embeddings from HuggingFaceEmbeddings
+
+# Badminton Module
+# matplotlib
+# pillow
+tabulate
