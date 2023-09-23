@@ -17,7 +17,8 @@ def test_no_repeated_players_in_match():
     for match in schedule:
         assert len(set(match[0] + match[1])) == 4
 
-
+# To ensure all players play the same number of matches as much as possible
+# No one should play more than any other player by more than 1 match
 def test_player_participation():
     players = ["A", "B", "C", "D", "E", "F"]
     num_matches = 10
@@ -28,13 +29,18 @@ def test_player_participation():
     # Assuming a tolerance of 1 match difference for fairness
     assert max_participation - min_participation <= 1
 
-
-def test_minimum_number_of_players():
+# To test that there are at least 4 players
+def test_minimum_number_of_players_3():
     players = ["A", "B", "C"]
     num_matches = 5
     with pytest.raises(ValueError):
         generate_badminton_doubles_schedule(players, num_matches)
 
+def test_minimum_number_of_players_4():
+    players = ["A", "B", "C", "D"]
+    num_matches = 5
+    schedule, _ = generate_badminton_doubles_schedule(players, num_matches)
+    assert len(schedule) == num_matches
 
 def test_generated_games_count_5_matches():
     players = ["A", "B", "C", "D"]
