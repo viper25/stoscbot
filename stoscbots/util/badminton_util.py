@@ -3,35 +3,42 @@ from collections import Counter
 from itertools import combinations
 
 def generate_badminton_doubles_schedule(player_names: list[str], num_matches: int):
+    # Ensure there are at least 4 players to schedule a doubles match.
     if len(player_names) < 4:
         raise ValueError("⚠️ There must be at least 4 players to schedule a doubles match")
-    # Create all possible pairs
+    # Generate all possible pairs of players.
     all_pairs = list(combinations(player_names, 2))
 
+    # Generate all possible match combinations given the pairs.
     possible_matches = generate_possible_match_combinations(all_pairs)
 
-    # Initialize match counter for each player
+    # Create a counter to track how many matches each player has played.
     player_played_match_counter = Counter()
 
-    # Generate a fair schedule
+    # List to store the scheduled matches.
     schedule = []
     for i in range(num_matches):
-        # If the number of possible matches reduces to 0 and we have not reached the required number of matches,
-        # reseed the possible matches
+        # If all possible matches are exhausted and we still need more matches,
+        # regenerate the possible matches.
         if possible_matches == [] and len(schedule) != num_matches:
             possible_matches = generate_possible_match_combinations(all_pairs)
         for match in possible_matches:
             team1, team2 = match
 
-            # Calculate the sum of all player's current matches in this potential match
+            #  Calculate the sum of matches played by all players in this potential match.
             total_count = sum(player_played_match_counter[player] for player in team1 + team2)
 
+            # Check if this match has the minimum match count among the possible matches.
+            # This ensures fairness in match allocation.
             if len(schedule) < num_matches and total_count == min(
                     sum(player_played_match_counter[player] for player in m[0] + m[1]) for m in possible_matches
             ):
+                # Schedule this match.
                 schedule.append(match)
+                # Update match counts for each player in this match.
                 for player in team1 + team2:
                     player_played_match_counter[player] += 1
+                # Remove this match from the possible matches.
                 possible_matches.remove(match)
                 break
 
@@ -39,7 +46,7 @@ def generate_badminton_doubles_schedule(player_names: list[str], num_matches: in
 
 
 def generate_possible_match_combinations(all_pairs):
-    # Create all possible matches
+    # Create all possible doubles matches without player repetition.
     possible_matches = []
     for pair1 in all_pairs:
         for pair2 in all_pairs:
