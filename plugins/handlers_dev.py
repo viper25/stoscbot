@@ -8,7 +8,6 @@ import os
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
-from stoscbots.ai.answer_q import get_answer
 from stoscbots.db import db
 from stoscbots.util import bot_auth
 from stoscbots.util import loggers, utils
@@ -17,10 +16,6 @@ from stoscbots.util.loggers import LOGLEVEL
 logger = logging.getLogger('Handler.Main')
 logger.setLevel(LOGLEVEL)
 VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
-SIMON_TELEGRAM_ID = int(os.environ.get('SIMON_TELEGRAM_ID'))
-JOSEY_TELEGRAM_ID = int(os.environ.get('JOSEY_TELEGRAM_ID'))
-DON_TELEGRAM_ID = int(os.environ.get('DON_TELEGRAM_ID'))
-SAJAN_TELEGRAM_ID = int(os.environ.get('SAJAN_TELEGRAM_ID'))
 
 
 @Client.on_message(filters.command(["version", "ver"]))
@@ -131,26 +126,3 @@ async def send_msg(client: Client, message: Message):
             log_msg = f"Telegram message [`{msg}`] sent to `{telegram_id}` ({_member_code})"
             logger.info(log_msg)
             await message.reply_text(log_msg)
-
-
-# -------------------------------------------------
-# Ask Qns to bot
-# /ask "Tell me about Fire Maintenance at STOSC?"
-@Client.on_message(filters.command(["ask"]))
-@loggers.async_log_access
-async def send_msg(client: Client, message: Message):
-    # # Only allow the bot owner to add users
-    if message.from_user.id not in [VIBIN_TELEGRAM_ID, SIMON_TELEGRAM_ID, JOSEY_TELEGRAM_ID, DON_TELEGRAM_ID,
-                                    SAJAN_TELEGRAM_ID]:
-        msg = "You are not allowed to execute this command"
-        await message.reply_text(msg)
-        return
-    if len(message.command) < 2:
-        msg = "Please enter proper commands\ne.g. `/ask [your question]`"
-        await message.reply_text(msg)
-        return
-    else:
-        query = ' '.join(message.command[1:])
-        message = await message.reply_text("Please wait ... ⌛")
-        answer = get_answer(question=query)
-        await client.edit_message_text(chat_id=message.chat.id, text=answer, message_id=message.id)
