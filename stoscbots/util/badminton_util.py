@@ -10,34 +10,36 @@ def generate_badminton_doubles_schedule(player_names: list[str], num_matches: in
     # Generate all possible pairs of players.
     all_pairs = list(combinations(player_names, 2))
     random.shuffle(all_pairs)
-
     # Generate all possible match combinations given the pairs.
     possible_matches = generate_possible_match_combinations(all_pairs)
 
     # Create a counter to track how many matches each player has played.
     player_played_match_counter = Counter()
 
-    # Sort possible matches by fewest total appearances to prioritize match-ups
-    possible_matches = sorted(list(possible_matches), key=lambda x: len(set(x[0]) & set(x[1])))
+    # Keep a copy of the generated possible matches to reuse.
+    # This is done to restore the pool of possible matches if they run out.
+    possible_matches_copy = possible_matches.copy()
 
     # List to store the scheduled matches.
     schedule = []
     for i in range(num_matches):
-        # If all possible matches are exhausted and we still need more matches,
-        # regenerate the possible matches.
-        if possible_matches == [] and len(schedule) != num_matches:
-            possible_matches = generate_possible_match_combinations(all_pairs)
+        if not possible_matches:
+            # If we have scheduled all possible matches, refill the list with the original matches.
+            possible_matches = possible_matches_copy.copy()
+
+        # Find the minimum match count among all possible matches.
+        # This is done to prioritize matches with players who've played the least.
+        min_match_count = min(
+            sum(player_played_match_counter[player] for player in m[0] + m[1]) for m in possible_matches)
+
+
         for match in possible_matches:
             team1, team2 = match
 
             #  Calculate the sum of matches played by all players in this potential match.
             total_count = sum(player_played_match_counter[player] for player in team1 + team2)
 
-            # Check if this match has the minimum match count among the possible matches.
-            # This ensures fairness in match allocation.
-            if len(schedule) < num_matches and total_count == min(
-                    sum(player_played_match_counter[player] for player in m[0] + m[1]) for m in possible_matches
-            ):
+            if (len(schedule) < num_matches) and (total_count == min_match_count):
                 # Schedule this match.
                 schedule.append(match)
                 # Update match counts for each player in this match.
