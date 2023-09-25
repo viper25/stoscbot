@@ -46,6 +46,7 @@ def generate_badminton_doubles_schedule(player_names: list[str], num_matches: in
                 possible_matches.remove(match)
                 break
 
+    random.shuffle(schedule)
     return schedule, player_played_match_counter
 
 
@@ -62,7 +63,7 @@ def generate_possible_match_combinations(all_pairs):
 # Main Function
 if __name__ == "__main__":
 
-    num_matches = 12
+    num_matches = 8
 
     player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vinct", "Liju", "Jithin", "Prdip", "Vibin", "Dibu"]
     player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vinct", "Liju", "Jithin", "Prdip", "Vibin"]
@@ -78,10 +79,10 @@ if __name__ == "__main__":
     # Display the schedule in table format
     table_data = []
     for i, match in enumerate(schedule):
-        table_data.append([i + 1, '|'.join(match[0]), '|'.join(match[1])])
-    print(tabulate(table_data, headers=["#", "Team 1", "Team 2"], tablefmt="simple")) # Good
-    print(tabulate(table_data, headers=["#", "Team 1", "Team 2"], tablefmt="rst"))  # Good
-    print(tabulate(table_data, headers=["#", "Team 1", "Team 2"], tablefmt="presto", maxcolwidths=[1, None, None])) # Good
+        table_data.append([i + 1, ', '.join([item for sublist in match for item in sublist])])
+    # print(tabulate(table_data, headers=["#", "Team 1", "Team 2"], tablefmt="simple")) # Good
+    # print(tabulate(table_data, headers=["#", "Team 1", "Team 2"], tablefmt="rst"))  # Good
+    print(tabulate(table_data, headers=["#", "Players"], tablefmt="presto", maxcolwidths=[1, None, None])) # Good
 
     print("\n### Player Participation Counts ###")
     data = [(player, count) for player, count in player_count.items()]
