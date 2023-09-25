@@ -91,8 +91,9 @@ def test_zero_matches():
 
 # Ensure that a set of matches (equal to the number of players), there are no duplicate matches.
 def test_unique_matches_for_n_players():
-    players = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"]
-    num_matches = 50
+    # Generate a list of 15 players
+    players = [f"Player {i}" for i in range(15)]
+    num_matches = 80
     schedule, _ = generate_badminton_doubles_schedule(players, num_matches)
 
     n = len(players)
