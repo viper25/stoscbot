@@ -8,12 +8,16 @@ def generate_badminton_doubles_schedule(player_names: list[str], num_matches: in
         raise ValueError("⚠️ There must be at least 4 players to schedule a doubles match")
     # Generate all possible pairs of players.
     all_pairs = list(combinations(player_names, 2))
+    random.shuffle(all_pairs)
 
     # Generate all possible match combinations given the pairs.
     possible_matches = generate_possible_match_combinations(all_pairs)
 
     # Create a counter to track how many matches each player has played.
     player_played_match_counter = Counter()
+
+    # Sort possible matches by fewest total appearances to prioritize match-ups
+    possible_matches = sorted(list(possible_matches), key=lambda x: len(set(x[0]) & set(x[1])))
 
     # List to store the scheduled matches.
     schedule = []
@@ -47,25 +51,24 @@ def generate_badminton_doubles_schedule(player_names: list[str], num_matches: in
 
 def generate_possible_match_combinations(all_pairs):
     # Create all possible doubles matches without player repetition.
-    possible_matches = []
+    possible_matches = set()
     for pair1 in all_pairs:
         for pair2 in all_pairs:
             if len(set(pair1 + pair2)) == 4:  # No repeated players in a match
-                possible_matches.append((pair1, pair2))
-    random.shuffle(possible_matches)
+                possible_matches.add((pair1, pair2))
     return possible_matches
 
 
 # Main Function
 if __name__ == "__main__":
 
-    num_matches = 20
+    num_matches = 12
 
     player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vinct", "Liju", "Jithin", "Prdip", "Vibin", "Dibu"]
     player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vinct", "Liju", "Jithin", "Prdip", "Vibin"]
-    player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vinct", "Liju", "Jithin", "Prdip"]
     player_names = ["Anub", "Jubin", "Simon", "Ajsh"]
-    player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vibin"]
+    player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vinct", "Liju", "Jithin", "Prdip"]
+    player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vibin", "Saman"]
     schedule, player_count = generate_badminton_doubles_schedule(player_names, num_matches)
 
     # img = create_schedule_image(schedule, player_count, player_names)
