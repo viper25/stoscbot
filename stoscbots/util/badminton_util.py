@@ -78,9 +78,7 @@ if __name__ == "__main__":
         table_data.append([i + 1, '|'.join(match[0]), '|'.join(match[1])])
     print(tabulate(table_data, headers=["#", "Team 1", "Team 2"], tablefmt="simple")) # Good
     print(tabulate(table_data, headers=["#", "Team 1", "Team 2"], tablefmt="rst"))  # Good
-    print(tabulate(table_data, headers=["#", "Team 1", "Team 2"], tablefmt="simple_grid"))
     print(tabulate(table_data, headers=["#", "Team 1", "Team 2"], tablefmt="presto", maxcolwidths=[1, None, None])) # Good
-    print(tabulate(table_data, headers=["#", "Team 1", "Team 2"], tablefmt="orgtbl"))
 
     print("\n### Player Participation Counts ###")
     data = [(player, count) for player, count in player_count.items()]
