@@ -55,6 +55,8 @@ __MYDETAILS_LIST_OF_ACCOUNTS_BUTTON = InlineKeyboardButton("ℹ List of Accounts
 
 PRAYER_REQUESTS_LISTING_BUTTON = InlineKeyboardButton("📿 Prayer Requests", callback_data="Prayer Requests")
 __WHO_IS_MY_MC_BUTTON = InlineKeyboardButton("👥 Management Committee", callback_data="MC")
+__MAIN_STREAMING_BUTTON = InlineKeyboardButton("📡 Streaming", callback_data="Streaming Menu")
+__STREAMING_GEN_ANNOUNCEMENT_SLIDES_BUTTON = InlineKeyboardButton("📺 Generate Announcement Slides", callback_data="Generate Announcement Slides")
 # ---------------------------------------------------------------------------------------------------
 '''
 Assemble the Buttons above to create Keyboards
@@ -107,6 +109,11 @@ my_details_menu_keyboard = InlineKeyboardMarkup([
 harvest_menu_keyboard = InlineKeyboardMarkup([
     [BACK_TO_MAIN_BUTTON, InlineKeyboardButton("🔃 Refresh", callback_data="My Harvest Festival Menu")]
 ])
+
+streaming_menu_keyboard = InlineKeyboardMarkup([
+    [__STREAMING_GEN_ANNOUNCEMENT_SLIDES_BUTTON],
+    [BACK_TO_MAIN_BUTTON]
+])
 # ---------------------------------------------------------------------------------------------------
 """
 Dynamic keyboards that have to be created at runtime:
@@ -119,7 +126,7 @@ def get_main_keyboard(telegram_id):
             [__MAIN_SERVICES_BUTTON, __MAIN_MEMBERS_BUTTON],
             [__MAIN_PRAYER_GROUPS_BUTTON, __MAIN_FINANCE_BUTTON],
             [__MAIN_MY_DETAILS_BUTTON, __MAIN_MY_HARVEST_BUTTON],
-            [__MAIN_PAYNOW_BUTTON]
+            [__MAIN_PAYNOW_BUTTON, __MAIN_STREAMING_BUTTON]
         ]
     else:
         # Normal members
