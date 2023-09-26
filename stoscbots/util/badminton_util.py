@@ -2,8 +2,6 @@ import random
 from collections import Counter
 from itertools import combinations
 
-from stoscbots.util.image import create_schedule_image
-
 
 def generate_badminton_doubles_schedule(player_names: list[str], num_matches: int):
     # Ensure there are at least 4 players to schedule a doubles match.
@@ -81,8 +79,6 @@ if __name__ == "__main__":
     table_data = []
     for i, match in enumerate(schedule):
         table_data.append([i + 1, ', '.join([item for sublist in match for item in sublist])])
-
-    # img = create_schedule_image(table_data, player_count, player_names)
 
     print(tabulate(table_data, headers=["#", "Team 1", "Team 2"], tablefmt="simple"))  # Good
     print(tabulate(table_data, headers=["#", "Team 1", "Team 2"], tablefmt="rst"))  # Good
