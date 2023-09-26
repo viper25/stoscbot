@@ -37,6 +37,7 @@ jobs:
         STOSC_XERO_STOSC_TENANT_ID: ${{ secrets.STOSC_XERO_STOSC_TENANT_ID }}
         STOSC_XERO_CLIENT_ID: ${{ secrets.STOSC_XERO_CLIENT_ID }}        
         SUPER_ADMIN_TELEGRAM_IDS: ${{ secrets.SUPER_ADMIN_TELEGRAM_IDS }}
+        VIBIN_TELEGRAM_ID: ${{ secrets.VIBIN_TELEGRAM_ID }}
         ENV: 'PRO'
         LOGLEVEL: 'INFO'
       run: |
