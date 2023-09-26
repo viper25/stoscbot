@@ -3,7 +3,6 @@ Admin API calls
 """
 import configparser
 import logging
-import os
 
 from pyrogram import Client, filters
 from pyrogram.types import Message
@@ -44,7 +43,7 @@ async def add_user_handler(client: Client, message: Message):
     if bot_auth.is_super_admin(message.from_user.id) is False:
         msg = "You are not allowed to add users"
         await message.reply_text(msg)
-        return    
+        return
     if len(message.command) < 4:
         msg = "Please enter proper commands\ne.g. `/add [telegram_id] [member_code] [name]`"
         await message.reply_text(msg)
@@ -73,7 +72,7 @@ async def add_user_handler(client: Client, message: Message):
 @loggers.async_log_access
 async def get_telegram_id_handler(client: Client, message: Message):
     # Only allow the bot owner to add users
-    if bot_auth.is_super_admin(message.from_user.id) is False:    
+    if bot_auth.is_super_admin(message.from_user.id) is False:
         msg = "You are not allowed to execute this command"
         await message.reply_text(msg)
         return
@@ -107,7 +106,7 @@ async def get_telegram_id_handler(client: Client, message: Message):
 @loggers.async_log_access
 async def send_msg(client: Client, message: Message):
     # Only allow the bot owner to add users
-    if bot_auth.is_super_admin(message.from_user.id) is False:    
+    if bot_auth.is_super_admin(message.from_user.id) is False:
         msg = "You are not allowed to execute this command"
         await message.reply_text(msg)
         return
