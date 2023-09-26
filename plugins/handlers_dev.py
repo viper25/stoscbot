@@ -3,7 +3,6 @@ Admin API calls
 """
 import configparser
 import logging
-import os
 
 from pyrogram import Client, filters
 from pyrogram.types import Message
@@ -15,7 +14,6 @@ from stoscbots.util.loggers import LOGLEVEL
 
 logger = logging.getLogger('Handler.Main')
 logger.setLevel(LOGLEVEL)
-VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
 
 
 @Client.on_message(filters.command(["version", "ver"]))
@@ -42,7 +40,7 @@ async def version_handler(client: Client, message: Message):
 @loggers.async_log_access
 async def add_user_handler(client: Client, message: Message):
     # Only allow the bot owner to add users
-    if message.from_user.id != VIBIN_TELEGRAM_ID:
+    if bot_auth.is_super_admin(message.from_user.id) is False:
         msg = "You are not allowed to add users"
         await message.reply_text(msg)
         return
@@ -74,7 +72,7 @@ async def add_user_handler(client: Client, message: Message):
 @loggers.async_log_access
 async def get_telegram_id_handler(client: Client, message: Message):
     # Only allow the bot owner to add users
-    if message.from_user.id != VIBIN_TELEGRAM_ID:
+    if bot_auth.is_super_admin(message.from_user.id) is False:
         msg = "You are not allowed to execute this command"
         await message.reply_text(msg)
         return
@@ -108,7 +106,7 @@ async def get_telegram_id_handler(client: Client, message: Message):
 @loggers.async_log_access
 async def send_msg(client: Client, message: Message):
     # Only allow the bot owner to add users
-    if message.from_user.id != VIBIN_TELEGRAM_ID:
+    if bot_auth.is_super_admin(message.from_user.id) is False:
         msg = "You are not allowed to execute this command"
         await message.reply_text(msg)
         return
