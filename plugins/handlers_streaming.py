@@ -12,14 +12,13 @@ from stoscbots.util.loggers import LOGLEVEL
 logger = logging.getLogger('Handler.Streaming')
 logger.setLevel(LOGLEVEL)
 
-ANNOUNCEMENTS_SLIDES_DIR = '~/announcements-slides'
-ANNOUNCEMENTS_SLIDES_SCRIPT = os.path.join(ANNOUNCEMENTS_SLIDES_DIR, 'announcement_google_generator.py')
+ANNOUNCEMENTS_SLIDES_DIR = '~/jobs/stosc_announcements/announcements-slides'
+ANNOUNCEMENTS_SLIDES_SCRIPT = os.path.join(ANNOUNCEMENTS_SLIDES_DIR, 'launcher_slide_generator.sh')
 
 
 def dynamic_data_filter(data):
     return filters.create(
         lambda flt, _, query: query.data.startswith(flt.data), data=data
-        # "data" kwarg is accessed with "flt.data" above
     )
 
 
