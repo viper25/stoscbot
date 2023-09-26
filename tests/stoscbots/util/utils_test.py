@@ -1,4 +1,3 @@
-import os
 from decimal import Decimal
 from unittest.mock import patch, AsyncMock, mock_open
 
@@ -14,7 +13,7 @@ def test_getMemberCode_from_TelegramID_Bad_value():
     memberCode = utils.getMemberCode_from_TelegramID("wrongID")
     assert memberCode is None
 
-
+# We assume the SUPER ADMIN is always a member = V019
 def test_getMemberCode_from_TelegramID():
     memberCode = utils.getMemberCode_from_TelegramID(bot_auth_test.get_super_admin_id())
     assert memberCode == "V019"
