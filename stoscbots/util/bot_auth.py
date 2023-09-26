@@ -17,7 +17,6 @@ logger.setLevel(LOGLEVEL)
 ACCESS_DENIED_TEXT = "⛔️**RESTRICTED ACCESS**⛔️"
 ACCESS_DENIED_MEMBERS_TEXT = "⛔️**ACCESS DENIED**⛔️\n➖➖➖➖➖➖➖➖\n If you wish to access the bot and see your contribution statements, contact the [Lay Steward](https://t.me/stosc_accounts) or email accounts@stosc.com for access."
 
-SUPER_ADMIN_TELEGRAM_IDS = os.environ.get('SUPER_ADMIN_TELEGRAM_IDS')
 VIBIN_TELEGRAM_ID = os.environ.get('VIBIN_TELEGRAM_ID')
 
 resource = boto3.resource('dynamodb', aws_access_key_id=os.environ.get('STOSC_DDB_ACCESS_KEY_ID'),
@@ -25,6 +24,8 @@ resource = boto3.resource('dynamodb', aws_access_key_id=os.environ.get('STOSC_DD
                           region_name='ap-southeast-1')
 table_stosc_bot_member_telegram = resource.Table('stosc_bot_member_telegram')
 
+def get_super_admin_ids():
+    return os.environ.get('SUPER_ADMIN_TELEGRAM_IDS', '')
 
 async def send_access_denied_msg(client, msg_or_query):
     arg_msg = ""
@@ -103,21 +104,22 @@ def async_area_prayer_coordinator_only(func):
 
 
 # =================================================
-def is_member(telegram_id: int):
+def is_member(telegram_id: int) -> bool:
     response = table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))
     if len(response['Items']) == 1:
         return True
 
 
 # --------------------------------------------------
-def is_mgmt_member(telegram_id: int):
+def is_mgmt_member(telegram_id: int) -> bool:
     response = table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))
     if len(response['Items']) == 1:
         if 'auth' in response['Items'][0] and 'mc' in response['Items'][0]['auth']:
             return True
 
+
 # --------------------------------------------------
-def is_area_prayer_coordinator_member(telegram_id: int):
+def is_area_prayer_coordinator_member(telegram_id: int) -> bool:
     response = table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))
     if len(response['Items']) == 1:
         if 'auth' in response['Items'][0] and (
@@ -129,8 +131,8 @@ def get_super_admin_id():
     return VIBIN_TELEGRAM_ID
 
 
-def is_super_admin(telegram_id: int):
-    super_admin_ids_list = SUPER_ADMIN_TELEGRAM_IDS.split(',')
+def is_super_admin(telegram_id: int) -> bool:
+    super_admin_ids_list = get_super_admin_ids().split(',')
     super_admin_ids = [int(id_str) for id_str in super_admin_ids_list if id_str.isdigit()]
     if telegram_id in super_admin_ids:
         return True
