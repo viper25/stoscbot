@@ -16,9 +16,3 @@ convopyro
 # pytest-asyncio  # For testing
 # pytest  # For testing
 # pytest-cov # for coverage. Use as pytest --cov
-
-# OpenAI
-openai
-langchain
-chromadb
-sentence-transformers # For sentence embeddings from HuggingFaceEmbeddings
