@@ -13,7 +13,7 @@ logger = logging.getLogger('Handler.Streaming')
 logger.setLevel(LOGLEVEL)
 
 ANNOUNCEMENTS_SLIDES_DIR = '~/jobs/stosc_announcements/announcements-slides'
-ANNOUNCEMENTS_SLIDES_SCRIPT = os.path.join(ANNOUNCEMENTS_SLIDES_DIR, 'launcher_slide_generator.sh')
+ANNOUNCEMENTS_SLIDES_SCRIPT = 'launcher_slide_generator.sh'
 
 
 def dynamic_data_filter(data):
@@ -28,9 +28,9 @@ async def generate_announcement_slides(client: Client, query: CallbackQuery):
     await query.answer()
 
     # Check if the system is Linux
-    if platform.system() == "Linux":
+    if platform.system() == "Windows":
         # Generate the slides
-        cmd = ['python3', ANNOUNCEMENTS_SLIDES_SCRIPT]
+        cmd = f"cd {ANNOUNCEMENTS_SLIDES_DIR} && ./{ANNOUNCEMENTS_SLIDES_SCRIPT}"
         logger.info(f"Executing {cmd}")
         subprocess.run(cmd)
 
