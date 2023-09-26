@@ -28,7 +28,7 @@ async def generate_announcement_slides(client: Client, query: CallbackQuery):
     await query.answer()
 
     # Check if the system is Linux
-    if platform.system() == "Windows":
+    if platform.system() == "Linux":
         # Generate the slides
         cmd = f"cd {ANNOUNCEMENTS_SLIDES_DIR} && ./{ANNOUNCEMENTS_SLIDES_SCRIPT}"
         logger.info(f"Executing {cmd}")
