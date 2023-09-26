@@ -116,16 +116,6 @@ def is_mgmt_member(telegram_id: int):
         if 'auth' in response['Items'][0] and 'mc' in response['Items'][0]['auth']:
             return True
 
-
-# --------------------------------------------------
-def is_smo_member(telegram_id: int):
-    response = table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))
-    if len(response['Items']) == 1:
-        if 'auth' in response['Items'][0] and (
-                'smo' in response['Items'][0]['auth'] or 'mc' in response['Items'][0]['auth']):
-            return True
-
-
 # --------------------------------------------------
 def is_area_prayer_coordinator_member(telegram_id: int):
     response = table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))

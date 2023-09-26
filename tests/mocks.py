@@ -9,7 +9,6 @@ from pyrogram import Client
 telegram_client = Client("my_account")
 telegram_member_non = User(id="9999999999", first_name="Non-Member", username="non_member")
 telegram_member_mc = User(id=os.environ.get("VIBIN_TELEGRAM_ID"), first_name="MC", username="mc_member")
-telegram_member_smo = User(id="9999999991", first_name="SMO", username="smo")
 telegram_member_area_prayer_coordinator = User(id="9999999992", first_name="APC", username="area_prayer_coordinator")
 telegram_member_harvest_admin = User(id="9999999994", first_name="HarvestAdmin", username="harvest_admin")
 telegram_member_normal = User(id="9999999995", first_name="Member", username="member")
