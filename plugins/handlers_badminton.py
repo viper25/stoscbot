@@ -32,7 +32,6 @@ async def badminton_scheduler(client: Client, message: Message):
         await message.reply_text(msg)
         return
     else:
-        await message.reply_text("Computing Schedule ... ⌛")
         num_matches = int(message.command[1])
 
         _players = ','.join(message.command[2:])
@@ -49,12 +48,11 @@ async def badminton_scheduler(client: Client, message: Message):
         # Display the schedule in table format
         table_data = []
         for i, match in enumerate(schedule):
-            table_data.append([i + 1, ', '.join([item for sublist in match for item in sublist])])
+            table_data.append([i + 1, ', '.join(match)])
         msg_parts = [tabulate(table_data, headers=["#", "Players"], tablefmt="rst")]
 
         msg_parts.append("\n\n**Games per Player**")
-        data = [(player, count) for player, count in player_count.items()]
-        msg_parts.append(tabulate(data, headers=['Player', 'Games'], tablefmt="simple"))
+        msg_parts.append(tabulate(player_count, headers=['Player', 'Games'], tablefmt="simple"))
 
         # Add ticks to the tables to make it mono-spaced
         msg_parts[0] = f"`\n{msg_parts[0]}`"

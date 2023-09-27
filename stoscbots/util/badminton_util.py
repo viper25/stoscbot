@@ -1,11 +1,13 @@
 import random
 from collections import Counter
 from itertools import combinations
+from typing import Tuple, List, Set
 
 
-def generate_badminton_doubles_schedule(player_names: list[str], num_matches: int):
+def generate_badminton_doubles_schedule(player_names: list[str], num_matches: int) -> Tuple[
+    List[Tuple[str, str, str, str]], List[Tuple[str, int]]]:
     # Ensure there are at least 4 players to schedule a doubles match.
-    if len(player_names) < 4:
+    if len(player_names) < 4 or num_matches < 1:
         raise ValueError("⚠️ There must be at least 4 players to schedule a doubles match")
     # Generate all possible pairs of players.
     all_pairs = list(combinations(player_names, 2))
@@ -40,7 +42,7 @@ def generate_badminton_doubles_schedule(player_names: list[str], num_matches: in
 
             if (len(schedule) < num_matches) and (total_count == min_match_count):
                 # Schedule this match.
-                schedule.append(match)
+                schedule.append(tuple(item for sublist in match for item in sublist))
                 # Update match counts for each player in this match.
                 for player in team1 + team2:
                     player_played_match_counter[player] += 1
@@ -48,10 +50,12 @@ def generate_badminton_doubles_schedule(player_names: list[str], num_matches: in
                 possible_matches.remove(match)
                 break
 
-    return schedule, player_played_match_counter
+    _x = [(player, count) for player, count in player_played_match_counter.items()]
+    return schedule, _x
 
 
-def generate_possible_match_combinations(all_pairs):
+def generate_possible_match_combinations(all_pairs: List[Tuple[str, str]]) -> Set[
+    Tuple[Tuple[str, str], Tuple[str, str]]]:
     # Create all possible doubles matches without player repetition.
     possible_matches = set()
     for pair1 in all_pairs:
@@ -78,13 +82,12 @@ if __name__ == "__main__":
     # Display the schedule in table format
     table_data = []
     for i, match in enumerate(schedule):
-        table_data.append([i + 1, ', '.join([item for sublist in match for item in sublist])])
+        table_data.append([i + 1, ', '.join(match)])
 
-    print(tabulate(table_data, headers=["#", "Team 1", "Team 2"], tablefmt="simple"))  # Good
-    print(tabulate(table_data, headers=["#", "Team 1", "Team 2"], tablefmt="rst"))  # Good
-    print(tabulate(table_data, headers=["#", "Team 1", "Team 2"], tablefmt="presto",
+    print(tabulate(table_data, headers=["#", "Players"], tablefmt="simple"))  # Good
+    print(tabulate(table_data, headers=["#", "Players"], tablefmt="rst"))  # Good
+    print(tabulate(table_data, headers=["#", "Players"], tablefmt="presto",
                    maxcolwidths=[1, None, None]))  # Good
 
     print("\n### Player Participation Counts ###")
-    data = [(player, count) for player, count in player_count.items()]
-    print(tabulate(data, headers=['Player', 'Played'], tablefmt="simple"))
+    print(tabulate(player_count, headers=['Player', 'Played'], tablefmt="simple"))
