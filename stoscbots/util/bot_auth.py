@@ -10,7 +10,7 @@ from stoscbots.util.loggers import LOGLEVEL
 # =================================================
 
 # Module logger
-logger = logging.getLogger('Handler.Finance')
+logger = logging.getLogger('Handler.Both_Auth')
 logger.setLevel(LOGLEVEL)
 # =================================================
 
