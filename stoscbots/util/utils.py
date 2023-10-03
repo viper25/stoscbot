@@ -402,9 +402,11 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
             person_pic_caption = f"{searched_person_name} `({result[0][PERSON_NAME_INDEX]})`"
             # All images are png, so try looking that up first. Adding parameter to the URL to avoid stale cache
             photo_url = f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.{extension}?rand={hash(datetime.datetime.today())}"
+            logger.info(f"Send Photo URL: {photo_url}")
             await client.send_photo(chat_id=_x.from_user.id, photo=photo_url, caption=person_pic_caption + "\n\n" + msg)
         else:
             photo_url = f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][FAMILY_CODE_INDEX]}.{extension}?rand={hash(datetime.datetime.today())}"
+            logger.info(f"Send Photo URL: {photo_url}")
             await client.send_photo(chat_id=_x.from_user.id, photo=photo_url, caption=msg, reply_markup=keyboard)
 
     # Send venue if conditions are met
