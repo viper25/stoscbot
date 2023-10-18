@@ -81,7 +81,8 @@ We use [GitHub Actions](https://github.com/viper25/stoscbot/actions) to deploy, 
 2. [Do not re-use](https://docs.pyrogram.org/faq/using-multiple-clients-at-once-on-the-same-account) a session file when deploying to a new instance. On a new isntance, delete any existing `.session` file and [generate a new session file](https://docs.pyrogram.org/start/auth#bot-authorization).
 3. Keep the `.env` and `.session` files in a `..\credentials\` directory. The [deployment scripts](.github\workflows\python-app.yml) will copy these files to the correct location.
 4. Copy the [Google API keys](https://console.cloud.google.com/iam-admin/serviceaccounts/details/104130143367587513093;edit=true/keys?project=api-project-57990973458) to `~/.config/gspread/service_account.json`. On Windows, it's at `C:\Users\xxx\AppData\Roaming\gspread\`
-5. Subsequently run headless as ` nohup python3 run_stoscbot.py &`
+Make sure that the Google account associated with your API credentials has access to the Google Sheet. You may need to share the Google Sheet with the email address specified in your `credentials.json` file.
+5. Subsequently, run headless as ` nohup python3 run_stoscbot.py &`
 </details>
 
 ## Activity 
