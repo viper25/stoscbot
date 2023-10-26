@@ -9,6 +9,9 @@ A Telegram bot (based on [Pyrogram](https://docs.pyrogram.org/)) to manage affai
 
 
 ## Setup 
+
+Create a `.env` file by modifying the [.env.sample](.env.sample)
+
 <details>
 
 <summary>
