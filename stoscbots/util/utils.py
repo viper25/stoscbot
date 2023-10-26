@@ -77,8 +77,9 @@ def getMemberCode_from_TelegramID(telegram_id: int):
 # ----------------------------------------------------------------------------------------------------------------------
 def get_address_details(_zip: str):
     try:
-        result = requests.get(
-            f'https://developers.onemap.sg//commonapi/search?searchVal={_zip}&returnGeom=Y&getAddrDetails=Y').json()
+        # https://www.onemap.gov.sg/apidocs/apidocs/#search
+        url = f"https://www.onemap.gov.sg/api/common/elastic/search?searchVal={_zip}&returnGeom=Y&getAddrDetails=Y&pageNum=1"
+        result = requests.get(url).json()
         if len(result['results']) > 0:
             return result['results'][0]['LATITUDE'], result['results'][0]['LONGITUDE']
     except Exception as e:
