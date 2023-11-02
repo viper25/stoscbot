@@ -60,7 +60,7 @@ async def start_handler(client: Client, message: Message):
         if member_code and email:
             await message.reply_text(f"I'll inform the Managing Committee of your request. Once your ID is verified, they shall add you for access to the Bot.\n\n**Details submitted:**\n`Member Code: {member_code.text}\nEmail: {email.text}`")
             # Send Telegram message to Managing Committee
-            await client.send_message(chat_id=bot_auth.get_super_admin_id(),text=f"New member request:\nMember Code: `{member_code.text}`\nEmail: `{email.text}`\nTelegram ID: `{message.from_user.id}`")
+            await client.send_message(chat_id=bot_auth.get_super_admin_id(),text=f"**New member request:**\nMember Code: `{member_code.text}`\nEmail: `{email.text}`\nTelegram ID: `{message.from_user.id}`")
         else:
             await message.reply_text("Sorry try again")
     else:
