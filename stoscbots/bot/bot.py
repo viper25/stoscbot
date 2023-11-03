@@ -29,7 +29,7 @@ if ENV == "PRO":
     ▒█░░░ ▀░▀▀ ▀▀▀▀ ▀▀▀░ ░▀▀▀ ▀▀▀ ░░▀░░ ▀▀▀ ▀▀▀▀ ▀░░▀
     """
 
-print("""
+logger.info("""
 ░██████╗████████╗░█████╗░░██████╗░█████╗░  ██████╗░░█████╗░████████╗
 ██╔════╝╚══██╔══╝██╔══██╗██╔════╝██╔══██╗  ██╔══██╗██╔══██╗╚══██╔══╝
 ╚█████╗░░░░██║░░░██║░░██║╚█████╗░██║░░╚═╝  ██████╦╝██║░░██║░░░██║░░░
@@ -38,7 +38,7 @@ print("""
 ╚═════╝░░░░╚═╝░░░░╚════╝░╚═════╝░░╚════╝░  ╚═════╝░░╚════╝░░░░╚═╝░░░
 """
       )
-print(f"Environment:\n{env_banner}")
+logger.info(f"Environment:\n{env_banner}")
 
 app = Client(os.environ.get("BOT_CLIENT_NAME"), plugins=dict(root="plugins"), test_mode=test_mode)
 Conversation(app)
