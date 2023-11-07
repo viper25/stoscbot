@@ -3,6 +3,8 @@ Admin API calls
 """
 import configparser
 import logging
+import subprocess
+import platform
 
 from pyrogram import Client, filters
 from pyrogram.types import Message
@@ -124,3 +126,28 @@ async def send_msg(client: Client, message: Message):
             log_msg = f"Telegram message [`{msg}`] sent to `{telegram_id}` ({_member_code})"
             logger.info(log_msg)
             await message.reply_text(log_msg)
+
+@Client.on_message(filters.command(["stats"]))
+@loggers.async_log_access
+async def stats(client: Client, message: Message):
+    # Only allow the bot owner to add users
+    if bot_auth.is_super_admin(message.from_user.id) is False:
+        msg = "You are not allowed to execute this command"
+        await message.reply_text(msg)
+        return
+    # if len(message.command) < 3:
+    #     msg = "Please enter proper commands\ne.g. `/send [telegram_id] [message]`"
+    #     await message.reply_text(msg)
+    #     return
+    else:
+        if platform.system() == "Linux":
+            cmd = f" tail -100 /home/ubuntu/bots/stoscbot/logs/stosc_logs.log"
+            logger.info(f"Executing {cmd}")
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+            await message.reply_text(result.stdout)
+        else:
+            cmd = f"dir"
+            logger.info(f"Executing Command: [{cmd}]")
+            result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+            await message.reply_text(result.stdout)
+
