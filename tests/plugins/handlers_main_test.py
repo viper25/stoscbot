@@ -34,7 +34,7 @@ def test_generate_profile_msg_for_family():
         "• Children: **2**\n"
         "• Other family members: **Uncle, Aunt**\n"
         "• Add: **123 Street**, **City**, **State**\n"
-        "• Mobile: [1234567890](tel://1234567890)\n"
+        "• Mobile: **[1234567890](https://wa.me/+1234567890)**\n"
         "• Home: [0987654321](tel://0987654321)\n"
         "• Email: **smith@email.com**\n"
         "• Spouse Email: **jane@email.com**\n"
