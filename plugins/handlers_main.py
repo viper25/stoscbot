@@ -1,32 +1,37 @@
-import os
 import asyncio
 import logging
-from stoscbots.util.loggers import LOGLEVEL
+
 from pyrogram import Client, filters
 from pyrogram.types import Message, CallbackQuery
+
 from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils, bot_auth
+from stoscbots.util.loggers import LOGLEVEL
 
 logger = logging.getLogger('Handler.Main')
 logger.setLevel(LOGLEVEL)
 
+
 # ==================================================
 # Command Handlers
-@Client.on_message(filters.command(["start","hi","hello"]) & filters.private)
+@Client.on_message(filters.command(["start", "hi", "hello"]) & filters.private)
 @loggers.async_log_access
 async def start_handler(client: Client, message: Message):
     email = None
     member_code = None
     # Check if user is authorized
     if not bot_auth.is_member(message.from_user.id):
-        unauth_msg=f"Unauthorized Access by **[{message.from_user.id}:{message.from_user.username}:{message.from_user.first_name}]**\nCmd `/start`"
-        await client.send_message(chat_id=bot_auth.get_super_admin_id(),text=unauth_msg)
+        unauth_msg = f"Unauthorized Access by **[{message.from_user.id}:{message.from_user.username}:{message.from_user.first_name}]**\nCmd `/start`"
+        await client.send_message(chat_id=bot_auth.get_super_admin_id(), text=unauth_msg)
         # Start a conversation with the user to ask for Member Code and Email
-        await client.send_sticker(chat_id=message.from_user.id, sticker='CAACAgIAAxkBAAIFJV-X6UKaAAEDx4Nqup6acSBW6DlThgACoAMAAvoLtgj5yjtMiAXK4hsE')
-        await message.reply_text("**You are not authorized to use this bot**\nHowever, if you are a STOSC member, do provide your details for access.\n\n`Enter your member code:`", disable_web_page_preview=True)
+        await client.send_sticker(chat_id=message.from_user.id,
+                                  sticker='CAACAgIAAxkBAAIFJV-X6UKaAAEDx4Nqup6acSBW6DlThgACoAMAAvoLtgj5yjtMiAXK4hsE')
+        await message.reply_text(
+            "**You are not authorized to use this bot**\nHowever, if you are a STOSC member, do provide your details for access.\n\n`Enter your member code:`",
+            disable_web_page_preview=True)
         try:
-            member_code = await client.listen.Message(filters.text, id = filters.user(message.from_user.id), timeout = 30)
+            member_code = await client.listen.Message(filters.text, id=filters.user(message.from_user.id), timeout=30)
             logger.info(f"Unauthorized Member Request Code: {member_code.text}")
             if not utils.is_valid_member_code(member_code.text):
                 await message.reply_text("👎🏼 Invalid member code. Please try again: /start")
@@ -40,9 +45,10 @@ async def start_handler(client: Client, message: Message):
             # Cancel the conversation
             await client.listen.Cancel(filters.user(message.from_user.id))
             return
-        await message.reply_text("`Enter your email or mobile number as present in church records.\nThis is only used for verification purposes:`")
+        await message.reply_text(
+            "`Enter your email or mobile number as present in church records.\nThis is only used for verification purposes:`")
         try:
-            email = await client.listen.Message(filters.text, id = filters.user(message.from_user.id), timeout = 30)
+            email = await client.listen.Message(filters.text, id=filters.user(message.from_user.id), timeout=30)
             logger.info(f"Unauthorized Member Request Email: {email.text}")
             #  Check if email is valid
             if not utils.is_valid_email(email.text):
@@ -58,14 +64,17 @@ async def start_handler(client: Client, message: Message):
             await client.listen.Cancel(filters.user(message.from_user.id))
             return
         if member_code and email:
-            await message.reply_text(f"I'll inform the Managing Committee of your request. Once your ID is verified, they shall add you for access to the Bot.\n\n**Details submitted:**\n`Member Code: {member_code.text}\nEmail: {email.text}`")
+            await message.reply_text(
+                f"I'll inform the Managing Committee of your request. Once your ID is verified, they shall add you for access to the Bot.\n\n**Details submitted:**\n`Member Code: {member_code.text}\nEmail: {email.text}`")
             # Send Telegram message to Managing Committee
-            await client.send_message(chat_id=bot_auth.get_super_admin_id(),text=f"**New member request:**\nMember Code: `{member_code.text}`\nEmail: `{email.text}`\nTelegram ID: `{message.from_user.id}`")
+            await client.send_message(chat_id=bot_auth.get_super_admin_id(),
+                                      text=f"**New member request:**\nMember Code: `{member_code.text}`\nEmail: `{email.text}`\nTelegram ID: `{message.from_user.id}`")
         else:
             await message.reply_text("Sorry try again")
     else:
         msg = "What would you like to do?\n Select an option:"
         await message.reply_text(msg, reply_markup=keyboards.get_main_keyboard(message.from_user.id))
+
 
 # -------------------------------------------------
 @Client.on_message(filters.command(["help"]))
@@ -165,7 +174,8 @@ async def member_search_cmd_handler(client: Client, message: Message):
             msg += "`\n⚡ = Head of Family`"
             msg += "`\n👦🏻 = Boy   👧🏻 = Girl`"
             msg += "`\n🧔🏻 = Man   👩🏻 = Woman`"
-            await message.reply_text(msg, reply_markup=keyboards.get_member_listing_keyboard(result))
+            await message.reply_text(msg, reply_markup=keyboards.get_member_listing_keyboard(result),
+                                     disable_web_page_preview=True)
 
 
 # ==================================================
@@ -182,7 +192,8 @@ def dynamic_data_filter1(data):
 
 def dynamic_data_filter2(data):
     return filters.create(
-        lambda flt, _, query: query.data.startswith(flt.data), data=data  # "data" kwarg is accessed with "flt.data" above
+        lambda flt, _, query: query.data.startswith(flt.data), data=data
+        # "data" kwarg is accessed with "flt.data" above
     )
 
 
@@ -282,6 +293,7 @@ async def show_paynow_menu(client: Client, query: CallbackQuery):
         caption=msg,
         reply_markup=keyboards.back_to_main_keyboard,
     )
+
 
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("Streaming Menu"))

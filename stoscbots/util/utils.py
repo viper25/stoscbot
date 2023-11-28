@@ -253,7 +253,7 @@ def generate_msg_xero_member_invoices(member_code: str, year: str):
                 msg += f"**${invoice['Total']:,.2f}**: ${invoice['AmountDue']:,.2f} {invoice['Status']} {icon}\n"
 
             for line in invoice["LineItems"]:
-                msg += f"  `{line['Description']}-${line['LineAmount']:,.2f}`\n"
+                msg += f"  `• {line['Description']}-${line['LineAmount']:,.2f}`\n"
 
             msg += "––––————————————————\n"
 
@@ -410,11 +410,13 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
             # All images are png, so try looking that up first. Adding parameter to the URL to avoid stale cache
             photo_url = f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.{extension}?rand={hash(datetime.datetime.today())}"
             logger.info(f"Send Photo URL: {photo_url}")
-            await client.send_photo(chat_id=_x.from_user.id, photo=photo_url, caption=person_pic_caption + "\n\n" + msg, parse_mode=ParseMode.MARKDOWN)
+            await client.send_photo(chat_id=_x.from_user.id, photo=photo_url, caption=person_pic_caption + "\n\n" + msg,
+                                    parse_mode=ParseMode.MARKDOWN)
         else:
             photo_url = f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][FAMILY_CODE_INDEX]}.{extension}?rand={hash(datetime.datetime.today())}"
             logger.info(f"Send Photo URL: {photo_url}")
-            await client.send_photo(chat_id=_x.from_user.id, photo=photo_url, caption=msg, reply_markup=keyboard, parse_mode=ParseMode.MARKDOWN)
+            await client.send_photo(chat_id=_x.from_user.id, photo=photo_url, caption=msg, reply_markup=keyboard,
+                                    parse_mode=ParseMode.MARKDOWN)
 
     # Send venue if conditions are met
     if result[0][ZIP_CODE_INDEX] and not searched_person:
@@ -437,10 +439,12 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
                     logger.warning(f"No png or jpg image for [{result[0][PERSON_NAME_INDEX]}]")
                 else:
                     logger.error(f"{getattr(e2, 'MESSAGE', str(e2))}: for [{result[0][PERSON_NAME_INDEX]}]")
-                await client.send_message(chat_id=_x.from_user.id, text=msg, reply_markup=keyboard)
+                await client.send_message(chat_id=_x.from_user.id, text=msg, reply_markup=keyboard,
+                                          disable_web_page_preview=True)
         else:
             logger.error(f"{getattr(e1, 'MESSAGE', str(e1))}: for [{result[0][PERSON_NAME_INDEX]}]")
-            await client.send_message(chat_id=_x.from_user.id, text=msg, reply_markup=keyboard)
+            await client.send_message(chat_id=_x.from_user.id, text=msg, reply_markup=keyboard,
+                                      disable_web_page_preview=True)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
