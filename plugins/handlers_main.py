@@ -266,10 +266,12 @@ async def show_my_harvest_festival_menu(client: Client, query: CallbackQuery):
     my_auction_contrib = utils.generate_msg_member_auction_contributions(member_code)
     if my_auction_contrib:
         msg += "\n\n" + my_auction_contrib
-    my_auction_link = utils.get_member_auction_link(member_code)
-    if my_auction_link:
-        msg += "\n\n" + f"——————\n▪️ Auction Link: {my_auction_link}\n"
-        msg += "\n" + f"▪️ Zoom Link: https://us06web.zoom.us/j/83256822894?pwd=ADWo8a16FaIy4xJBFnfK2pUvT8bxoJ.1"
+
+    # Auction Links
+    # my_auction_link = utils.get_member_auction_link(member_code)
+    # if my_auction_link:
+    #     msg += "\n\n" + f"——————\n▪️ Auction Link: {my_auction_link}\n"
+    #     msg += "\n" + f"▪️ Zoom Link: https://us06web.zoom.us/j/83256822894?pwd=ADWo8a16FaIy4xJBFnfK2pUvT8bxoJ.1"
     await utils.edit_and_send_msg(query, msg, keyboards.harvest_menu_keyboard)
 
 
