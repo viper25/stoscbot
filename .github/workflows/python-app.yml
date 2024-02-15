@@ -39,6 +39,7 @@ jobs:
         STOSC_XERO_CLIENT_ID: ${{ secrets.STOSC_XERO_CLIENT_ID }}
         SUPER_ADMIN_TELEGRAM_IDS: ${{ secrets.SUPER_ADMIN_TELEGRAM_IDS }}
         VIBIN_TELEGRAM_ID: ${{ secrets.VIBIN_TELEGRAM_ID }}
+        CLOUD_PROVIDER: ${{ secrets.CLOUD_PROVIDER }}
         ENV: 'PRO'
         LOGLEVEL: 'INFO'
       run: |
@@ -148,33 +149,33 @@ jobs:
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.BOT_HOST }}
-        username: ${{ secrets.CLOUD_PROVIDER == 'Azure' && 'azureuser' || 'ubuntu' }}
+        username: ${{ env.CLOUD_PROVIDER == 'Azure' && 'azureuser' || 'ubuntu' }}
         key: ${{ secrets.BOT_HOST_KEY }}
         port: 22
         script: |
           ps -ef | grep 'run_stoscbot' | grep -v grep | awk '{print $2}' | xargs kill -9 2> /dev/null
-          cd ${{ secrets.CLOUD_PROVIDER == 'Azure' && '/home/azureuser/bots/stoscbot/workspace' || '/home/ubuntu/bots/stoscbot/workspace' }}
+          cd ${{ env.CLOUD_PROVIDER == 'Azure' && '/home/azureuser/bots/stoscbot/workspace' || '/home/ubuntu/bots/stoscbot/workspace' }}
           rm -rf !\(.venv\)
 
     - name: Copy Files to VM
       uses: horochx/deploy-via-scp@1.1.0
       with:
         local: ${{ github.workspace }}
-        remote: ${{ secrets.CLOUD_PROVIDER == 'Azure' && '/home/azureuser/bots/stoscbot/' || '/home/ubuntu/bots/stoscbot/' }}
+        remote: ${{ env.CLOUD_PROVIDER == 'Azure' && '/home/azureuser/bots/stoscbot/' || '/home/ubuntu/bots/stoscbot/' }}
         host:  ${{ secrets.BOT_HOST }}
         port: 22
-        user: ${{ secrets.CLOUD_PROVIDER == 'Azure' && 'azureuser' || 'ubuntu' }}
+        user: ${{ env.CLOUD_PROVIDER == 'Azure' && 'azureuser' || 'ubuntu' }}
         key: ${{ secrets.BOT_HOST_KEY }}
 
     - name: Install & Start the bot on VM
       uses: appleboy/ssh-action@master
       with:
         host: ${{ secrets.BOT_HOST }}
-        username: ${{ secrets.CLOUD_PROVIDER == 'Azure' && 'azureuser' || 'ubuntu' }}
+        username: ${{ env.CLOUD_PROVIDER == 'Azure' && 'azureuser' || 'ubuntu' }}
         key: ${{ secrets.BOT_HOST_KEY }}
         port: 22
         script: |
-          cd ${{ secrets.CLOUD_PROVIDER == 'Azure' && '/home/azureuser/bots/stoscbot/workspace' || '/home/ubuntu/bots/stoscbot/workspace' }}
+          cd ${{ env.CLOUD_PROVIDER == 'Azure' && '/home/azureuser/bots/stoscbot/workspace' || '/home/ubuntu/bots/stoscbot/workspace' }}
           cp ../credentials/* .
           cp ../credentials/.* .
           python -m venv .venv
