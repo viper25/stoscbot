@@ -45,7 +45,7 @@ jobs:
         pytest --cov=./ --cov-report=xml
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4.0.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         fail_ci_if_error: true
@@ -92,7 +92,7 @@ jobs:
   Deploy_to_VM:
     runs-on: ubuntu-latest
     needs: [ Version_Code ]
-    if: ${{ false }}  # Keep this disabled or adjust as needed
+    if: ${{ true }}  # Keep this disabled or adjust as needed
 
     steps:
     - name: Get Cache for stoscbot workspace
