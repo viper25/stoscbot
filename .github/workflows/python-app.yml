@@ -116,6 +116,8 @@ jobs:
 
 
     # See https://kamrul.dev/dynamically-add-github-actions-ip-to-aws-security-group/
+    - name: Echo CLOUD_PROVIDER
+      run: echo "CLOUD_PROVIDER is $CLOUD_PROVIDER"
     - name: Setting environment variables..
       if: env.CLOUD_PROVIDER == 'AWS'
       run: |
