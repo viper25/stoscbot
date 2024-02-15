@@ -96,17 +96,17 @@ jobs:
     if: ${{ true }}  # Keep this disabled or adjust as needed
 
     steps:
+    - name: Echo CLOUD_PROVIDER
+      run: echo "CLOUD_PROVIDER is $CLOUD_PROVIDER"
     - name: Get Cache for stoscbot workspace
       uses: actions/cache@v4
       with:
         path: ${{ github.workspace }}
         key: ${{ runner.os }}-stoscbot-${{ github.sha }}
-
     - name: Set up Python 3.11
       uses: actions/setup-python@master
       with:
         python-version: "3.11"
-
     - name: Remove unwanted folders
       run: |
         cd ${{ github.workspace }}
@@ -116,19 +116,15 @@ jobs:
 
 
     # See https://kamrul.dev/dynamically-add-github-actions-ip-to-aws-security-group/
-    - name: Echo CLOUD_PROVIDER
-      run: echo "CLOUD_PROVIDER is $CLOUD_PROVIDER"
     - name: Setting environment variables..
       if: env.CLOUD_PROVIDER == 'AWS'
       run: |
         echo "AWS_DEFAULT_REGION=ap-southeast-1" >> $GITHUB_ENV
         echo "AWS_SG_NAME=stosc-1-ec2" >> $GITHUB_ENV
-
     - name: Get Github action IP
       if: env.CLOUD_PROVIDER == 'AWS'
       id: ip
       uses: haythem/public-ip@v1.2
-
     - name: Add Github Actions IP to Security group
       if: env.CLOUD_PROVIDER == 'AWS'
       run: |
