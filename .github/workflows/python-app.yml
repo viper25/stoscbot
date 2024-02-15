@@ -39,7 +39,6 @@ jobs:
         STOSC_XERO_CLIENT_ID: ${{ secrets.STOSC_XERO_CLIENT_ID }}
         SUPER_ADMIN_TELEGRAM_IDS: ${{ secrets.SUPER_ADMIN_TELEGRAM_IDS }}
         VIBIN_TELEGRAM_ID: ${{ secrets.VIBIN_TELEGRAM_ID }}
-        CLOUD_PROVIDER: ${{ secrets.CLOUD_PROVIDER }}
         ENV: 'PRO'
         LOGLEVEL: 'INFO'
       run: |
@@ -94,6 +93,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ Version_Code ]
     if: ${{ true }}  # Keep this disabled or adjust as needed
+    env:
+      CLOUD_PROVIDER: ${{ secrets.CLOUD_PROVIDER }}
 
     steps:
     - name: Echo CLOUD_PROVIDER
