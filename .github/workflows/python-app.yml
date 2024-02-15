@@ -110,6 +110,39 @@ jobs:
       run: |
         cd ${{ github.workspace }}
         rm -rf .git/ .github/ .gitignore
+        
+
+
+
+
+    - name: Setting environment variables..
+      if: env.CLOUD_PROVIDER == 'AWS'
+      run: |
+        echo "AWS_DEFAULT_REGION=ap-southeast-1" >> $GITHUB_ENV
+        echo "AWS_SG_NAME=stosc-1-ec2" >> $GITHUB_ENV
+
+    - name: Get Github action IP
+      if: env.CLOUD_PROVIDER == 'AWS'
+      id: ip
+      uses: haythem/public-ip@v1.2
+
+    - name: Add Github Actions IP to Security group
+      if: env.CLOUD_PROVIDER == 'AWS'
+      run: |
+          aws ec2 authorize-security-group-ingress --group-name ${{ env.AWS_SG_NAME }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
+      env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_GITHUB_ACTIONS }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_GITHUB_ACTIONS }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+
+
+
+
+
+
+
+
+
 
     - name: Stop the bot and clear the folder
       uses: appleboy/ssh-action@master
@@ -148,3 +181,18 @@ jobs:
           source .venv/bin/activate
           if [ -f requirements.txt ]; then pip install --upgrade -r requirements.txt; fi
           nohup python run_stoscbot.py > /dev/null 2>&1 &
+
+
+
+
+
+
+
+    - name: Remove Github Actions IP from security group
+      if: env.CLOUD_PROVIDER == 'AWS'
+      run: |
+        aws ec2 revoke-security-group-ingress --group-name ${{ env.AWS_SG_NAME }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
+      env:
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_GITHUB_ACTIONS }}
+        AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_GITHUB_ACTIONS }}
+        AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
