@@ -220,8 +220,9 @@ async def run_commands_2(client: Client, message: Message):
                     # process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
                     # output, error = process.communicate()
                     # cmd_result = output.decode('utf-8')
+                    # error = error.decode('utf-8')
 
-                    error = error.decode('utf-8')
+
                 elif platform.system() == "Windows":
                     # Show last 10 lines of log at logs/vjk_logs.log
                     with open('logs/vjk_logs.log', 'r', encoding='utf-8') as file:
@@ -238,8 +239,7 @@ async def run_commands_2(client: Client, message: Message):
                     # process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
                     # output, error = process.communicate()
                     # cmd_result = output.decode('utf-8')
-
-                    error = error.decode('utf-8')
+                    # error = error.decode('utf-8')
 
                     cmd_result = cmd_result.stdout.split('\n')
                     cmd_result = '\n'.join(cmd_result)
