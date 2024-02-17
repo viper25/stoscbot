@@ -17,9 +17,6 @@ from stoscbots.xero import xero_utils
 logger = logging.getLogger('Handler.Finance')
 logger.setLevel(loggers.LOGLEVEL)
 
-TELEGRAM_MESSAGE_LIMIT = 4096
-TRUNCATION_SUFFIX = '\n`... (truncated)`'
-
 # --------------------------------------------------
 
 '''
@@ -278,6 +275,7 @@ async def get_finance_latest_tx(client: Client, query: CallbackQuery):
     msg = ''.join(msg_parts)
     msg = format_telegram_message(msg)
     await utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
+
 
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Finance Projects Button"))
