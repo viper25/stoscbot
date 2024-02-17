@@ -14,6 +14,7 @@ from stoscbots.db import db
 from stoscbots.util import bot_auth
 from stoscbots.util import loggers, utils
 from stoscbots.util.loggers import LOGLEVEL
+from stoscbots.util.utils import format_telegram_message
 
 logger = logging.getLogger('Handler.Main')
 logger.setLevel(LOGLEVEL)
@@ -152,7 +153,7 @@ async def run_commands(client: Client, message: Message):
     if command == 'logs':
         cmd_result = await handle_logs_command(args, log_file_path)
 
-    await message.reply_text(f"`{cmd_result}`")
+    await message.reply_text(f"`{format_telegram_message(cmd_result)}`")
 
 async def handle_logs_command(args, log_file_path):
     num_of_lines = 50
