@@ -213,7 +213,7 @@ async def run_commands_2(client: Client, message: Message):
             num_of_lines = 50
             if args:
                 if platform.system() == "Linux":
-                    cmd = f"tail -{num_of_lines}f /home/ubuntu/bots/stoscbot/logs/stosc_logs.log | grep {args[0]}"
+                    cmd = f"tail -{num_of_lines} /home/ubuntu/bots/stoscbot/logs/stosc_logs.log | grep {args[0]}"
                     logger.info(f"Executing {cmd}")
                     cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
 
@@ -232,7 +232,7 @@ async def run_commands_2(client: Client, message: Message):
                         cmd_result = '\n'.join(cmd_result)
             else:
                 if platform.system() == "Linux":
-                    cmd = f"tail -{num_of_lines}f /home/ubuntu/bots/stoscbot/logs/stosc_logs.log"
+                    cmd = f"tail -{num_of_lines} /home/ubuntu/bots/stoscbot/logs/stosc_logs.log"
                     logger.info(f"Executing {cmd}")
                     cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
 
