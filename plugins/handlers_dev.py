@@ -3,6 +3,8 @@ Admin API calls
 """
 import configparser
 import logging
+import platform
+import subprocess
 
 from pyrogram import Client, filters
 from pyrogram.types import Message
@@ -124,3 +126,56 @@ async def send_msg(client: Client, message: Message):
             log_msg = f"Telegram message [`{msg}`] sent to `{telegram_id}` ({_member_code})"
             logger.info(log_msg)
             await message.reply_text(log_msg)
+
+
+# -------------------------------------------------
+# Get Server stats and Logs
+# /cmd logs 1
+@Client.on_message(filters.command(["cmd"]))
+@loggers.async_log_access
+async def run_commands(client: Client, message: Message):
+    # Only allow the bot owner
+    if bot_auth.is_super_admin(message.from_user.id) is False:
+        msg = "You are not allowed to execute this command"
+        await message.reply_text(msg)
+        return
+    if len(message.command) < 2:
+        msg = "Please enter proper commands\ne.g. `/cmd [command]`"
+        await message.reply_text(msg)
+        return
+    else:
+        cmd_result = "No result"
+        command = message.command[1]
+        if len(message.command) > 2:
+            args = message.command[2:]
+        else:
+            args = None
+
+        if command == 'logs':
+            num_of_lines = 50
+            if args:
+                if platform.system() == "Linux":
+                    cmd = f"tail -{num_of_lines}f /home/ubuntu/bots/stoscbot/logs/stosc_logs.log | grep {args[0]}"
+                    logger.info(f"Executing {cmd}")
+                    cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                elif platform.system() == "Windows":
+                    # Show last 10 lines of log at logs/vjk_logs.log
+                    with open('logs/vjk_logs.log', 'r', encoding='utf-8') as file:
+                        cmd_result = file.readlines()[-num_of_lines:]
+                        # Filter the lines with the search string
+                        cmd_result = [x for x in cmd_result if args[0] in x]
+                        cmd_result = '\n'.join(cmd_result)
+            else:
+                if platform.system() == "Linux":
+                    cmd = f"tail -{num_of_lines}f /home/ubuntu/bots/stoscbot/logs/stosc_logs.log"
+                    logger.info(f"Executing {cmd}")
+                    cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+                    cmd_result = cmd_result.stdout.split('\n')
+                    cmd_result = '\n'.join(cmd_result)
+                elif platform.system() == "Windows":
+                    # Show last 10 lines of log at logs/vjk_logs.log
+                    with open('logs/vjk_logs.log', 'r', encoding='utf-8') as file:
+                        cmd_result = file.readlines()[-num_of_lines:]
+                        cmd_result = '\n'.join(cmd_result)
+
+        await message.reply_text(f"`{cmd_result}`")

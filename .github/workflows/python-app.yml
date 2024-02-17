@@ -91,7 +91,7 @@ jobs:
   Deploy_to_VM:
     runs-on: ubuntu-latest
     needs: [ Version_Code ]
-    if: ${{ true }}  # Keep this disabled or adjust as needed
+    if: ${{ true }}  # A switch to turn on/off the deployment
     env:
       CLOUD_PROVIDER: ${{ secrets.CLOUD_PROVIDER }}
 
