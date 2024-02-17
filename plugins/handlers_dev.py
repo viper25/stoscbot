@@ -215,10 +215,12 @@ async def run_commands_2(client: Client, message: Message):
                 if platform.system() == "Linux":
                     cmd = f"tail -{num_of_lines}f /home/ubuntu/bots/stoscbot/logs/stosc_logs.log | grep {args[0]}"
                     logger.info(f"Executing {cmd}")
-                    # cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-                    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-                    output, error = process.communicate()
-                    cmd_result = output.decode('utf-8')
+                    cmd_result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
+
+                    # process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+                    # output, error = process.communicate()
+                    # cmd_result = output.decode('utf-8')
+
                     error = error.decode('utf-8')
                 elif platform.system() == "Windows":
                     # Show last 10 lines of log at logs/vjk_logs.log
@@ -231,10 +233,12 @@ async def run_commands_2(client: Client, message: Message):
                 if platform.system() == "Linux":
                     cmd = f"tail -{num_of_lines}f /home/ubuntu/bots/stoscbot/logs/stosc_logs.log"
                     logger.info(f"Executing {cmd}")
-                    # cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-                    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-                    output, error = process.communicate()
-                    cmd_result = output.decode('utf-8')
+                    cmd_result = subprocess.run(cmd, shell=False, capture_output=True, text=True)
+
+                    # process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+                    # output, error = process.communicate()
+                    # cmd_result = output.decode('utf-8')
+
                     error = error.decode('utf-8')
 
                     cmd_result = cmd_result.stdout.split('\n')
