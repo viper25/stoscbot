@@ -15,7 +15,7 @@ from stoscbots.util.loggers import LOGLEVEL
 Handle multiple callback queries data and return filter for each
 '''
 
-logger = logging.getLogger('Handler.Main')
+logger = logging.getLogger('Handler.Members')
 logger.setLevel(LOGLEVEL)
 
 def dynamic_data_filter(data):
