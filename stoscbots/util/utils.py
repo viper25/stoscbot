@@ -255,7 +255,7 @@ def generate_msg_xero_member_invoices(member_code: str, year: str):
             for line in invoice["LineItems"]:
                 msg += f"  `• {line['Description']}-${line['LineAmount']:,.2f}`\n"
 
-            msg += "––––————————————————\n"
+            msg += "––––———————————————\n"
 
     return msg
 
