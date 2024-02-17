@@ -1,3 +1,4 @@
+import logging
 import math
 from datetime import date
 
@@ -7,12 +8,15 @@ from pyrogram.types import CallbackQuery
 from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import loggers, utils
+from stoscbots.util.loggers import LOGLEVEL
 
 # ==================================================
 '''
 Handle multiple callback queries data and return filter for each
 '''
 
+logger = logging.getLogger('Handler.Main')
+logger.setLevel(LOGLEVEL)
 
 def dynamic_data_filter(data):
     return filters.create(
