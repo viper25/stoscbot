@@ -156,7 +156,7 @@ async def run_commands(client: Client, message: Message):
     await message.reply_text(f"`{format_telegram_message(cmd_result)}`")
 
 async def handle_logs_command(args, log_file_path):
-    num_of_lines = 50
+    num_of_lines = 30
     if not os.path.exists(log_file_path):
         return "Log file does not exist."
 
