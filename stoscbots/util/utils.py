@@ -125,7 +125,12 @@ def generate_profile_msg_for_family(result: list) -> str:
     if pattern.match(row[13]):
         msg += format_msg("Mobile", f"[{row[13]}](https://wa.me/+65{row[13]})", 13, link=False)
     else:
-        msg += format_msg("Mobile", f"[{row[13]}](https://wa.me/+{row[13]})", 13, link=False)
+        # Not a Singapore number
+        if row[13] and row[13] != "":
+            msg += format_msg("Mobile", f"[+{row[13]}](https://wa.me/+{row[13]})", 13, link=False)
+        else:
+            # No mobile
+            pass
     msg += format_msg("Home", row[14], 14, link=True)
     msg += format_msg("Email", row[3], 3)
     if row[7] and row[7] != "" and row[7] != row[5]:
