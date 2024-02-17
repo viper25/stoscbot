@@ -3,6 +3,7 @@ Admin API calls
 """
 import configparser
 import logging
+import os
 import platform
 import subprocess
 
@@ -134,6 +135,63 @@ async def send_msg(client: Client, message: Message):
 @Client.on_message(filters.command(["cmd"]))
 @loggers.async_log_access
 async def run_commands(client: Client, message: Message):
+    # Only allow the bot owner
+    if not bot_auth.is_super_admin(message.from_user.id):
+        await message.reply_text("You are not allowed to execute this command")
+        return
+
+    if len(message.command) < 2:
+        await message.reply_text("Please enter proper commands\ne.g. `/cmd [command]`")
+        return
+
+    cmd_result = "No result"
+    command = message.command[1]
+    args = message.command[2:] if len(message.command) > 2 else None
+    log_file_path = '/home/ubuntu/bots/stoscbot/logs/stosc_logs.log' if platform.system() == "Linux" else 'logs/vjk_logs.log'
+
+    if command == 'logs':
+        cmd_result = await handle_logs_command(args, log_file_path)
+
+    await message.reply_text(f"`{cmd_result}`")
+
+async def handle_logs_command(args, log_file_path):
+    num_of_lines = 50
+    if not os.path.exists(log_file_path):
+        return "Log file does not exist."
+
+    if args:
+        if platform.system() == "Linux":
+            cmd = f"tail -{num_of_lines}f {log_file_path} | grep {args[0]}"
+            logger.info(f"Executing {cmd}")
+            cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
+        else:  # Windows
+            with open(log_file_path, 'r', encoding='utf-8') as file:
+                cmd_result = [x for x in file.readlines()[-num_of_lines:] if args[0] in x]
+        return '\n'.join(cmd_result)
+
+    if platform.system() == "Linux":
+        cmd = f"tail -{num_of_lines}f {log_file_path}"
+        logger.info(f"Executing {cmd}")
+        cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
+    else:  # Windows
+        with open(log_file_path, 'r', encoding='utf-8') as file:
+            cmd_result = file.readlines()[-num_of_lines:]
+    return '\n'.join(cmd_result)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+async def run_commands_2(client: Client, message: Message):
     # Only allow the bot owner
     if bot_auth.is_super_admin(message.from_user.id) is False:
         msg = "You are not allowed to execute this command"
