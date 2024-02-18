@@ -260,7 +260,7 @@ async def show_error_logs(client: Client, query: CallbackQuery):
         msg = "** Last few log messages (current month) **\n"
         date_string = datetime.now().strftime("%Y-")
 
-        cmd = f"grep -E '{date_string}' /home/ubuntu/bots/stoscbot/logs/stosc_logs.log | grep -iE 'error|exception' | grep -v 'Telegram server could not fetch the provided URL' | tail -n 30"
+        cmd = f"grep -E '{date_string}' /home/ubuntu/bots/stoscbot/logs/stosc_logs.log | grep -iE 'error|exception' | grep -v 'Telegram server could not fetch the provided URL' | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]' | tail -n 30"
         cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
         cmd_result = cmd_result.replace('\n', '\n\n‣')
         # Remove the last newline
