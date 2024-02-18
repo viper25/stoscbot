@@ -123,16 +123,13 @@ async def year_handler(client: Client, message: Message):
     year = message.command[1]
     if utils.is_valid_year(year):
         result = db.get_members_born_on(year)
-        msg = f"**Members Born on {year}** ({len(result)})\n➖➖➖➖➖➖➖➖"
         if result:
+            msg_parts = [f"**Members Born on {year}** ({len(result)})\n➖➖➖➖➖➖➖➖"]
             for member in result:
-                msg += f"\n**{member[0]}**\n"
-                msg += f"({member[1]})\n"
-                msg += f"{member[2]}\n"
-                msg += f"{member[3]}\n" if (member[3] != "" and member[3] is not None) else ""
-                msg += f"{member[4]}\n" if (member[4] != "" and member[4] is not None) else ""
-                msg += f"{member[5]}\n" if (member[2] != "" and member[5] is not None) else ""
-            await message.reply_text(msg, reply_markup=keyboards.back_to_main_keyboard)
+                member_parts = [f"\n**{member[0]}**\n", f"({member[1]})\n", f"{member[2]}\n"]
+                member_parts += [f"{member[i]}\n" for i in range(3, 6) if member[i]]
+                msg_parts.append(''.join(member_parts))
+            await message.reply_text(''.join(msg_parts), reply_markup=keyboards.back_to_main_keyboard)
         else:
             msg = f"No members born on {year}"
             await message.reply_text(msg)
@@ -280,15 +277,18 @@ async def show_my_harvest_festival_menu(client: Client, query: CallbackQuery):
 @loggers.async_log_access
 async def show_paynow_menu(client: Client, query: CallbackQuery):
     await query.answer()
-    msg = "**Payment Options**\n"
-    msg += "➖➖➖➖➖➖\n"
-    msg += "You may pay by one of these ways:\n"
-    msg += "    • PayNow to UEN: **S79SS0001L**\n"
-    msg += "    • PayNow to QR code shown above\n"
-    msg += "    • Bank transfer to DBS: **0480155596**\n"
-    msg += "    • NETS, Cash or Cheque (payable to `St. Thomas Orthodox Syrian Cathedral`) at the church office\n"
-    msg += "\n`Please mention your family code and purpose of contribution.`\n"
-    msg += "`For multiple payments, you can make one transfer and email the breakdown to` accounts@stosc.com"
+    msg = """
+**Payment Options**
+➖➖➖➖➖➖
+You may pay by one of these ways:
+    • PayNow to UEN: **S79SS0001L**
+    • PayNow to QR code shown above
+    • Bank transfer to DBS: **0480155596**
+    • NETS, Cash or Cheque (payable to `St. Thomas Orthodox Syrian Cathedral`) at the church office
+
+`Please mention your family code and purpose of contribution.`
+`For multiple payments, you can make one transfer and email the breakdown to` accounts@stosc.com
+"""
     await client.send_photo(
         chat_id=query.from_user.id,
         photo="https://stosc.com/paynow/img/QR.png",
