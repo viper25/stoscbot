@@ -6,10 +6,12 @@ import logging
 import os
 import platform
 import subprocess
+from datetime import datetime
 
 from pyrogram import Client, filters
-from pyrogram.types import Message
+from pyrogram.types import Message, CallbackQuery
 
+from stoscbots.bot import keyboards
 from stoscbots.db import db
 from stoscbots.util import bot_auth
 from stoscbots.util import loggers, utils
@@ -18,6 +20,13 @@ from stoscbots.util.utils import format_telegram_message
 
 logger = logging.getLogger('Handler.Main')
 logger.setLevel(LOGLEVEL)
+
+VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
+
+def dynamic_data_filter(data):
+    return filters.create(
+        lambda flt, _, query: query.data.startswith(flt.data), data=data
+    )
 
 
 @Client.on_message(filters.command(["version", "ver"]))
@@ -155,6 +164,7 @@ async def run_commands(client: Client, message: Message):
 
     await message.reply_text(f"`{format_telegram_message(cmd_result)}`")
 
+
 async def handle_logs_command(args, log_file_path):
     num_of_lines = 30
     if not os.path.exists(log_file_path):
@@ -162,7 +172,7 @@ async def handle_logs_command(args, log_file_path):
 
     if args:
         if platform.system() == "Linux":
-            cmd = f"tail -{num_of_lines} {log_file_path} | grep {args[0]}"
+            cmd = f"tail -{num_of_lines} {log_file_path} | grep {args[0]} | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]'"
             logger.info(f"Executing {cmd}")
             cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
         else:  # Windows
@@ -171,7 +181,7 @@ async def handle_logs_command(args, log_file_path):
         return '\n'.join(cmd_result)
 
     if platform.system() == "Linux":
-        cmd = f"tail -{num_of_lines} {log_file_path}"
+        cmd = f"tail -{num_of_lines} {log_file_path} | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]'"
         logger.info(f"Executing {cmd}")
         cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
     else:  # Windows
@@ -179,3 +189,84 @@ async def handle_logs_command(args, log_file_path):
             cmd_result = file.readlines()[-num_of_lines:]
     return '\n'.join(cmd_result)
 
+
+# --------------------------------------------------
+@Client.on_callback_query(dynamic_data_filter("Streaming Menu"))
+@loggers.async_log_access
+async def show_streaming_menu(client: Client, query: CallbackQuery):
+    await query.answer()
+    msg = "➖➖**Streaming Menu**➖➖"
+    await utils.edit_and_send_msg(query, msg, keyboards.streaming_menu_keyboard)
+
+
+# --------------------------------------------------
+@Client.on_callback_query(dynamic_data_filter("Admin Menu"))
+@loggers.async_log_access
+async def show_admin_menu(client: Client, query: CallbackQuery):
+    await query.answer()
+    msg = "➖➖**Admin Menu**➖➖"
+    msg += "\n‣ Commands:\n `/cmd logs` or `/cmd logs [search_string]`"
+    await query.message.reply_text(msg, reply_markup=keyboards.admin_menu_keyboard)
+
+
+# --------------------------------------------------
+@Client.on_callback_query(dynamic_data_filter("Show Stats"))
+@loggers.async_log_access
+async def show_stats(client: Client, query: CallbackQuery):
+    await query.answer()
+
+    if platform.system() == "Linux":
+        msg = "** Top users by messages (current month) **\n"
+        date_string = datetime.now().strftime("%Y-%m-")
+
+        cmd = f"grep -E '{date_string}' /home/ubuntu/bots/stoscbot/logs/stosc_logs.log | grep -oP '\[\K[^\]]+' | awk -F: '{{print $NF}}' | sort | uniq -c | sort -nr | head -n 15"
+        cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
+        msg += f"`{cmd_result}`"
+        await utils.edit_and_send_msg(query, msg, keyboards.admin_menu_keyboard)
+    else:
+        # Optionally inform the user that this action is only available on Linux
+        await query.message.reply_text("This action is only available when the bot runs on Linux.")
+
+
+# --------------------------------------------------
+@Client.on_callback_query(dynamic_data_filter("Show Logs"))
+@loggers.async_log_access
+async def show_logs(client: Client, query: CallbackQuery):
+    await query.answer()
+
+    if platform.system() == "Linux":
+        msg = "** Last few log messages (current month) **\n"
+        date_string = datetime.now().strftime("%Y-%m-")
+
+        cmd = f"grep -E '{date_string}' /home/ubuntu/bots/stoscbot/logs/stosc_logs.log | grep -P '\[\d+:[^:]+:[^:\]]+\]' | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]' | tail -n 20"
+        cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
+        cmd_result = cmd_result.replace('\n', '\n\n‣')
+        # Remove the last newline
+        cmd_result = cmd_result[:-1]
+        msg += f"`{cmd_result}`"
+        await utils.edit_and_send_msg(query, msg, keyboards.admin_menu_keyboard)
+    else:
+        # Optionally inform the user that this action is only available on Linux
+        await query.message.reply_text("This action is only available when the bot runs on Linux.")
+
+
+# --------------------------------------------------
+@Client.on_callback_query(dynamic_data_filter("Show Error Logs"))
+@loggers.async_log_access
+async def show_error_logs(client: Client, query: CallbackQuery):
+    await query.answer()
+
+    if platform.system() == "Linux":
+        msg = "** Last few log messages (current month) **\n"
+        date_string = datetime.now().strftime("%Y-")
+
+        cmd = f"grep -E '{date_string}' /home/ubuntu/bots/stoscbot/logs/stosc_logs.log | grep -iE 'error|exception' | grep -v 'Telegram server could not fetch the provided URL' | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]' | tail -n 30"
+        cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
+        cmd_result = cmd_result.replace('\n', '\n\n‣')
+        # Remove the last newline
+        cmd_result = cmd_result[:-1]
+        msg += f"`{cmd_result}`"
+        await utils.edit_and_send_msg(query, msg, keyboards.admin_menu_keyboard)
+    else:
+        # Optionally inform the user that this action is only available on Linux
+        await query.message.reply_text("This action is only available when the bot runs on Linux.")

@@ -56,7 +56,13 @@ __MYDETAILS_LIST_OF_ACCOUNTS_BUTTON = InlineKeyboardButton("ℹ List of Accounts
 PRAYER_REQUESTS_LISTING_BUTTON = InlineKeyboardButton("📿 Prayer Requests", callback_data="Prayer Requests")
 __WHO_IS_MY_MC_BUTTON = InlineKeyboardButton("👥 Management Committee", callback_data="MC")
 __MAIN_STREAMING_BUTTON = InlineKeyboardButton("📡 Streaming", callback_data="Streaming Menu")
-__STREAMING_GEN_ANNOUNCEMENT_SLIDES_BUTTON = InlineKeyboardButton("📺 Generate Announcement Slides", callback_data="Generate Announcement Slides")
+__STREAMING_GEN_ANNOUNCEMENT_SLIDES_BUTTON = InlineKeyboardButton("📺 Generate Announcement Slides",
+                                                                  callback_data="Generate Announcement Slides")
+
+__MAIN_ADMIN_BUTTON = InlineKeyboardButton("🔐 Admin", callback_data="Admin Menu")
+__SHOW_STATS_BUTTON = InlineKeyboardButton("📊 Show Stats", callback_data="Show Stats")
+__LOGS_BUTTON = InlineKeyboardButton("📜 Display Logs", callback_data="Show Logs")
+__ERROR_LOGS_BUTTON = InlineKeyboardButton("📜🚩 Display Error Logs", callback_data="Show Error Logs")
 # ---------------------------------------------------------------------------------------------------
 '''
 Assemble the Buttons above to create Keyboards
@@ -114,6 +120,11 @@ streaming_menu_keyboard = InlineKeyboardMarkup([
     [__STREAMING_GEN_ANNOUNCEMENT_SLIDES_BUTTON],
     [BACK_TO_MAIN_BUTTON]
 ])
+
+admin_menu_keyboard = InlineKeyboardMarkup([
+    [__SHOW_STATS_BUTTON, __LOGS_BUTTON],
+    [__ERROR_LOGS_BUTTON, BACK_TO_MAIN_BUTTON]
+])
 # ---------------------------------------------------------------------------------------------------
 """
 Dynamic keyboards that have to be created at runtime:
@@ -121,13 +132,15 @@ Dynamic keyboards that have to be created at runtime:
 
 
 def get_main_keyboard(telegram_id):
-    if bot_auth.is_mgmt_member(telegram_id):
+    if bot_auth.is_super_admin(telegram_id) or bot_auth.is_mgmt_member(telegram_id):
         buttons = [
             [__MAIN_SERVICES_BUTTON, __MAIN_MEMBERS_BUTTON],
             [__MAIN_PRAYER_GROUPS_BUTTON, __MAIN_FINANCE_BUTTON],
             [__MAIN_MY_DETAILS_BUTTON, __MAIN_MY_HARVEST_BUTTON],
             [__MAIN_PAYNOW_BUTTON, __MAIN_STREAMING_BUTTON]
         ]
+        if bot_auth.is_super_admin(telegram_id):
+            buttons.append([__MAIN_ADMIN_BUTTON])
     else:
         # Normal members
         buttons = [
