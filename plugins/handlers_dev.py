@@ -172,7 +172,7 @@ async def handle_logs_command(args, log_file_path):
 
     if args:
         if platform.system() == "Linux":
-            cmd = f"tail -{num_of_lines} {log_file_path} | grep {args[0]} | grep -v '[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin]'"
+            cmd = f"tail -{num_of_lines} {log_file_path} | grep {args[0]} | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]'"
             logger.info(f"Executing {cmd}")
             cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
         else:  # Windows
@@ -181,7 +181,7 @@ async def handle_logs_command(args, log_file_path):
         return '\n'.join(cmd_result)
 
     if platform.system() == "Linux":
-        cmd = f"tail -{num_of_lines} {log_file_path} | grep -v '[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin]'"
+        cmd = f"tail -{num_of_lines} {log_file_path} | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]'"
         logger.info(f"Executing {cmd}")
         cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
     else:  # Windows
