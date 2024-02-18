@@ -18,6 +18,7 @@ Handle multiple callback queries data and return filter for each
 logger = logging.getLogger('Handler.Members')
 logger.setLevel(LOGLEVEL)
 
+
 def dynamic_data_filter(data):
     return filters.create(
         lambda flt, _, query: flt.data == query.data,
@@ -52,13 +53,17 @@ async def get_today_bdays(client: Client, query: CallbackQuery):
 async def get_today_anniversaries(client: Client, query: CallbackQuery):
     await query.answer()
     start, end, result = db.get_anniversaries('d')
+    current_year = date.today().year
     if len(result) == 0:
         msg = "No Wedding Anniversary today"
     else:
-        msg = "**Wedding Anniversarys today** 💍\n\n"
+        msg_parts = ["**Wedding Anniversary's today** 💍\n\n"]
         for _item in result:
-            anniversary_years = date.today().year - _item[2].year
-            msg += f"• {_item[1].strip()} `({_item[0].strip()})` - {anniversary_years if anniversary_years else 'NA'}\n"
+            name = _item[1].strip()
+            code = _item[0].strip()
+            anniversary_years = current_year - _item[2].year
+            msg_parts.append(f"• {name} `({code})` - {anniversary_years if anniversary_years else 'NA'}\n")
+        msg = "".join(msg_parts)
     await utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
 
 
@@ -107,31 +112,32 @@ async def get_weeks_bdays(client: Client, query_or_msg):
 @Client.on_callback_query(dynamic_data_filter("Member Anniversary Week Button"))
 @loggers.async_log_access
 async def get_weeks_anniversaries(client: Client, query_or_msg):
-    dont_show_anniv_years = True
-    if type(query_or_msg) == CallbackQuery:
+    dont_show_anniv_years = not isinstance(query_or_msg, CallbackQuery)
+    if not dont_show_anniv_years:
         await query_or_msg.answer()
-        dont_show_anniv_years = False
+
     start, end, result = db.get_anniversaries('w')
+    today = date.today()
+
     if len(result) == 0:
         msg = " No Wedding Anniversaries this week"
     else:
-        msg = "**Wedding Anniversary** 💍\n"
-        msg += f"`({start} - {end})`\n\n"
+        msg_parts = ["**Wedding Anniversary** 💍\n", f"`({start} - {end})`\n\n"]
         for _item in result:
             anniversary_years = None
             if _item[2].year != 1900:
-                anniversary_years = str(date.today().year - _item[2].year) + ' yrs'
-            if _item[2].day == date.today().day and _item[2].month == date.today().month:
-                if dont_show_anniv_years:
-                    msg += f"•** {_item[1].strip()}** `({_item[0].strip()})`\n"
-                else:
-                    msg += f"•** {_item[1].strip()}** `({_item[0].strip()})` - **{anniversary_years if anniversary_years else 'NA'}**\n"
+                anniversary_years = str(today.year - _item[2].year) + ' yrs'
+            name = _item[1].strip()
+            code = _item[0].strip()
+            if _item[2].day == today.day and _item[2].month == today.month:
+                msg_parts.append(
+                    f"•** {name}** `({code})` - **{anniversary_years if anniversary_years and not dont_show_anniv_years else 'NA'}**\n")
             else:
-                if dont_show_anniv_years:
-                    msg += f"• {_item[1].strip()} `({_item[0].strip()})`\n"
-                else:
-                    msg += f"• {_item[1].strip()} `({_item[0].strip()})` - {anniversary_years if anniversary_years else 'NA'}\n"
-    if type(query_or_msg) == CallbackQuery:
+                msg_parts.append(
+                    f"• {name} `({code})` - {anniversary_years if anniversary_years and not dont_show_anniv_years else 'NA'}\n")
+        msg = "".join(msg_parts)
+
+    if isinstance(query_or_msg, CallbackQuery):
         await utils.edit_and_send_msg(query_or_msg, msg, keyboards.members_menu_keyboard)
     else:
         await query_or_msg.reply_text(msg)

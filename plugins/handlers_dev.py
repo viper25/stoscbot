@@ -23,6 +23,7 @@ logger.setLevel(LOGLEVEL)
 
 VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
 
+
 def dynamic_data_filter(data):
     return filters.create(
         lambda flt, _, query: query.data.startswith(flt.data), data=data
@@ -215,11 +216,21 @@ async def show_admin_menu(client: Client, query: CallbackQuery):
 async def show_stats(client: Client, query: CallbackQuery):
     await query.answer()
 
+    date_string = datetime.now().strftime("%Y-%m-")
+    log_file_path = os.path.join('/home', 'ubuntu', 'bots', 'stoscbot', 'logs', 'stosc_logs.log')
+
     if platform.system() == "Linux":
         msg = "** Top users by messages (current month) **\n"
-        date_string = datetime.now().strftime("%Y-%m-")
 
-        cmd = f"grep -E '{date_string}' /home/ubuntu/bots/stoscbot/logs/stosc_logs.log | grep -oP '\[\K[^\]]+' | awk -F: '{{print $NF}}' | sort | uniq -c | sort -nr | head -n 15"
+        cmd = f"""
+        grep -E '{date_string}' {log_file_path} |
+        grep -oP '\[\K[^\]]+' |
+        awk -F: '{{print $NF}}' |
+        sort |
+        uniq -c |
+        sort -nr |
+        head -n 15
+        """
         cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
         msg += f"`{cmd_result}`"
         await utils.edit_and_send_msg(query, msg, keyboards.admin_menu_keyboard)

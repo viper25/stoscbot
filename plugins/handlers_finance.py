@@ -79,32 +79,33 @@ async def finance_search_member(client: Client, message: Message):
 async def get_finance_executive_summary(client: Client, query: CallbackQuery):
     await query.answer()
     report = xero_utils.get_executive_summary()['Reports'][0]['Rows']
-    msg = "➖**EXECUTIVE SUMMARY**➖\n\n"
-
     variance_symbols = {"-": "▼", "": "▲"}
 
     def format_value(value):
         return f"{value if ('%' in value or value == '') else round(float(value), 1):,.2f}"
 
-    for row in [row for row in report if
-                not (row.get('Title', '').upper() in ['POSITION', 'PERFORMANCE', 'PROFITABILITY', 'INCOME'])]:
+    filtered_rows = [row for row in report if
+                     row.get('Title', '').upper() not in ['POSITION', 'PERFORMANCE', 'PROFITABILITY', 'INCOME']]
+
+    msg_parts = ["➖**EXECUTIVE SUMMARY**➖\n\n"]
+    for row in filtered_rows:
         if row['RowType'] == 'Header':
             current_month_title = row['Cells'][1]['Value']
             previous_month_title = row['Cells'][2]['Value']
         else:
             logger.debug(f"In Section: {row['Title']}")
-            msg += f"**==========\n📌SECTION: {row['Title'].upper()}**\n"
+            msg_parts.append(f"**==========\n📌SECTION: {row['Title'].upper()}**\n")
             for section in row['Rows']:
                 logger.debug(f"get_finance_executive_summary: Processing [{section['Cells'][0]['Value']}]")
-                msg += "〰〰〰〰〰\n"
-                msg += f"**{section['Cells'][0]['Value']}**\n"
-                current_month_value = section['Cells'][1]['Value']
-                previous_month_value = section['Cells'][2]['Value']
-                variance = section['Cells'][3]['Value']
-                msg += f"{previous_month_title}={format_value(previous_month_value)}\n"
-                msg += f"{current_month_title}={format_value(current_month_value)}\n"
-                msg += f"Variance={variance_symbols.get(variance[:1], '▲')}{variance}\n"
+                msg_parts.extend([
+                    "〰〰〰〰〰\n",
+                    f"**{section['Cells'][0]['Value']}**\n",
+                    f"{previous_month_title}={format_value(section['Cells'][2]['Value'])}\n",
+                    f"{current_month_title}={format_value(section['Cells'][1]['Value'])}\n",
+                    f"Variance={variance_symbols.get(section['Cells'][3]['Value'][:1], '▲')}{section['Cells'][3]['Value']}\n"
+                ])
 
+    msg = ''.join(msg_parts)
     await utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
 
 
@@ -160,37 +161,21 @@ async def get_finance_bank_summary(client: Client, query: CallbackQuery):
 async def get_finance_trial_balance(client: Client, query: CallbackQuery):
     await query.answer()
     is_income_report = "REVENUE" in query.data.upper()
-    msg = "**TRIAL BALANCE**\n"
-    msg += f"`For Year {str(datetime.now().year)}`\n"
-    msg += "➖➖➖➖➖➖➖\n\n"
 
     def __get_msg(rows, report_type):
-        __msg = ""
-        for row in rows:
-            account = row['Cells'][0]['Value']
-            logger.debug(f"get_finance_trial_balance: Processing [{account}]")
-            if report_type == 'revenue':
-                ytd_value = row['Cells'][4]['Value'] if row['Cells'][4]['Value'] != '' else 0
-            else:
-                ytd_value = row['Cells'][3]['Value'] if row['Cells'][3]['Value'] != '' else 0
-
-            __msg += f"{account}\n"
-            __msg += f"**${float(ytd_value):,.2f}**\n"
-            __msg += "––––————————————————\n"
-        # Remove last line
-        __msg = __msg[:-len("––––————————————————\n")]
+        value_index = {'revenue': 4, 'expense': 3}
+        __msg = "\n".join(
+            f"{row['Cells'][0]['Value']}\n**${float(row['Cells'][value_index[report_type]]['Value'] or 0):,.2f}**\n––––————————————————"
+            for row in rows
+        )
+        logger.debug(f"get_finance_trial_balance: Processed {len(rows)} rows.")
         return __msg
 
-    # report[1] = Revenue
-    if is_income_report:
-        report = xero_utils.xero_get_trial_balance(_paymentsOnly=True)['Reports'][0]['Rows']
-        msg += __get_msg(report[1]['Rows'], report_type='revenue')
-    else:
-        report = xero_utils.xero_get_trial_balance()['Reports'][0]['Rows']
-        # report[2] = Expense
-        msg += __get_msg(report[2]['Rows'], report_type='expense')
+    report = xero_utils.xero_get_trial_balance(_paymentsOnly=is_income_report)['Reports'][0]['Rows']
+    report_type = 'revenue' if is_income_report else 'expense'
+    msg_rows = __get_msg(report[1 if is_income_report else 2]['Rows'], report_type)
 
-    # Telegram has a 4096 byte limit for msgs
+    msg = f"**TRIAL BALANCE**\n`For Year {datetime.now().year}`\n➖➖➖➖➖➖➖\n\n{msg_rows}"
     msg = format_telegram_message(msg)
     await utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
 
