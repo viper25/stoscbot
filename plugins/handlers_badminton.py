@@ -8,7 +8,7 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 from tabulate import tabulate
 
-from stoscbots.util.badminton_util import generate_badminton_doubles_schedule
+from stoscbots.util.badminton_util import generate_badminton_doubles_schedule_v1
 from stoscbots.util import bot_auth
 from stoscbots.util import loggers
 from stoscbots.util.loggers import LOGLEVEL
@@ -39,7 +39,7 @@ async def badminton_scheduler(client: Client, message: Message):
         players = [player.strip() for player in _players.split(',') if player.strip()]
 
         try:
-            schedule, player_count = generate_badminton_doubles_schedule(players, num_matches)
+            schedule, player_count = generate_badminton_doubles_schedule_v1(players, num_matches)
         except ValueError as e:
             logger.error(e)
             await message.reply_text(e)

@@ -2,9 +2,9 @@ import random
 from collections import Counter
 from itertools import combinations
 from typing import Tuple, List, Set
+from collections import deque
 
-
-def generate_badminton_doubles_schedule(player_names: list[str], num_matches: int) -> Tuple[
+def generate_badminton_doubles_schedule_v1(player_names: list[str], num_matches: int) -> Tuple[
     List[Tuple[str, str, str, str]], List[Tuple[str, int]]]:
     # Ensure there are at least 4 players to schedule a doubles match.
     if len(player_names) < 4 or num_matches < 1:
@@ -66,16 +66,75 @@ def generate_possible_match_combinations(all_pairs: List[Tuple[str, str]]) -> Se
 
 
 # Main Function
+def generate_badminton_doubles_schedule_v2(all_players, num_matches):
+
+    """
+    With 6: Three players continue to play in the next game. 1 player is rotated.
+    With 7 : One player continues to play in the next game. The other 3 players are rotated.
+    """
+    num_players = len(all_players)
+    schedule = []
+    players = deque(all_players)
+
+    for _ in range(num_matches):
+        # Shuffle the players for each set of 5 games
+        if _ % num_players == 0:
+            # Shuffle the players randomly
+            random.shuffle(players)
+        # The first 4 players are playing, the last one is sitting out
+        playing = list(players)[:4]
+        # The remaining players sit out
+        sitting_out = list(players)[4:]
+        schedule.append((playing, sitting_out))
+        # Rotate the players for the next game
+        players.rotate(1)
+
+    return schedule
+
+
+
+
+    # if len(all_players) == 5:
+    #     '''
+    #     Randomize players. One player sits out while other 4 play. In the next game, one of the players who have played,
+    #     sits out. Since there are 5 players, each player will sit out once in 5 games. % games is one set of games. In
+    #     the next set of games i.e. from GAme 6 to Game 10, the same process is repeated. But ensure that the players
+    #     playing in Game 6 is not the same as the players playing in Game 1. This is to ensure that the same set of
+    #     players don't play together in the next set of games.
+    #
+    #     Generate a list of games with playing players and sitting out players.
+    #     '''
+    #
+    #     schedule = []
+    #     players = deque(all_players)
+    #
+    #     for _ in range(num_matches):
+    #         # Shuffle the players for each set of 5 games
+    #         if _ % 5 == 0:
+    #             # Shuffle the players randomly
+    #             random.shuffle(players)
+    #         # The first 4 players are playing, the last one is sitting out
+    #         playing = list(players)[:4]
+    #         sitting_out = list(players)[4]
+    #         schedule.append((playing, sitting_out))
+    #         # Rotate the players for the next game
+    #         players.rotate(1)
+    #
+    #     return schedule
+
+
+
 if __name__ == "__main__":
 
     num_matches = 12
 
     player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vinct", "Liju", "Jithin", "Prdip", "Vibin"]
-    player_names = ["Anub", "Jubin", "Simon", "Ajsh"]
-    player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vinct", "Liju", "Jithin", "Prdip"]
-    player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vibin", "Saman"]
     player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Vinct", "Liju", "Jithin", "Prdip", "Vibin", "Dibu"]
-    schedule, player_count = generate_badminton_doubles_schedule(player_names, num_matches)
+    player_names = ["Anub", "Shiju", "Vincent", "Johnny", "Vibin"]
+    player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Johnson", "Vibin"]
+    player_names = ["Anub", "Jubin", "Simon", "Ajsh", "Johnson", "Vibin", "Liju"]
+    # schedule, player_count = generate_badminton_doubles_schedule_v1(player_names, num_matches)
+    schedule, player_count = generate_badminton_doubles_schedule_v2(player_names, num_matches)
 
     from tabulate import tabulate
 

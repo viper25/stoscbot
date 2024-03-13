@@ -1,6 +1,6 @@
 import pytest
 
-from stoscbots.util.badminton_util import generate_badminton_doubles_schedule
+from stoscbots.util.badminton_util import generate_badminton_doubles_schedule_v1
 
 
 @pytest.mark.parametrize(
@@ -12,12 +12,12 @@ from stoscbots.util.badminton_util import generate_badminton_doubles_schedule
 )
 def test_invalid_inputs(player_names, num_matches):
     with pytest.raises(ValueError):
-        generate_badminton_doubles_schedule(player_names, num_matches)
+        generate_badminton_doubles_schedule_v1(player_names, num_matches)
 
 
 def test_num_matches_greater_than_possible():
     players = ["A", "B", "C", "D"]
-    schedule, counter = generate_badminton_doubles_schedule(players, 100)
+    schedule, counter = generate_badminton_doubles_schedule_v1(players, 100)
     '''This asserts that the length of the schedule list is 100, meaning the function is capable of scheduling the 
     requested number of matches, even if it's greater than the unique possible combinations.
     '''
@@ -53,7 +53,7 @@ With 6 players, the number of unique doubles matches (2 vs. 2 without considerin
 def test_no_repeated_matches():
     players = ["A", "B", "C", "D", "E", "F"]
     num_matches = 15
-    schedule, counter = generate_badminton_doubles_schedule(players, num_matches)
+    schedule, counter = generate_badminton_doubles_schedule_v1(players, num_matches)
     assert len(schedule) == len(set(schedule))
 
 
@@ -62,7 +62,7 @@ def test_no_repeated_matches():
 def test_player_participation():
     players = ["A", "B", "C", "D", "E", "F"]
     num_matches = 10
-    _, player_count = generate_badminton_doubles_schedule(players, num_matches)
+    _, player_count = generate_badminton_doubles_schedule_v1(players, num_matches)
     max_participation = max(player_count, key=lambda x: x[1])[1]
     min_participation = min(player_count, key=lambda x: x[1])[1]
 
@@ -78,21 +78,21 @@ def generate_players(n):
 def test_correct_number_of_matches_6_players_5_matches():
     players = ["A", "B", "C", "D", "E", "F"]
     num_matches = 5
-    schedule, _ = generate_badminton_doubles_schedule(players, num_matches)
+    schedule, _ = generate_badminton_doubles_schedule_v1(players, num_matches)
     assert len(schedule) == num_matches
 
 
 def test_generated_games_count_4_players_5_matches():
     players = ["A", "B", "C", "D"]
     num_matches = 5
-    schedule, _ = generate_badminton_doubles_schedule(players, num_matches)
+    schedule, _ = generate_badminton_doubles_schedule_v1(players, num_matches)
     assert len(schedule) == num_matches
 
 
 def test_generated_games_count_20_matches():
     players = ["A", "B", "C", "D"]
     num_matches = 20
-    schedule, _ = generate_badminton_doubles_schedule(players, num_matches)
+    schedule, _ = generate_badminton_doubles_schedule_v1(players, num_matches)
     assert len(schedule) == num_matches
 
 
@@ -100,7 +100,7 @@ def test_generated_games_count_20_matches():
 def test_no_three_consecutive_games():
     players = ["A", "B", "C", "D", "E", "F"]
     num_matches = 10
-    schedule, _ = generate_badminton_doubles_schedule(players, num_matches)
+    schedule, _ = generate_badminton_doubles_schedule_v1(players, num_matches)
 
     for i in range(len(schedule) - 2):
         game_1_players = set(schedule[i][0] + schedule[i][1])
@@ -118,13 +118,13 @@ def test_repeated_player_names():
     players = ["A", "A", "B", "B"]
     num_matches = 5
     with pytest.raises(ValueError):  # Or whichever exception you expect
-        generate_badminton_doubles_schedule(players, num_matches)
+        generate_badminton_doubles_schedule_v1(players, num_matches)
 
 
 def test_non_string_players():
     players = [1, 2, 3, 4]
     num_matches = 5
-    schedule, _ = generate_badminton_doubles_schedule(players, num_matches)
+    schedule, _ = generate_badminton_doubles_schedule_v1(players, num_matches)
     assert len(schedule) == num_matches
 
 
@@ -133,7 +133,7 @@ def test_unique_matches_for_n_players():
     # Generate a list of 15 players
     players = [f"Player_{i}" for i in range(15)]
     num_matches = 80
-    schedule, _ = generate_badminton_doubles_schedule(players, num_matches)
+    schedule, _ = generate_badminton_doubles_schedule_v1(players, num_matches)
 
     n = len(players)
     grouped_matches = [schedule[i:i + n] for i in range(0, len(schedule), n)]
