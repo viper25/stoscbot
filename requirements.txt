@@ -11,6 +11,7 @@ git+https://github.com/Ripeey/Conversation-Pyrogram
 pandas
 convopyro
 colorama
+matplotlib
 
 # Install the below for testing
 # pytest-asyncio  # For testing
