@@ -211,12 +211,3 @@ if __name__ == "__main__":
     print_schedule(schedule, highlight_player="P1", all_players=player_names)
 
     img = get_image([match[0] for match in schedule])
-
-    # # Display the schedule in table format
-    # table_data = []
-    # for i, match in enumerate(schedule):
-    #     table_data.append([i + 1, ', '.join(match[0])])
-    #
-    # print(tabulate(table_data, headers=["#", "Players"], tablefmt="simple"))  # Good
-    # print(tabulate(table_data, headers=["#", "Players"], tablefmt="rst"))  # Good
-    # print(tabulate(table_data, headers=["#", "Players"], tablefmt="presto", maxcolwidths=[1, None, None]))  # Good
