@@ -4,12 +4,6 @@ import pytest
 
 from stoscbots.util.badminton_util import generate_badminton_doubles_schedule
 
-
-# Utility function to convert schedule output to a testable format
-def get_schedule_str(schedule):
-    return [" ".join(["{" + ", ".join(team) + "}" for team in match]) for match in schedule]
-
-
 # Test fewer than 5 players raises ValueError
 @pytest.mark.parametrize("num_players", [1, 2, 3, 4])
 def test_fewer_than_five_players(num_players):
@@ -65,25 +59,6 @@ With 6 players, the number of unique doubles matches (2 vs. 2 without considerin
 def generate_players(n):
     """Utility function to generate list of n player names"""
     return [chr(65 + i) for i in range(n)]
-
-
-@pytest.mark.skip
-def test_no_three_consecutive_games():
-    players = ["A", "B", "C", "D", "E", "F"]
-    num_matches = 10
-    schedule, _ = generate_badminton_doubles_schedule(players, num_matches)
-
-    for i in range(len(schedule) - 2):
-        game_1_players = set(schedule[i][0] + schedule[i][1])
-        game_2_players = set(schedule[i + 1][0] + schedule[i + 1][1])
-        game_3_players = set(schedule[i + 2][0] + schedule[i + 2][1])
-
-        for player in players:
-            consecutive_count = sum(
-                1 for game_players in [game_1_players, game_2_players, game_3_players] if player in game_players
-            )
-            assert consecutive_count < 3
-
 
 def test_repeated_player_names():
     players = ["A", "A", "B", "B"]
