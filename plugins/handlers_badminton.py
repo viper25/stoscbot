@@ -18,7 +18,7 @@ VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
 SIMON_TELEGRAM_ID = int(os.environ.get('SIMON_TELEGRAM_ID'))
 
 
-# /game 20, Vibin, Jubin, Simon, Ajsh, Vinct, Liju, Jithin, Prdip, Vibin
+# /game 20 Vibin, Jubin, Simon, Ajsh, Vinct, Liju, Jithin, Prdip, Vibin
 @Client.on_message(filters.command(["game"]))
 @loggers.async_log_access
 @bot_auth.async_management_only
@@ -28,7 +28,7 @@ async def badminton_scheduler(client: Client, message: Message):
         await message.reply_text(msg)
         return
     if len(message.command) < 3:
-        msg = "Please enter min arguments\ne.g. `/game [minutes] [PLAYER1, PLAYER2,...]`"
+        msg = "Please enter arguments\ne.g. `/game [number of games] [PLAYER1, PLAYER2,...]`"
         await message.reply_text(msg)
         return
     else:
@@ -37,7 +37,6 @@ async def badminton_scheduler(client: Client, message: Message):
         _players = ','.join(message.command[2:])
         # Splitting the combined string on commas to get individual player names
         players = [player.strip() for player in _players.split(',') if player.strip()]
-        player_count = len(players)
 
         try:
             schedule = generate_badminton_doubles_schedule(players, num_matches)

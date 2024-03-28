@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 from collections import deque
@@ -6,6 +7,15 @@ from typing import Tuple, List
 from colorama import Fore, Style
 from matplotlib import pyplot as plt
 
+from stoscbots.util.loggers import LOGLEVEL
+from stoscbots.util.utils import generate_safe_filename
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Module logger
+logger = logging.getLogger('Badminton_Utils')
+logger.setLevel(LOGLEVEL)
+
+# ----------------------------------------------------------------------------------------------------------------------
 
 def print_schedule(schedule: List[Tuple[List[str], List[str]]], highlight_player: str = None,
                    print_last_match: bool = False, all_players: List[str] = None):
@@ -115,6 +125,10 @@ def generate_badminton_doubles_schedule(all_players, num_matches) -> List[Tuple[
 
             schedule.append((playing, sitting))
             # print_schedule(schedule, print_last_match=True)
+
+        elif num_players == 10:
+            pass
+
     return schedule
 
 
@@ -128,6 +142,8 @@ def get_image(data):
     unique_players = set(player for row in data for player in row)
     # Sort the unique players to ensure consistent order
     sorted_unique_players = sorted(unique_players)
+
+    logger.info(f"Generating schedule for: {sorted_unique_players}")
 
     # Define a darker color palette
     dark_colors = ['#00429d', '#93003a', '#1d6996', '#cc503e', '#164242', '#0f8554', '#de0db8', '#b2872e', '#cc503e',
@@ -192,6 +208,7 @@ def get_image(data):
 
     # Save the image as a file in the app root directory
     file_path = os.path.join(os.getcwd(), "_table_image.png")
+    logger.info(f"Saving table image to {file_path}")
     plt.savefig(file_path, bbox_inches='tight', dpi=200)
 
     # plt.show()
