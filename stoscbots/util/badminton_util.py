@@ -8,12 +8,12 @@ from colorama import Fore, Style
 from matplotlib import pyplot as plt
 
 from stoscbots.util.loggers import LOGLEVEL
-from stoscbots.util.utils import generate_safe_filename
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Module logger
 logger = logging.getLogger('Badminton_Utils')
 logger.setLevel(LOGLEVEL)
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 

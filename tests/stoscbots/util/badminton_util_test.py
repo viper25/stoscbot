@@ -1,8 +1,12 @@
+import os
 from collections import defaultdict, deque
 
 import pytest
 
 from stoscbots.util.badminton_util import generate_badminton_doubles_schedule
+from stoscbots.util.badminton_util import get_image
+from stoscbots.util.badminton_util import print_schedule
+
 
 # Test fewer than 5 players raises ValueError
 @pytest.mark.parametrize("num_players", [1, 2, 3, 4])
@@ -59,6 +63,7 @@ With 6 players, the number of unique doubles matches (2 vs. 2 without considerin
 def generate_players(n):
     """Utility function to generate list of n player names"""
     return [chr(65 + i) for i in range(n)]
+
 
 def test_repeated_player_names():
     players = ["A", "A", "B", "B"]
@@ -148,6 +153,7 @@ def test_specific_players_num_matches(num_players, num_matches, expected_continu
     # You can also add checks for the number of games played, ensuring the schedule length matches num_matches
     assert len(schedule) == num_matches, "The number of matches scheduled does not match the requested number."
 
+
 @pytest.mark.parametrize("num_players", [5, 6, 7, 8, 9])
 def test_no_repeated_matches(num_players):
     num_matches = num_players  # Define the number of matches based on the number of players
@@ -169,6 +175,7 @@ def test_no_repeated_matches(num_players):
 
         # Add the current combination to the set of matches
         matches_set.add(playing_set)
+
 
 @pytest.mark.parametrize("num_players", [5, 6, 7, 8, 9])
 def test_fairness_in_games_played(num_players):
@@ -197,6 +204,7 @@ def test_fairness_in_games_played(num_players):
 
     assert max_games - min_games <= 1, "The difference in games played between some players exceeded 1."
 
+
 @pytest.mark.parametrize("num_players", [5, 6, 7, 8, 9])
 def test_no_player_sits_out_more_than_two_consecutive_games(num_players):
     # Assuming a reasonable number of games for testing
@@ -206,7 +214,8 @@ def test_no_player_sits_out_more_than_two_consecutive_games(num_players):
     schedule = generate_badminton_doubles_schedule(players, num_matches)
 
     # Initialize a dictionary to track the last two game statuses for each player (play/sit)
-    player_statuses = {player: deque([True, True], maxlen=2) for player in players}  # True indicates playing, False indicates sitting out
+    player_statuses = {player: deque([True, True], maxlen=2) for player in
+                       players}  # True indicates playing, False indicates sitting out
 
     # Update status for each game
     for match in schedule:
@@ -218,4 +227,40 @@ def test_no_player_sits_out_more_than_two_consecutive_games(num_players):
     for player, status in player_statuses.items():
         for i in range(len(status) - 2):
             # If three consecutive statuses are False (sat out), then the test fails
-            assert not (status[i] == status[i+1] == status[i+2] == False), f"{player} sat out more than two consecutive games."
+            assert not (status[i] == status[i + 1] == status[
+                i + 2] == False), f"{player} sat out more than two consecutive games."
+
+
+def test_print_schedule(capfd):
+    schedule = [
+        (['P1', 'P2', 'P3', 'P4'], ['P5', 'P6']),
+        (['P2', 'P3', 'P4', 'P5'], ['P6', 'P1']),
+        (['P3', 'P4', 'P5', 'P6'], ['P1', 'P2'])
+    ]
+    all_players = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6']
+    highlight_player = 'P1'
+    print_schedule(schedule, highlight_player, all_players=all_players)
+    captured = capfd.readouterr()
+    assert "P1" in captured.out
+    assert "P2" in captured.out
+    assert "P3" in captured.out
+    assert "P4" in captured.out
+    assert "P5" in captured.out
+    assert "P6" in captured.out
+
+
+def test_get_image():
+    # Prepare the input data
+    data = [['P1', 'P2', 'P3', 'P4'], ['P4', 'P5', 'P6', 'P7']]
+
+    # Call the function with the prepared data
+    result = get_image(data)
+
+    # Check if the function returns a valid file path
+    assert isinstance(result, str), "The function should return a string."
+
+    # Check if the file exists at the returned path
+    assert os.path.isfile(result), "The file should exist at the returned path."
+
+    # Optionally, clean up the created file after the test
+    os.remove(result)
