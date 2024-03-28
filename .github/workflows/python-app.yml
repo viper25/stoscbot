@@ -122,7 +122,7 @@ jobs:
       - name: Get Github action IP
         if: env.CLOUD_PROVIDER == 'AWS'
         id: ip
-        uses: haythem/public-ip@v1.2
+        uses: haythem/public-ip@v1.3
 
       - name: Add Github Actions IP to Security group
         if: env.CLOUD_PROVIDER == 'AWS'
