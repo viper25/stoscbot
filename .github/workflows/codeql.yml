@@ -13,7 +13,7 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ "viper25-patch-1" ]
+    branches: [ viper25-patch-1 ]
   pull_request:
     branches: [ "main" ]
   schedule:
