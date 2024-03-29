@@ -1,4 +1,5 @@
-[![STOSCBot Build](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml/badge.svg)](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml)  [![codecov](https://codecov.io/gh/viper25/stoscbot/branch/main/graph/badge.svg?token=QQ3WXQ2TSQ)](https://codecov.io/gh/viper25/stoscbot)
+[![STOSCBot Build](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml/badge.svg)](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml)  [![codecov](https://codecov.io/gh/viper25/stoscbot/branch/main/graph/badge.svg?token=QQ3WXQ2TSQ)](https://codecov.io/gh/viper25/stoscbot) [![STOSCBot Build](https://github.com/viper25/stoscbot/actions/workflows/codeql.yml/badge.svg)](https://github.com/viper25/stoscbot/actions/workflows/codeql.yml)
+
 
 # STOSC Bot
 A Telegram bot (based on [Pyrogram](https://docs.pyrogram.org/)) to manage affairs of the St. Thomas Orthodox Syrian Cathedral (STOSC), Singapore.
@@ -98,7 +99,7 @@ Make sure that the Google account associated with your API credentials has acces
 * [Define Default Values in Dictionaries With `.get()` and `.setdefault()`](https://realpython.com/python-coding-interview-tips/#define-default-values-in-dictionaries-with-get-and-setdefault)
 * In iterating over long lists, use [generators](https://realpython.com/python-coding-interview-tips/#save-memory-with-generators)
 * Check if using `logger` or `loggers` class
-* [How to make a sync function to async](https://youtu.be/GpqAQxH1Afc?t=968)
+* [How to make a async function to async](https://youtu.be/GpqAQxH1Afc?t=968)
 * Split the GitHub Actions Job `Build_Lint_Test_Coverage` to two jobs: `Build_Lint` and `Test_Coverage`. Use cache
 * Change to dictionary `_get` e.g. `income = _item.get('income', 0.0)` 
 
