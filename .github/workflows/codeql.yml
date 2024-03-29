@@ -16,8 +16,6 @@ on:
     branches: [ viper25-patch-1 ]
   pull_request:
     branches: [ "main" ]
-  schedule:
-    - cron: '43 2 * * 6'
 
 jobs:
   analyze:
