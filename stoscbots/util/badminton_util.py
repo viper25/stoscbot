@@ -60,7 +60,7 @@ def generate_badminton_doubles_schedule(all_players, num_matches) -> List[Tuple[
         consecutively
     """
 
-    if len(all_players) < 5 or num_matches < 1 or len(all_players) > 9:
+    if len(all_players) < 5 or num_matches < 1 or len(all_players) > 10:
         raise ValueError("⚠️ There must be between 5-9 players to generate a schedule")
 
     players = deque(all_players)
