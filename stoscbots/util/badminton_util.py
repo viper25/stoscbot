@@ -7,8 +7,7 @@ from typing import Tuple, List
 from colorama import Fore, Style
 from matplotlib import pyplot as plt
 
-from stoscbots.util.loggers import LOGLEVEL
-
+LOGLEVEL = os.environ.get("LOGLEVEL", "INFO").upper()
 # ----------------------------------------------------------------------------------------------------------------------
 # Module logger
 logger = logging.getLogger('Badminton_Utils')
@@ -221,9 +220,9 @@ if __name__ == "__main__":
     player_names = ["P1", "P2", "P3", "P4", "P5", "P6", "P7"]
     player_names = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9"]
     player_names = ["P1", "P2", "P3", "P4", "P5", "P6"]
-    player_names = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]
     player_names = ["P1", "P2", "P3", "P4", "P5"]
     player_names = ["Vibin", "Jithin", "Simon", "Vincent", "Pradeep", "Ajish", "Liju", "Johnson"]
+    player_names = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]
     schedule = generate_badminton_doubles_schedule(player_names, num_matches)
     print_schedule(schedule, highlight_player="P1", all_players=player_names)
 
