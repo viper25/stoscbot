@@ -3,6 +3,7 @@
 *.ini
 .venv/
 .vscode/
+.run/
 __pycache__/
 .env
 *.log
