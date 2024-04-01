@@ -225,6 +225,7 @@ async def show_stats(client: Client, query: CallbackQuery):
         cmd = f"""
         grep -E '{date_string}' {log_file_path} |
         grep -oP '\[\K[^\]]+' |
+        grep -v '^400' |
         awk -F: '{{print $NF}}' |
         sort |
         uniq -c |
