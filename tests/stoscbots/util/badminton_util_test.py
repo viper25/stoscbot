@@ -1,5 +1,5 @@
 import os
-from collections import defaultdict, deque
+from collections import defaultdict
 
 import pytest
 
@@ -205,30 +205,46 @@ def test_fairness_in_games_played(num_players):
     assert max_games - min_games <= 1, "The difference in games played between some players exceeded 1."
 
 
-@pytest.mark.parametrize("num_players", [5, 6, 7, 8, 9])
-def test_no_player_sits_out_more_than_two_consecutive_games(num_players):
-    # Assuming a reasonable number of games for testing
-    games_multiplier = 2
-    num_matches = num_players * games_multiplier
-    players = ['Player' + str(i) for i in range(1, num_players + 1)]
+"""
+Check if a player sits out for more than 2 consecutive matches
+"""
+
+
+@pytest.mark.parametrize("num_players", range(5, 10))
+@pytest.mark.parametrize("num_matches", range(6, 21))
+def test_consecutive_sitting(num_players, num_matches):
+    # players = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]
+    # num_matches = 10
+    players = [f"P{i + 1}" for i in range(num_players)]
     schedule = generate_badminton_doubles_schedule(players, num_matches)
 
-    # Initialize a dictionary to track the last two game statuses for each player (play/sit)
-    player_statuses = {player: deque([True, True], maxlen=2) for player in
-                       players}  # True indicates playing, False indicates sitting out
+    for i in range(len(schedule) - 2):
+        _, sitting = schedule[i]
+        _, next_sitting = schedule[i + 1]
+        _, next_next_sitting = schedule[i + 2]
 
-    # Update status for each game
-    for match in schedule:
-        playing_players = set(match[0])  # Assuming match[0] contains the list of playing players
-        for player in players:
-            player_statuses[player].append(player in playing_players)
+        for player in sitting:
+            if player in next_sitting and player in next_next_sitting:
+                pytest.fail(f"Player {player} sits out for more than 2 consecutive matches.")
 
-    # Check that no player has sat out more than two consecutive games
-    for player, status in player_statuses.items():
-        for i in range(len(status) - 2):
-            # If three consecutive statuses are False (sat out), then the test fails
-            assert not (status[i] == status[i + 1] == status[
-                i + 2] == False), f"{player} sat out more than two consecutive games."
+
+@pytest.mark.parametrize("num_players", range(7, 10))  # 5 & 6 players WILL play more than 2 matches consecutively
+@pytest.mark.parametrize("num_matches", range(6, 21))
+def test_consecutive_playing(num_players, num_matches):
+    '''
+    For 8-player matches, I think one player will have to play more than 2 consecutive matches.
+    '''
+    players = [f"P{i + 1}" for i in range(num_players)]
+    schedule = generate_badminton_doubles_schedule(players, num_matches)
+
+    for i in range(len(schedule) - 3):
+        playing, _ = schedule[i]
+        next_playing, _ = schedule[i + 1]
+        next_next_playing, _ = schedule[i + 2]
+
+        for player in playing:
+            if player in next_playing and player in next_next_playing:
+                pytest.fail(f"Player {player} plays more than 2 consecutive matches for {num_players}-player matches.")
 
 
 def test_print_schedule(capfd):
