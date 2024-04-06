@@ -225,7 +225,7 @@ def test_consecutive_sitting(num_players, num_matches):
 
         for player in sitting:
             if player in next_sitting and player in next_next_sitting:
-                pytest.fail(f"Player {player} sits out for more than 2 consecutive matches.")
+                pytest.fail(f"Player {player} sits out for more than 2 consecutive matches [{num_players}-player, {num_matches}-match]")
 
 
 @pytest.mark.parametrize("num_players", range(7, 10))  # 5 & 6 players WILL play more than 2 matches consecutively
