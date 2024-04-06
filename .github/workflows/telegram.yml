@@ -4,6 +4,7 @@ jobs:
 
   build:
     name: Notify on push
+    run-name: Deploy to ${{ inputs.deploy_target }} by @${{ github.actor }}
     runs-on: ubuntu-latest
     steps:
       - name: send telegram message on push
