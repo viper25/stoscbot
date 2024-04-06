@@ -181,23 +181,25 @@ jobs:
           AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
 
   Notify:
-    name: telegram message
-    on: [ push ]
-    jobs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: telegram message
+        on: [ push ]
+        jobs:
 
-      build:
-        name: Build
-        runs-on: ubuntu-latest
-        steps:
-          - name: send telegram message on push
-            uses: appleboy/telegram-action@master
-            with:
-              to: ${{ secrets.VIBIN_TELEGRAM_ID }}
-              token: ${{ secrets.STOSC_TELEGRAM_BOT_TOKEN }}
-              message: |
-                ${{ github.actor }} created commit:
-                Commit message: ${{ github.event.commits[0].message }}
-  
-                Repository: ${{ github.repository }}
-  
-                See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+          build:
+            name: Build
+            runs-on: ubuntu-latest
+            steps:
+              - name: send telegram message on push
+                uses: appleboy/telegram-action@master
+                with:
+                  to: ${{ secrets.VIBIN_TELEGRAM_ID }}
+                  token: ${{ secrets.STOSC_TELEGRAM_BOT_TOKEN }}
+                  message: |
+                    ${{ github.actor }} created commit:
+                    Commit message: ${{ github.event.commits[0].message }}
+      
+                    Repository: ${{ github.repository }}
+      
+                    See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
