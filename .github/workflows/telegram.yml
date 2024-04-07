@@ -2,19 +2,18 @@ name: Telegram Notify
 on: [ push ]
 jobs:
 
-  build:
-    name: Notify on push
-    runs-on: ubuntu-latest
-    steps:
-      - name: send telegram message on push
-        uses: appleboy/telegram-action@master
-        with:
-          to: ${{ secrets.VIBIN_TELEGRAM_ID }}
-          token: ${{ secrets.STOSC_TELEGRAM_BOT_TOKEN }}
-          message: |
-            ${{ github.actor }} created commit:
-            Commit message: ${{ github.event.commits[0].message }}
+  name: Notify on push
+  runs-on: ubuntu-latest
+  steps:
+    - name: send telegram message on push
+      uses: appleboy/telegram-action@master
+      with:
+        to: ${{ secrets.VIBIN_TELEGRAM_ID }}
+        token: ${{ secrets.STOSC_TELEGRAM_BOT_TOKEN }}
+        message: |
+          ${{ github.actor }} created commit:
+          Commit message: ${{ github.event.commits[0].message }}
 
-            Repository: ${{ github.repository }}
+          Repository: ${{ github.repository }}
 
-            See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
+          See changes: https://github.com/${{ github.repository }}/commit/${{github.sha}}
