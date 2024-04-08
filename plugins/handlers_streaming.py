@@ -61,7 +61,7 @@ async def generate_image_url(client: Client, message: Message):
         response = requests.get(file_url)
         tf.write(response.content)
 
-        dt = (datetime.datetime.now()).strftime("%Y_%m_%d_%H_%M")
+        dt = (datetime.datetime.now()).strftime("%Y_%m_%d_%H_%M_%S")
         image_name = f"announcement_images/{dt}_{photo.file_unique_id}.jpg"
         url = utils.upload_to_s3_and_get_url(image_file=tf, object_name=image_name)
         tf.flush()
