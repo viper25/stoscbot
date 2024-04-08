@@ -1,17 +1,18 @@
 from decimal import Decimal
-from unittest.mock import patch, AsyncMock, mock_open
+from unittest.mock import patch, AsyncMock, mock_open, MagicMock
 
 import pandas as pd
 import pytest
 
 from stoscbots.util import utils
-from stoscbots.util.utils import format_telegram_message
+from stoscbots.util.utils import format_telegram_message, get_telegram_file_url, upload_to_s3_and_get_url
 from tests.stoscbots.util import bot_auth_test
 
 
 def test_getMemberCode_from_TelegramID_Bad_value():
     memberCode = utils.getMemberCode_from_TelegramID("wrongID")
     assert memberCode is None
+
 
 # We assume the SUPER ADMIN is always a member = V019
 def test_getMemberCode_from_TelegramID():
@@ -600,4 +601,54 @@ def test_format_telegram_message():
     msg = "a" * 4100
     assert format_telegram_message(msg) == ("a" * 4076 + '\n`... (truncated)`')
 
+
 # ------------------------------------------------------------
+@patch('os.environ.get')
+@patch('requests.get')
+@pytest.mark.asyncio
+async def test_get_telegram_file_url(mock_get, mock_environ_get):
+    # Arrange
+    mock_environ_get.return_value = 'dummy_bot_token'
+    mock_response = MagicMock()
+    mock_response.json.return_value = {
+        'ok': True,
+        'result': {
+            'file_path': 'dummy_file_path'
+        }
+    }
+    mock_get.return_value = mock_response
+    dummy_photo = type('', (), {})()  # create a dummy object
+    dummy_photo.file_id = 'dummy_file_id'
+
+    # Act
+    result = await get_telegram_file_url(dummy_photo)
+
+    # Assert
+    expected_url = 'https://api.telegram.org/file/botdummy_bot_token/dummy_file_path'
+    assert result == expected_url
+
+
+# ------------------------------------------------------------
+@patch('os.environ.get')
+@patch('boto3.resource')
+def test_upload_to_s3_and_get_url(mock_boto3_resource, mock_environ_get):
+    # Arrange
+    mock_environ_get.return_value = 'dummy_aws_key'
+    mock_s3_resource = MagicMock()
+    mock_boto3_resource.return_value = mock_s3_resource
+    mock_s3_object = MagicMock()
+    mock_s3_resource.Object.return_value = mock_s3_object
+    mock_s3_object.put.return_value = None  # Simulate successful upload
+    dummy_image_file = MagicMock()
+    dummy_image_file.name = 'dummy_image.jpg'
+    dummy_object_name = 'dummy_object_name'
+    mock_file = MagicMock()
+    mock_file.read.return_value = b"file content"
+
+    # Act
+    with patch('builtins.open', mock_open(read_data='dummy data')) as mock_file:
+        result = upload_to_s3_and_get_url(dummy_image_file, dummy_object_name)
+
+    # Assert
+    expected_url = 'https://stoscsg.s3.ap-southeast-1.amazonaws.com/dummy_object_name'
+    assert result == expected_url
