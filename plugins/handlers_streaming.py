@@ -1,13 +1,17 @@
+import datetime
 import logging
 import os
 import platform
 import subprocess
+from tempfile import NamedTemporaryFile
 
+import requests
 from pyrogram import Client, filters
-from pyrogram.types import CallbackQuery
+from pyrogram.types import CallbackQuery, Message
 
-from stoscbots.util import loggers
+from stoscbots.util import loggers, utils, bot_auth
 from stoscbots.util.loggers import LOGLEVEL
+from stoscbots.util.utils import get_telegram_file_url
 
 logger = logging.getLogger('Handler.Streaming')
 logger.setLevel(LOGLEVEL)
@@ -40,3 +44,28 @@ async def generate_announcement_slides(client: Client, query: CallbackQuery):
     else:
         # Optionally inform the user that this action is only available on Linux
         await query.message.reply_text("This action is only available when the bot runs on Linux.")
+
+
+@Client.on_message(filters.photo)
+@loggers.async_log_access
+@bot_auth.async_management_only
+async def generate_image_url(client: Client, message: Message):
+    photo = message.photo
+    logger.info(f"Uploading image ({round(photo.file_size / 1024)} Kb)")
+
+    file_url = await get_telegram_file_url(photo)
+
+    temp_file_flag = False if os.environ.get('OS') == 'Windows_NT' else True
+    with NamedTemporaryFile(delete=temp_file_flag) as tf:
+        # Download the file from file_url
+        response = requests.get(file_url)
+        tf.write(response.content)
+
+        dt = (datetime.datetime.now()).strftime("%Y_%m_%d_%H_%M")
+        image_name = f"announcement_images/{dt}_{photo.file_unique_id}.jpg"
+        url = utils.upload_to_s3_and_get_url(image_file=tf, object_name=image_name)
+        tf.flush()
+
+    await message.reply_text(f"URL: \n\n{url}", disable_web_page_preview=True)
+
+
