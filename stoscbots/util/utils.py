@@ -11,6 +11,7 @@ from typing import Optional
 import boto3
 import requests
 from boto3.dynamodb.conditions import Key
+from botocore.exceptions import ClientError
 from pyrogram.enums import ParseMode
 from pyrogram.errors import MessageNotModified, BadRequest
 from pyrogram.types import CallbackQuery, InlineKeyboardMarkup
@@ -541,3 +542,40 @@ def is_valid_email(email: str) -> bool:
 def format_telegram_message(msg):
     """Formats the message to comply with Telegram's message length limit."""
     return (msg[:4076] + '\n`... (truncated)`') if len(msg) > 4096 else msg
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+async def get_telegram_file_url(photo):
+    path = f"https://api.telegram.org/bot{os.environ.get('STOSC_TELEGRAM_BOT_TOKEN')}/getFile?file_id={photo.file_id}"
+    # Do a HTTP get request to the Telegram API to get the file path
+    response = requests.get(path)
+    response_json = response.json()
+    if response_json['ok']:
+        file_path = response_json['result']['file_path']
+        file_url = f"https://api.telegram.org/file/bot{os.environ.get('STOSC_TELEGRAM_BOT_TOKEN')}/{file_path}"
+        logger.debug(f"File URL: {file_url}")
+    return file_url
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+def upload_to_s3_and_get_url(image_file, object_name: str):
+    s3_resource = boto3.resource(
+        "s3",
+        aws_access_key_id=os.environ.get("STOSC_DDB_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
+        region_name="ap-southeast-1",
+    )
+
+    object = s3_resource.Object("stoscsg", object_name)
+    try:
+        s3_response = object.put(Body=open(image_file.name, "rb"), ContentType="image/jpeg")
+        logger.debug(f"Uploaded image to S3: {s3_response}")
+    except ClientError as e:
+        logger.error(f"Error uploading image to S3: {e}")
+        return False
+
+    file_path = f"/tmp/{object_name}.jpg"
+    file_url = f"https://stoscsg.s3.ap-southeast-1.amazonaws.com/{object_name}"
+    logger.info(f"Uploaded file to: {file_url}")
+    return file_url
