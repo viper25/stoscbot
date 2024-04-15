@@ -21,7 +21,7 @@ SIMON_TELEGRAM_ID = int(os.environ.get('SIMON_TELEGRAM_ID'))
 # /game 20 Vibin, Jubin, Simon, Ajsh, Vinct, Liju, Jithin, Prdip, Vibin
 @Client.on_message(filters.command(["game"]))
 @loggers.async_log_access
-@bot_auth.async_management_only
+@bot_auth.async_member_only
 async def badminton_scheduler(client: Client, message: Message):
     if message.from_user.id not in [VIBIN_TELEGRAM_ID, SIMON_TELEGRAM_ID]:
         msg = "You are not allowed to use this function"
