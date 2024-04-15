@@ -74,13 +74,10 @@ def generate_badminton_doubles_schedule(all_players, num_matches) -> List[Tuple[
     # print_schedule(schedule, print_last_match=True)
 
     for game_no in range(num_matches - 1):
-
         # Shuffle the players after each set of num_players games
         if len(schedule) % num_players == 0:
-            # Shuffle the players randomly
-            random.shuffle(players)
-            playing = list(players)[:4]
-            sitting = list(players)[4:]
+            # Shuffle the order of the list 'playing' so that each set of games have a new order
+            random.shuffle(playing)
 
         if num_players == 5:
             next_sitting = [playing[0]]
@@ -195,9 +192,8 @@ def get_image(data):
     # Bold every new set of games to identify them easily
     for key, cell in table.get_celld().items():
         cell.set_linewidth(0)
-        # Draw a line after every 4 rows
-        if (key[0] == 1) or (
-                key[0] % (len(sorted_unique_players) + 1) == 0 and key[0] != 0):  # Adjust for 0-based indexing
+        # First row is header, so add a -1 to the key
+        if ((key[0] - 1) % (len(sorted_unique_players))) == 0:
             cell.get_text().set_weight('bold')
 
     # Adjust the figure size or layout before saving to ensure the table fits well

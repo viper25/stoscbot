@@ -204,18 +204,27 @@ def test_fairness_in_games_played(num_players):
 
     assert max_games - min_games <= 1, "The difference in games played between some players exceeded 1."
 
+@pytest.mark.parametrize("num_players, num_matches", [(n, m) for n in range(5, 11) for m in range(10, 26)])
+def test_no_player_sits_out_more_than_two_consecutive_games_1(num_players, num_matches):
+    players = ['Player1', 'Player2', 'Player3', 'Player4', 'Player5', 'Player6', 'Player7', 'Player8']
+    schedule_for_testing_Player2 = [
+        (['Player1', 'Player2', 'Player3', 'Player4'], ['Player5', 'Player6', 'Player7', 'Player8']),
+        (['Player4', 'Player5', 'Player6', 'Player7'], ['Player8', 'Player1', 'Player2', 'Player3']),
+        (['Player7', 'Player8', 'Player1', 'Player2'], ['Player3', 'Player4', 'Player5', 'Player6']),
+        (['Player2', 'Player3', 'Player4', 'Player5'], ['Player6', 'Player7', 'Player8', 'Player1']),
+        (['Player5', 'Player6', 'Player7', 'Player8'], ['Player1', 'Player2', 'Player3', 'Player4']),
+        (['Player8', 'Player1', 'Player2', 'Player3'], ['Player4', 'Player5', 'Player6', 'Player7']),
+        (['Player3', 'Player4', 'Player5', 'Player6'], ['Player7', 'Player8', 'Player1', 'Player2']),
+        (['Player8', 'Player1', 'Player7', 'Player6'], ['Player2', 'Player3', 'Player4', 'Player5']),
+        (['Player6', 'Player5', 'Player3', 'Player4'], ['Player2', 'Player8', 'Player1', 'Player7']),
+        (['Player4', 'Player5', 'Player8', 'Player1'], ['Player7', 'Player6', 'Player2', 'Player3'])
+    ]
 
-@pytest.mark.parametrize("num_players", [5, 6, 7, 8, 9])
-def test_no_player_sits_out_more_than_two_consecutive_games(num_players):
-    # Assuming a reasonable number of games for testing
-    games_multiplier = 2
-    num_matches = num_players * games_multiplier
     players = ['Player' + str(i) for i in range(1, num_players + 1)]
     schedule = generate_badminton_doubles_schedule(players, num_matches)
 
-    # Initialize a dictionary to track the last two game statuses for each player (play/sit)
-    player_statuses = {player: deque([True, True], maxlen=2) for player in
-                       players}  # True indicates playing, False indicates sitting out
+    # Initialize a dictionary to track the last two game statuses for each player
+    player_statuses = {player: deque([True, True], maxlen=3) for player in players}  # True indicates playing, False indicates sitting out
 
     # Update status for each game
     for match in schedule:
@@ -225,11 +234,7 @@ def test_no_player_sits_out_more_than_two_consecutive_games(num_players):
 
     # Check that no player has sat out more than two consecutive games
     for player, status in player_statuses.items():
-        for i in range(len(status) - 2):
-            # If three consecutive statuses are False (sat out), then the test fails
-            assert not (status[i] == status[i + 1] == status[
-                i + 2] == False), f"{player} sat out more than two consecutive games."
-
+        assert not all(s is False for s in status), f"{player} sat out more than two consecutive games for {num_players} player, {num_matches}-match game."
 
 def test_print_schedule(capfd):
     schedule = [
