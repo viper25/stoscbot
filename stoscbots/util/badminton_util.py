@@ -142,8 +142,8 @@ def get_image(data):
     logger.info(f"Generating schedule for: {sorted_unique_players}")
 
     # Define a darker color palette
-    dark_colors = ['#00429d', '#93003a', '#1d6996', '#cc503e', '#164242', '#0f8554', '#de0db8', '#b2872e', '#cc503e',
-                   '#94346e', '#6f4070']
+    dark_colors = ['#04baba', '#7B1FA2', '#d92b2b', '#18964d', '#6D4C41', '#F39C12', '#3498DB', '#880E4F', '#F57F17',
+                   '#A04000']
 
     # Ensure there are enough colors for the players, repeat the palette if necessary
     if len(sorted_unique_players) > len(dark_colors):
@@ -217,9 +217,10 @@ if __name__ == "__main__":
     player_names = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9"]
     player_names = ["P1", "P2", "P3", "P4", "P5", "P6"]
     player_names = ["P1", "P2", "P3", "P4", "P5"]
-    player_names = ["Vibin", "Jithin", "Simon", "Vincent", "Pradeep", "Ajish", "Liju", "Johnson"]
     player_names = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]
+    player_names = ["Vibin", "Jithin", "Simon", "Vincent", "Pradeep", "Ajish", "Liju", "Johnson"]
     schedule = generate_badminton_doubles_schedule(player_names, num_matches)
     print_schedule(schedule, highlight_player="P1", all_players=player_names)
 
     img = get_image([match[0] for match in schedule])
+    print(img)
