@@ -28,19 +28,26 @@ async def badminton_scheduler(client: Client, message: Message):
         await message.reply_text(msg)
         return
     if len(message.command) < 3:
-        msg = "Please enter arguments\ne.g. `/game [number of games] [PLAYER1, PLAYER2,...]`"
+        msg = "Please enter arguments\ne.g. `/game number_of_games [sitting] [PLAYER1, PLAYER2,...]`"
         await message.reply_text(msg)
         return
     else:
         num_matches = int(message.command[1])
 
-        _players = ','.join(message.command[2:])
+        # Check if the last argument is a number
+        if message.command[-1].isdigit():
+            _players = ','.join(message.command[2:-1])
+            show_sitting_players = False
+        else:
+            _players = ','.join(message.command[2:])
+            show_sitting_players = True
+
         # Splitting the combined string on commas to get individual player names
         players = [player.strip() for player in _players.split(',') if player.strip()]
 
         try:
             schedule = generate_badminton_doubles_schedule(players, num_matches)
-            img = get_image([match[0] for match in schedule])
+            img = get_image(schedule_data=schedule, show_sitting_players=show_sitting_players)
         except ValueError as e:
             logger.error(e)
             await message.reply_text(e)

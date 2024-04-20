@@ -256,8 +256,7 @@ def test_print_schedule(capfd):
 
 def test_get_image():
     # Prepare the input data
-    data = [['P1', 'P2', 'P3', 'P4'], ['P4', 'P5', 'P6', 'P7']]
-
+    data = [['P1', 'P2', 'P3', 'P4'], ['P5', 'P6', 'P7']]
     # Call the function with the prepared data
     result = get_image(data)
 

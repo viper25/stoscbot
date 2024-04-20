@@ -128,14 +128,14 @@ def generate_badminton_doubles_schedule(all_players, num_matches) -> List[Tuple[
     return schedule
 
 
-def get_image(data):
+def get_image(schedule_data, show_sitting_players: bool = True):
     '''
     Function to display a table in a plot
-    data = [['P1', 'P2', 'P3', 'P4'], ['P4', 'P5', 'P6', 'P7']]
+    data = [[('P1', 'P2', 'P3', 'P4'), ('P4', 'P5', 'P6', 'P7')]]
     '''
 
     # Extract all unique players from data
-    unique_players = set(player for row in data for player in row)
+    unique_players = set(player for match in schedule_data for players in match for player in players)
     # Sort the unique players to ensure consistent order
     sorted_unique_players = sorted(unique_players)
 
@@ -155,8 +155,18 @@ def get_image(data):
     # Default color for odd rows
     odd_row_color = "#f2f2f2"
 
-    # Add headers and index column
-    data = [['# ', 'P-1', 'P-2', 'P-3', 'P-4']] + [["{:02d}".format(i + 1)] + row for i, row in enumerate(data)]
+    # Get the number of playing and sitting players from the first match
+    num_playing = len(schedule_data[0][0])
+    num_sitting = len(schedule_data[0][1])
+    playing_headers = [f'Play-{i + 1}' for i in range(num_playing)]
+    sitting_headers = [f'Sit-{i + 1}' for i in range(num_sitting)]
+    # Combine the headers
+    headers = ['# '] + playing_headers + sitting_headers
+    # Generate the data with the new headers
+    schedule_data = [headers] + [["{:02d}".format(i + 1)] + list(match[0]) + list(match[1]) for i, match in
+                                 enumerate(schedule_data)]
+    if not show_sitting_players:
+        schedule_data = [sublist[:5] for sublist in schedule_data]
 
     # Initialize plot
     fig, ax = plt.subplots()
@@ -165,26 +175,30 @@ def get_image(data):
     ax.axis('off')
 
     # Create the table
-    table = ax.table(cellText=data, loc='center', cellLoc='left')
+    table = ax.table(cellText=schedule_data, loc='center', cellLoc='left')
 
     # Remove table border
     table.auto_set_font_size(False)
     table.set_fontsize(10)
     table.scale(1, 1.5)
-    table.auto_set_column_width(col=list(range(len(data[0]))))
+    table.auto_set_column_width(col=list(range(len(schedule_data[0]))))
 
     # Set line width to 0 to remove border
     for key, cell in table.get_celld().items():
         cell.set_linewidth(0)
 
     # Color player font and maintain odd row background color
-    for i in range(len(data)):
-        for j in range(len(data[i])):
+    # Color player font and maintain odd row background color
+    for i in range(len(schedule_data)):
+        for j in range(len(schedule_data[i])):
             cell = table[i, j]
-            player = data[i][j]
-            if player in player_colors:
-                # Apply player-specific font color
-                cell.get_text().set_color(player_colors[player])
+            if j >= 5:  # For columns from the 5th onwards
+                cell.get_text().set_color('grey')
+            else:  # For the first 4 columns
+                player = schedule_data[i][j]
+                if player in player_colors:
+                    # Apply player-specific font color
+                    cell.get_text().set_color(player_colors[player])
             if i % 2 == 0:
                 # Optionally, if you still want odd rows to have a different background, uncomment the next line
                 cell.set_facecolor(odd_row_color)
@@ -215,12 +229,12 @@ if __name__ == "__main__":
 
     player_names = ["P1", "P2", "P3", "P4", "P5", "P6", "P7"]
     player_names = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9"]
-    player_names = ["P1", "P2", "P3", "P4", "P5", "P6"]
     player_names = ["P1", "P2", "P3", "P4", "P5"]
     player_names = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8"]
-    player_names = ["Vibin", "Jithin", "Simon", "Vincent", "Pradeep", "Ajish", "Liju", "Johnson"]
+    player_names = ["P1", "P2", "P3", "P4", "P5", "P6"]
+    player_names = ["Vibin", "Jithin", "Simon", "Vincent", "Pradeep", "Ajish", "Liju", "Johnson", "Sam"]
     schedule = generate_badminton_doubles_schedule(player_names, num_matches)
     print_schedule(schedule, highlight_player="P1", all_players=player_names)
 
-    img = get_image([match[0] for match in schedule])
+    img = get_image(schedule_data=schedule, show_sitting_players=True)
     print(img)
