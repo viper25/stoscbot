@@ -204,7 +204,7 @@ def test_fairness_in_games_played(num_players):
 
     assert max_games - min_games <= 1, "The difference in games played between some players exceeded 1."
 
-@pytest.mark.parametrize("num_players, num_matches", [(n, m) for n in range(5, 11) for m in range(10, 26)])
+@pytest.mark.parametrize("num_players, num_matches", [(n, m) for n in range(5, 9) for m in range(10, 26)])
 def test_no_player_sits_out_more_than_two_consecutive_games_1(num_players, num_matches):
     players = ['Player1', 'Player2', 'Player3', 'Player4', 'Player5', 'Player6', 'Player7', 'Player8']
     schedule_for_testing_Player2 = [
