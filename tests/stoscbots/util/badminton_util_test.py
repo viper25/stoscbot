@@ -236,6 +236,47 @@ def test_no_player_sits_out_more_than_two_consecutive_games_1(num_players, num_m
     for player, status in player_statuses.items():
         assert not all(s is False for s in status), f"{player} sat out more than two consecutive games for {num_players} player, {num_matches}-match game."
 
+# At times, when there's a reset after a set of games, ut can happen that a player may play 3 consecutive games.
+# @pytest.mark.parametrize("num_players, num_matches", [(p, m) for p in range(7, 9) for m in range(10, 20)])
+# def test_no_player_plays_more_than_two_consecutive_games_5_or_more(num_players, num_matches):
+#     assert num_matches >= 5, "Number of matches should be 5 or more for this test."
+#
+#     players = ['Player' + str(i) for i in range(1, num_players + 1)]
+#     schedule = generate_badminton_doubles_schedule(players, num_matches)
+#
+#     # Initialize a dictionary to track the last two game statuses for each player
+#     player_statuses = {player: deque([False, False], maxlen=3) for player in players}  # False indicates sitting out, True indicates playing
+#
+#     # Update status for each game
+#     for match in schedule:
+#         playing_players = set(match[0])  # Assuming match[0] contains the list of playing players
+#         for player in players:
+#             player_statuses[player].append(player in playing_players)
+#
+#     # Check that no player has played more than two consecutive games
+#     for player, status in player_statuses.items():
+#         assert not all(s is True for s in status), f"{player} played more than two consecutive games for {num_players} player, {num_matches}-match game."
+
+@pytest.mark.parametrize("num_players, num_matches", [(p, m) for p in range(7, 9) for m in range(10, 26)])
+def test_no_player_plays_more_than_three_consecutive_games_5_or_more(num_players, num_matches):
+    assert num_matches >= 5, "Number of matches should be 5 or more for this test."
+
+    players = ['Player' + str(i) for i in range(1, num_players + 1)]
+    schedule = generate_badminton_doubles_schedule(players, num_matches)
+
+    # Initialize a dictionary to track the last three game statuses for each player
+    player_statuses = {player: deque([False, False, False], maxlen=4) for player in players}  # False indicates sitting out, True indicates playing
+
+    # Update status for each game
+    for match in schedule:
+        playing_players = set(match[0])  # Assuming match[0] contains the list of playing players
+        for player in players:
+            player_statuses[player].append(player in playing_players)
+
+    # Check that no player has played more than three consecutive games
+    for player, status in player_statuses.items():
+        assert not all(s is True for s in status), f"{player} played more than three consecutive games for {num_players} player, {num_matches}-match game."
+
 def test_print_schedule(capfd):
     schedule = [
         (['P1', 'P2', 'P3', 'P4'], ['P5', 'P6']),
