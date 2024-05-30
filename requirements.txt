@@ -1,6 +1,6 @@
 # https://docs.pyrogram.org/topics/tgcrypto
 tgcrypto
-pyrogram
+https://github.com/KurimuzonAkuma/pyrogram/archive/dev.zip
 mysql-connector-python
 python-dotenv
 pendulum
