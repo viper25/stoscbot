@@ -59,7 +59,7 @@ table_stosc_bot_member_telegram = resource.Table("stosc_bot_member_telegram")
 
 # Update metrics only if using PRO STOSC Bot Token
 log_metrics = hashlib.md5(
-    os.environ.get("STOSC_TELEGRAM_BOT_TOKEN").encode()).hexdigest() == "7ede2e8fe6780662b3e06de38e61c132"
+    os.environ.get("STOSC_TELEGRAM_BOT_TOKEN").encode()).hexdigest() == "defd1d2832a12584e5b5611da9a10fcc"
 
 
 # Log Bot user access metrics
