@@ -164,11 +164,11 @@ jobs:
           port: 22
           script: |
             cd ${{ env.CLOUD_PROVIDER == 'Azure' && '/home/azureuser/bots/stoscbot/workspace' || '/home/ubuntu/bots/stoscbot/workspace' }}
-            cp ../credentials/* .
-            cp ../credentials/.* .
-            python -m venv .venv
+            cp -r ../credentials/* .
+            cp -r ../credentials/.* .
+            python3 -m venv .venv
             source .venv/bin/activate
-            if [ -f requirements-frozen.txt ]; then pip install --upgrade -r requirements-frozen.txt; fi
+            if [ -f requirements-frozen.txt ]; then python3 -m pip install --upgrade -r requirements-frozen.txt; fi
             nohup python run_stoscbot.py > /dev/null 2>&1 &
 
       - name: Remove Github Actions IP from security group
