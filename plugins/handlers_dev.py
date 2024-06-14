@@ -150,9 +150,9 @@ async def send_msg(client: Client, message: Message):
             for member in recent_members:
                 # If environment is not production, set member = '000'
                 if os.environ.get("ENV").upper() != 'PRO':
-                    member['telegram_id'] = os.environ.get('VIBIN_TELEGRAM_ID')
+                    member['telegram_id'] = int(os.environ.get('VIBIN_TELEGRAM_ID'))
                 # Send the message to the user
-                await client.send_message(member['telegram_id'], msg)
+                await client.send_message(int(member['telegram_id']), msg)
                 log_msg = f"Telegram message [`{msg}`] sent to {member['Name']} ({member['member_code']})-{member['telegram_id']}"
                 logger.info(log_msg)
             await message.reply_text(f"Message sent to {len(recent_members)} members")
