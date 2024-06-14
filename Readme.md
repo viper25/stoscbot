@@ -57,7 +57,7 @@ Upgrade dependencies, test locally and then freeze to `requirements_pro.txt`
 ```bash
 pip install --upgrade pip
 pip install --upgrade -r requirements.txt
-pip freeze > requirements-frozen.txt
+pip freeze --exclude pytest-cov --exclude pytest --exclude pytest-asyncio > requirements-frozen.txt
 ```
 </details>
 

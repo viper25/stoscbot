@@ -15,6 +15,6 @@ colorama
 matplotlib
 
 # Install the below for testing
-# pytest-asyncio  # For testing
-# pytest  # For testing
+# pytest-asyncio
+# pytest
 # pytest-cov # for coverage. Use as pytest --cov
