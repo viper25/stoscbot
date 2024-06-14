@@ -161,3 +161,19 @@ def add_user(telegram_id, member_code, name):
     elif len(response['Items']) > 0:
         # Use exists, 500 indicating existing user
         return 500
+
+# ----------------------------------------------------------------------------------------------------------------------
+def get_all_members_telegram_ids():
+    resource = boto3.resource(
+        "dynamodb",
+        aws_access_key_id=os.environ.get("STOSC_DDB_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
+        region_name="ap-southeast-1",
+    )
+    table = resource.Table('stosc_bot_member_telegram')
+
+    # Scan the DynamoDB table
+    items = table.scan()['Items']
+
+    return items
+

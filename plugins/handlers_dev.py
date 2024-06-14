@@ -7,6 +7,7 @@ import os
 import platform
 import subprocess
 from datetime import datetime
+import datetime
 
 from pyrogram import Client, filters
 from pyrogram.types import Message, CallbackQuery
@@ -97,7 +98,7 @@ async def get_telegram_id_handler(client: Client, message: Message):
     else:
         member_code = message.command[1]
         if utils.is_valid_member_code(member_code):
-            # Get the members Telegram ID by looking up in DyanmoDB
+            # Get the members Telegram ID by looking up in DynamoDB
             result = utils.get_TelegramID_from_MemberCode(member_code.upper())
             if result:
                 msg = f"**Member Details ({member_code})**\n"
@@ -129,15 +130,42 @@ async def send_msg(client: Client, message: Message):
         await message.reply_text(msg)
         return
     else:
-        telegram_id = message.command[1]
-        msg = ' '.join(message.command[2:])
-        _member_code = utils.getMemberCode_from_TelegramID(telegram_id)
-        if telegram_id.isdigit() and utils.is_valid_member_code(_member_code):
-            # Send the message to the user
-            await client.send_message(telegram_id, msg)
-            log_msg = f"Telegram message [`{msg}`] sent to `{telegram_id}` ({_member_code})"
-            logger.info(log_msg)
-            await message.reply_text(log_msg)
+        # Check if second argument is "ALL"
+        if message.command[1].upper() == "ALL":
+            msg = ' '.join(message.command[2:])
+            # Get all members from the DB
+            members = db.get_all_members_telegram_ids()
+
+            # Get the current date
+            now = datetime.datetime.now()
+            # Calculate the date 3 months ago
+            three_months_ago = now - datetime.timedelta(days=90)
+
+            # Remove members with no 'last_seen' key
+            members = [d for d in members if 'last_seen' in d]
+
+            recent_members = [d for d in members if
+                              datetime.datetime.strptime(d['last_seen'], "%Y/%m/%d %H:%M:%S") > three_months_ago]
+
+            for member in recent_members:
+                # If environment is not production, set member = '000'
+                if os.environ.get("ENV").upper() != 'PRO':
+                    member['telegram_id'] = os.environ.get('VIBIN_TELEGRAM_ID')
+                # Send the message to the user
+                await client.send_message(member['telegram_id'], msg)
+                log_msg = f"Telegram message [`{msg}`] sent to {member['Name']} ({member['member_code']})-{member['telegram_id']}"
+                logger.info(log_msg)
+            await message.reply_text(f"Message sent to {len(recent_members)} members")
+        else:
+            telegram_id = message.command[1]
+            msg = ' '.join(message.command[2:])
+            _member_code = utils.getMemberCode_from_TelegramID(telegram_id)
+            if telegram_id.isdigit() and utils.is_valid_member_code(_member_code):
+                # Send the message to the user
+                await client.send_message(telegram_id, msg)
+                log_msg = f"Telegram message [`{msg}`] sent to `{telegram_id}` ({_member_code})"
+                logger.info(log_msg)
+                await message.reply_text(log_msg)
 
 
 # -------------------------------------------------
