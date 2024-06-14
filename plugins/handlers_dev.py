@@ -139,7 +139,7 @@ async def send_msg(client: Client, message: Message):
             # Get the current date
             now = datetime.datetime.now()
             # Calculate the date 3 months ago
-            three_months_ago = now - datetime.timedelta(days=90)
+            three_months_ago = now - datetime.timedelta(days=60)
 
             # Remove members with no 'last_seen' key
             members = [d for d in members if 'last_seen' in d]
