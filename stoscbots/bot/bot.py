@@ -40,6 +40,13 @@ logger.info("""\n
       )
 logger.info(f"Environment:\n{env_banner}")
 
+# Initialization. Values from https://my.telegram.org/apps
+# When asked "Enter phone number or bot token:", enter ONLY bot token
+
+# api_id = XXX
+# api_hash = "XXX"
+# app = Client(os.environ.get("BOT_CLIENT_NAME"), plugins=dict(root="plugins"), api_id=api_id, api_hash=api_hash)
+
 app = Client(os.environ.get("BOT_CLIENT_NAME"), plugins=dict(root="plugins"), test_mode=test_mode)
 Conversation(app)
 
