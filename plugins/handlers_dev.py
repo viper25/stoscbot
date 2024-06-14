@@ -2,13 +2,14 @@
 Admin API calls
 """
 import configparser
+import datetime
 import logging
 import os
 import platform
 import subprocess
 from datetime import datetime
-import datetime
 
+from dateutil.relativedelta import relativedelta
 from pyrogram import Client, filters
 from pyrogram.types import Message, CallbackQuery
 
@@ -31,9 +32,9 @@ def dynamic_data_filter(data):
     )
 
 
+# -------------------------------------------------
 @Client.on_message(filters.command(["version", "ver"]))
 @loggers.async_log_access
-@bot_auth.async_management_only
 async def version_handler(client: Client, message: Message):
     config = configparser.ConfigParser()
     config.read(r'.VERSION')
@@ -53,12 +54,8 @@ async def version_handler(client: Client, message: Message):
 # /add 6109146073 F004 John Mathew
 @Client.on_message(filters.command(["add"]))
 @loggers.async_log_access
+@bot_auth.super_admin_only
 async def add_user_handler(client: Client, message: Message):
-    # Only allow the bot owner to add users
-    if bot_auth.is_super_admin(message.from_user.id) is False:
-        msg = "You are not allowed to add users"
-        await message.reply_text(msg)
-        return
     if len(message.command) < 4:
         msg = "Please enter proper commands\ne.g. `/add [telegram_id] [member_code] [name]`"
         await message.reply_text(msg)
@@ -119,53 +116,48 @@ async def get_telegram_id_handler(client: Client, message: Message):
 # /send 21999999 Hello World
 @Client.on_message(filters.command(["send"]))
 @loggers.async_log_access
+@bot_auth.super_admin_only
 async def send_msg(client: Client, message: Message):
-    # Only allow the bot owner to add users
-    if bot_auth.is_super_admin(message.from_user.id) is False:
-        msg = "You are not allowed to execute this command"
-        await message.reply_text(msg)
-        return
     if len(message.command) < 3:
         msg = "Please enter proper commands\ne.g. `/send [telegram_id] [message]`"
         await message.reply_text(msg)
         return
-    else:
-        # Check if second argument is "ALL"
-        if message.command[1].upper() == "ALL":
-            msg = ' '.join(message.command[2:])
-            # Get all members from the DB
-            members = db.get_all_members_telegram_ids()
 
-            # Get the current date
-            now = datetime.datetime.now()
-            # Calculate the date 3 months ago
-            three_months_ago = now - datetime.timedelta(days=60)
+    telegram_id = message.command[1]
+    msg = ' '.join(message.command[2:])
 
-            # Remove members with no 'last_seen' key
-            members = [d for d in members if 'last_seen' in d]
+    if telegram_id.upper() == "ALL":
+        # Get all members from the DB
+        members = db.get_all_members_telegram_ids()
 
-            recent_members = [d for d in members if
-                              datetime.datetime.strptime(d['last_seen'], "%Y/%m/%d %H:%M:%S") > three_months_ago]
+        # Calculate the date 3 months ago
+        three_months_ago = datetime.datetime.now() - relativedelta(months=2)
 
-            for member in recent_members:
-                # If environment is not production, set member = '000'
-                if os.environ.get("ENV").upper() != 'PRO':
-                    member['telegram_id'] = int(os.environ.get('VIBIN_TELEGRAM_ID'))
-                # Send the message to the user
-                await client.send_message(int(member['telegram_id']), msg)
-                log_msg = f"Telegram message [`{msg}`] sent to {member['Name']} ({member['member_code']})-{member['telegram_id']}"
-                logger.info(log_msg)
-            await message.reply_text(f"Message sent to {len(recent_members)} members")
+        # Filter out members with 'last_seen' key and are recent
+        recent_members = [d for d in members if 'last_seen' in d and
+                          datetime.datetime.strptime(d['last_seen'], "%Y/%m/%d %H:%M:%S") > three_months_ago]
+
+        for member in recent_members:
+            # If environment is not production, set member = '000'
+            if os.environ.get("ENV").upper() != 'PRO':
+                member['telegram_id'] = int(os.environ.get('VIBIN_TELEGRAM_ID'))
+            # Send the message to the user
+            await client.send_message(int(member['telegram_id']), msg)
+            log_msg = f"Telegram message [`{msg}`] sent to {member['Name']} ({member['member_code']})-{member['telegram_id']}"
+            logger.info(log_msg)
+        await message.reply_text(f"Message sent to {len(recent_members)} members")
+    elif telegram_id.isdigit():
+        _member_code = utils.getMemberCode_from_TelegramID(telegram_id)
+        if utils.is_valid_member_code(_member_code):
+            # Send the message to the user
+            await client.send_message(telegram_id, msg)
+            log_msg = f"Telegram message [`{msg}`] sent to `{telegram_id}` ({_member_code})"
+            logger.info(log_msg)
+            await message.reply_text(log_msg)
         else:
-            telegram_id = message.command[1]
-            msg = ' '.join(message.command[2:])
-            _member_code = utils.getMemberCode_from_TelegramID(telegram_id)
-            if telegram_id.isdigit() and utils.is_valid_member_code(_member_code):
-                # Send the message to the user
-                await client.send_message(telegram_id, msg)
-                log_msg = f"Telegram message [`{msg}`] sent to `{telegram_id}` ({_member_code})"
-                logger.info(log_msg)
-                await message.reply_text(log_msg)
+            await message.reply_text("Invalid Telegram ID")
+    else:
+        await message.reply_text("Invalid Telegram ID")
 
 
 # -------------------------------------------------
@@ -173,12 +165,8 @@ async def send_msg(client: Client, message: Message):
 # /cmd logs 1
 @Client.on_message(filters.command(["cmd"]))
 @loggers.async_log_access
+@bot_auth.super_admin_only
 async def run_commands(client: Client, message: Message):
-    # Only allow the bot owner
-    if not bot_auth.is_super_admin(message.from_user.id):
-        await message.reply_text("You are not allowed to execute this command")
-        return
-
     if len(message.command) < 2:
         await message.reply_text("Please enter proper commands\ne.g. `/cmd [command]`")
         return

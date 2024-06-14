@@ -24,8 +24,10 @@ resource = boto3.resource('dynamodb', aws_access_key_id=os.environ.get('STOSC_DD
                           region_name='ap-southeast-1')
 table_stosc_bot_member_telegram = resource.Table('stosc_bot_member_telegram')
 
+
 def get_super_admin_ids():
     return os.environ.get('SUPER_ADMIN_TELEGRAM_IDS', '')
+
 
 async def send_access_denied_msg(client, msg_or_query):
     arg_msg = ""
@@ -101,6 +103,20 @@ def async_area_prayer_coordinator_only(func):
         return await func(client, msg_or_query)
 
     return wrapped
+
+
+# --------------------------------------------------
+# Decorator for super admin check
+def super_admin_only(func):
+    wraps(func)
+
+    async def wrapper(client, message):
+        if not is_super_admin(message.from_user.id):
+            await message.reply_text("You are not allowed to execute this command")
+            return
+        return await func(client, message)
+
+    return wrapper
 
 
 # =================================================
