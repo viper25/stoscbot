@@ -43,7 +43,7 @@ async def get_today_bdays(client: Client, query: CallbackQuery):
                 age = date.today().year - int(_splits[2])
             else:
                 age = None
-            msg += f"• {_item[1].strip()} `({_item[0].strip()})` - {age if age else 'NA'}\n"
+            msg += f"• {_item[1].strip()} (`{_item[0].strip()}`) - {age if age else 'NA'}\n"
     await utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
 
 
