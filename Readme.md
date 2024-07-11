@@ -61,6 +61,12 @@ Upgrade dependencies, test locally and then freeze to `requirements_pro.txt`
 ```bash
 pip install --upgrade pip
 pip install --upgrade -r requirements.txt
+```
+
+To freeze requirements, delete the virtual env and recreate it to remove cruft installs. Then run the above command to 
+install the dependencies and freeze them (with the command below).
+
+```bash
 pip freeze --exclude pytest-cov --exclude pytest --exclude pytest-asyncio > requirements-frozen.txt
 ```
 

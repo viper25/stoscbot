@@ -1,6 +1,7 @@
 import asyncio
 import logging
 
+import aiofiles
 from pyrogram import Client, filters
 from pyrogram.types import Message, CallbackQuery
 
@@ -74,6 +75,21 @@ async def start_handler(client: Client, message: Message):
     else:
         msg = "What would you like to do?\n Select an option:"
         await message.reply_text(msg, reply_markup=keyboards.get_main_keyboard(message.from_user.id))
+
+
+# -------------------------------------------------
+@Client.on_message(filters.command(["privacy"]))
+@loggers.async_log_access
+async def privacy_handler(client: Client, message: Message):
+    try:
+        async with aiofiles.open('privacy_policy.txt', mode='r', encoding='utf-8') as file:
+            privacy_policy = await file.read()
+        await message.reply_text(privacy_policy, reply_markup=keyboards.back_to_main_keyboard,
+                                 disable_web_page_preview=True)
+    except IOError as e:
+        logging.error(f"Failed to read privacy policy file: {e}")
+        await message.reply_text("Sorry, the privacy policy is currently unavailable.",
+                                 reply_markup=keyboards.back_to_main_keyboard)
 
 
 # -------------------------------------------------
