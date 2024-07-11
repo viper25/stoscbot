@@ -13,6 +13,7 @@ convopyro
 tabulate   # For rendering tables generated via dataframes
 colorama
 matplotlib
+aiofiles    # Aync File reads
 
 # Install the below for testing
 # pytest-asyncio
