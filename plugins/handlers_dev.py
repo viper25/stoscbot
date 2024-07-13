@@ -240,9 +240,9 @@ async def show_stats(client: Client, query: CallbackQuery):
 
         cmd = f"""
         grep -E '{date_string}' {log_file_path} |
-        grep -oP '\[\K[^\]]+' |
-        grep -v '^400' |
+        grep -oP '\[.*:.*:.*\]' | 
         awk -F: '{{print $NF}}' |
+        sed 's/\]$//' | \
         sort |
         uniq -c |
         sort -nr |
