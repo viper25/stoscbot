@@ -13,3 +13,5 @@ coverage.xml
 *.idea/
 *.bin
 chroma.sqlite3
+logs/
+.run/
