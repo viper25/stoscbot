@@ -20,9 +20,6 @@ parsers:
       method: no
       macro: no
 
-fixes:
-  - "src/github.com/goharbor/harbor/src/::src/"
-
 comment:
   layout: "reach,diff,flags,tree"
   behavior: default
