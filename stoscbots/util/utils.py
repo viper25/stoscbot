@@ -165,7 +165,7 @@ def generate_msg_xero_member_payments(name: str, member_code: str, year: str) ->
     if not payments:
         return f"No contributions for **{name}** for year **{year}**"
 
-    msg = f"**{name}**\n`For Year {year}`\n"
+    msg = f">**{name}**\n>`For Year {year}`\n"
     msg += "➖➖➖➖➖➖➖\n"
 
     # If payments list is empty
@@ -231,7 +231,8 @@ def generate_msg_xero_member_invoices(member_code: str, year: str):
         "DRAFT": "🟠"
     }
 
-    msg = f"--**{invoices['Invoices'][0]['Contact']['Name']} ({member_code})**--\n\n"
+    msg = f">**Dues**\n\n"
+    # msg = f"--**{invoices['Invoices'][0]['Contact']['Name']} ({member_code})**--\n\n"
 
     for invoice in invoices["Invoices"]:
         # Filter invoices based on conditions

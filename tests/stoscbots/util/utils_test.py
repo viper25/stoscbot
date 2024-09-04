@@ -62,7 +62,7 @@ def test_generate_profile_msg():
 
 def test_generate_msg_xero_member_payments_2020():
     result = utils.generate_msg_xero_member_payments(name="John", member_code="V019", year="2020")
-    expected = "**John**\n`For Year 2020`\n➖➖➖➖➖➖➖\n► Birthday Offering: **$30**\n► Christmas Offering: **$70**\n► Annual Thanksgiving Auction: **$1265**\n\n`As of: 30/04/2021 18:23`"
+    expected = ">**John**\n>`For Year 2020`\n➖➖➖➖➖➖➖\n► Birthday Offering: **$30**\n► Christmas Offering: **$70**\n► Annual Thanksgiving Auction: **$1265**\n\n`As of: 30/04/2021 18:23`"
     assert expected == result
 
 
@@ -195,7 +195,7 @@ def mock_get_member_payments(member_code, year):
     "name, member_code, year, expected_output",
     [
         ("John Doe", "12345", "2023",
-         "**John Doe**\n`For Year 2023`\n➖➖➖➖➖➖➖\n► Account1: **$100.00**\n► Account2: **$200.00**\n\n`As of: 2023-08-31 14:00`"),
+         ">**John Doe**\n>`For Year 2023`\n➖➖➖➖➖➖➖\n► Account1: **$100.00**\n► Account2: **$200.00**\n\n`As of: 2023-08-31 14:00`"),
         ("Jane Doe", "67890", "2023", "No contributions for **Jane Doe** for year **2023**")
     ]
 )
@@ -211,7 +211,7 @@ def test_generate_msg_xero_member_payments(name, member_code, year, expected_out
 def test_generate_msg_xero_member_invoices():
     member_code = "123"
     year = "2021"
-    expected_output = "--**John Doe (123)**--\n\n**[INV-21-001] - ****$100.00**: DUE 🟠\n  `• Item 1-$50.00`\n  `• Item 2-$50.00`\n––––———————————————\n"
+    expected_output = '>**Dues**\n\n**[INV-21-001] - ****$100.00**: DUE 🟠\n  `• Item 1-$50.00`\n  `• Item 2-$50.00`\n––––———————————————\n'
     # Mock the get_Invoices function to return test data
     invoices = {
         "Invoices": [
@@ -271,13 +271,13 @@ def test_generate_msg_xero_member_invoices_invoice_type_and_status():
             }
         ]
     }
-    expected_output = "--**John Doe (123)**--\n\n**[INV-21-001] - ****$100.00**: PAID 🟢\n  `• Item 1-$50.00`\n  `• Item 2-$50.00`\n––––———————————————\n"
+    expected_output = ">**Dues**\n\n**[INV-21-001] - ****$100.00**: PAID 🟢\n  `• Item 1-$50.00`\n  `• Item 2-$50.00`\n––––———————————————\n"
     with patch("stoscbots.util.utils.xero_utils.get_Invoices", return_value=invoices):
         assert utils.generate_msg_xero_member_invoices(member_code, year) == expected_output
 
     # Test for ACCREC type and DRAFT status
     invoices["Invoices"][0]["Status"] = "DRAFT"
-    expected_output = "--**John Doe (123)**--\n\n**[INV-21-001] - ****$100.00**: DRAFT 🟠\n  `• Item 1-$50.00`\n  `• Item 2-$50.00`\n––––———————————————\n"
+    expected_output = ">**Dues**\n\n**[INV-21-001] - ****$100.00**: DRAFT 🟠\n  `• Item 1-$50.00`\n  `• Item 2-$50.00`\n––––———————————————\n"
     with patch("stoscbots.util.utils.xero_utils.get_Invoices", return_value=invoices):
         assert utils.generate_msg_xero_member_invoices(member_code, year) == expected_output
 
@@ -303,7 +303,7 @@ def test_generate_msg_xero_member_invoices_invoice_number_patterns():
             }
         ]
     }
-    expected_output = "--**John Doe (123)**--\n\n**[HF-21-001] - ****$100.00**: DUE 🟠\n  `• Item 1-$50.00`\n  `• Item 2-$50.00`\n––––———————————————\n"
+    expected_output = ">**Dues**\n\n**[HF-21-001] - ****$100.00**: DUE 🟠\n  `• Item 1-$50.00`\n  `• Item 2-$50.00`\n––––———————————————\n"
     with patch("stoscbots.util.utils.xero_utils.get_Invoices", return_value=invoices):
         assert utils.generate_msg_xero_member_invoices(member_code, year) == expected_output
 

@@ -35,7 +35,7 @@ async def get_today_bdays(client: Client, query: CallbackQuery):
     if len(result) == 0:
         msg = "No Birthdays today"
     elif len(result) > 0:
-        msg = "**Birthdays today** 🎂\n\n"
+        msg = ">**Birthdays today** 🎂\n\n"
         for _item in result:
             _splits = _item[2].split('/')
             # Not all members provide year, therefore check if present
@@ -57,7 +57,7 @@ async def get_today_anniversaries(client: Client, query: CallbackQuery):
     if len(result) == 0:
         msg = "No Wedding Anniversary today"
     else:
-        msg_parts = ["**Wedding Anniversary's today** 💍\n\n"]
+        msg_parts = [">**Wedding Anniversary's today** 💍\n\n"]
         for _item in result:
             name = _item[1].strip()
             code = _item[0].strip()
@@ -80,8 +80,8 @@ async def get_weeks_bdays(client: Client, query_or_msg):
     if len(result) == 0:
         msg = " No Birthdays this week"
     else:
-        msg = "**Birthdays this week** 🎂\n"
-        msg += f"`({start} - {end})`\n\n"
+        msg = ">**Birthdays this week** 🎂\n"
+        msg += f">`({start} - {end})`\n\n"
         for _item in result:
             _splits = _item[2].split('/')
             _day = _splits[0].zfill(2)
@@ -122,7 +122,7 @@ async def get_weeks_anniversaries(client: Client, query_or_msg):
     if len(result) == 0:
         msg = " No Wedding Anniversaries this week"
     else:
-        msg_parts = ["**Wedding Anniversary** 💍\n", f"`({start} - {end})`\n\n"]
+        msg_parts = [">**Wedding Anniversary** 💍\n", f">`({start} - {end})`\n\n"]
         for _item in result:
             anniversary_years = None
             if _item[2].year != 1900:

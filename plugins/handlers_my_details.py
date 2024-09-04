@@ -72,7 +72,7 @@ async def show_list_accounts(client: Client, query: CallbackQuery):
     await query.answer()
     payments = utils.get_member_payments(utils.getMemberCode_from_TelegramID(query.from_user.id),
                                          str(datetime.now().year))
-    msg = "**List of Accounts**\n"
+    msg = ">**List of Accounts**\n"
     msg += "➖➖➖➖➖➖\n"
     msg += "You may contribute towards the following accounts:\n\n"
     for account in LIST_ACCOUNTS:
