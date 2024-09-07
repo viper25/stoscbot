@@ -23,10 +23,10 @@ SIMON_TELEGRAM_ID = int(os.environ.get('SIMON_TELEGRAM_ID'))
 @loggers.async_log_access
 @bot_auth.async_member_only
 async def badminton_scheduler(client: Client, message: Message):
-    if message.from_user.id not in [VIBIN_TELEGRAM_ID, SIMON_TELEGRAM_ID]:
-        msg = "You are not allowed to use this function"
-        await message.reply_text(msg)
-        return
+    # if message.from_user.id not in [VIBIN_TELEGRAM_ID, SIMON_TELEGRAM_ID]:
+    #     msg = "You are not allowed to use this function"
+    #     await message.reply_text(msg)
+    #     return
     if len(message.command) < 3:
         msg = "Please enter arguments\ne.g. `/game number_of_games [sitting] [PLAYER1, PLAYER2,...]`"
         await message.reply_text(msg)
