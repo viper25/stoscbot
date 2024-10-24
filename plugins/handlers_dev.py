@@ -216,7 +216,7 @@ async def execute_scripts(client: Client, query: CallbackQuery):
 
     # Check if the system is Linux
     if platform.system() == "Linux":
-        cmd = f"/home/ubuntu/bots/harvestbot-2024/start.sh"
+        cmd = f"./home/ubuntu/bots/harvestbot-2024/start.sh"
         logger.info(f"Executing {cmd}")
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
 
