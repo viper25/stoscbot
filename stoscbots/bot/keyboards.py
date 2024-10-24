@@ -63,6 +63,7 @@ __MAIN_ADMIN_BUTTON = InlineKeyboardButton("🔐 Admin", callback_data="Admin Me
 __SHOW_STATS_BUTTON = InlineKeyboardButton("📊 Show Stats", callback_data="Show Stats")
 __LOGS_BUTTON = InlineKeyboardButton("📜 Display Logs", callback_data="Show Logs")
 __ERROR_LOGS_BUTTON = InlineKeyboardButton("📜🚩 Display Error Logs", callback_data="Show Error Logs")
+__EXECUTE_SCRIPT_BUTTON = InlineKeyboardButton("📜🌽 Restart Harvest Bot", callback_data="Restart Harvest Bot")
 # ---------------------------------------------------------------------------------------------------
 '''
 Assemble the Buttons above to create Keyboards
@@ -123,7 +124,8 @@ streaming_menu_keyboard = InlineKeyboardMarkup([
 
 admin_menu_keyboard = InlineKeyboardMarkup([
     [__SHOW_STATS_BUTTON, __LOGS_BUTTON],
-    [__ERROR_LOGS_BUTTON, BACK_TO_MAIN_BUTTON]
+    [__ERROR_LOGS_BUTTON, BACK_TO_MAIN_BUTTON],
+    [__EXECUTE_SCRIPT_BUTTON]
 ])
 # ---------------------------------------------------------------------------------------------------
 """
