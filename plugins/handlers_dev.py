@@ -208,26 +208,6 @@ async def handle_logs_command(args, log_file_path):
 
 
 # --------------------------------------------------
-# TODO: Make this more generic
-@Client.on_callback_query(dynamic_data_filter("Restart Harvest Bot"))
-@loggers.async_log_access
-async def execute_scripts(client: Client, query: CallbackQuery):
-    await query.answer()
-
-    # Check if the system is Linux
-    if platform.system() == "Linux":
-        cmd = f"./home/ubuntu/bots/harvestbot-2024/start.sh"
-        logger.info(f"Executing {cmd}")
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
-
-        # Optionally send a message to the user indicating that the script was triggered
-        await query.message.reply_text(f"Restarting... ⏳`{result}`")
-    else:
-        # Optionally inform the user that this action is only available on Linux
-        await query.message.reply_text("This action is only available when the bot runs on Linux.")
-
-
-# --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Streaming Menu"))
 @loggers.async_log_access
 async def show_streaming_menu(client: Client, query: CallbackQuery):
