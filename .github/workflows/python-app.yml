@@ -136,7 +136,7 @@ jobs:
         if: env.CLOUD_PROVIDER == 'Azure'
         run: |
           az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
-          az network nsg rule create --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --nsg-name ${{ secrets.AZURE_NSG_NAME }} --name AllowGitHubActionsIP --priority 1000 --source-address-prefixes ${{ steps.ip.outputs.ipv4 }}/32 --source-port-ranges '*' --destination-address-prefixes '*' --destination-port-ranges 22 --access Allow --protocol Tcp --description "Allow SSH access from GitHub Actions"
+          az network nsg rule create --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --nsg-name ${{ secrets.AZURE_NSG_NAME }} --name AllowGitHubActionsIP --priority 1000 --source-address-prefixes ${{ steps.ip.outputs.ipv4 }}/32 --source-port-ranges '*' --destination-address-prefixes '*' --destination-port-ranges 22 --access Allow --protocol TCP --description "Allow SSH access from GitHub Actions"
         env:
           AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
           AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
