@@ -149,7 +149,7 @@ jobs:
         with:
           host: ${{ secrets.BOT_HOST }}
           username: ${{ env.CLOUD_PROVIDER == 'Azure' && 'vibinjk' || 'ubuntu' }}
-          key: ${{ secrets.BOT_HOST_KEY }}
+          key: ${{ secrets.BOT_HOST_PRIVATE_KEY }}
           port: 22
           script: |
             ps -ef | grep 'run_stoscbot' | grep -v grep | awk '{print $2}' | xargs kill -9 2> /dev/null
@@ -164,14 +164,14 @@ jobs:
           host: ${{ secrets.BOT_HOST }}
           port: 22
           user: ${{ env.CLOUD_PROVIDER == 'Azure' && 'vibinjk' || 'ubuntu' }}
-          key: ${{ secrets.BOT_HOST_KEY }}
+          key: ${{ secrets.BOT_HOST_PRIVATE_KEY }}
 
       - name: Install & Start the bot on VM
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.BOT_HOST }}
           username: ${{ env.CLOUD_PROVIDER == 'Azure' && 'vibinjk' || 'ubuntu' }}
-          key: ${{ secrets.BOT_HOST_KEY }}
+          key: ${{ secrets.BOT_HOST_PRIVATE_KEY }}
           port: 22
           script: |
             cd ${{ env.CLOUD_PROVIDER == 'Azure' && '/home/vibinjk/bots/stoscbot/workspace' || '/home/ubuntu/bots/stoscbot/workspace' }}
