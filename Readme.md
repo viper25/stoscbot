@@ -128,4 +128,4 @@ below
 
 ## Reference
 
-* [Pyrogram version updates](https://github.com/pyrogram/pyrogram/compare/v2.0.34...v2.0.35)
+* [Pyrogram version updates](https://github.com/pyrogram/pyrogram/compare/v2.0.34...v2.0.35) 

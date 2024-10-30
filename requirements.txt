@@ -1,5 +1,5 @@
 # https://docs.pyrogram.org/topics/tgcrypto
-tgcrypto
+tgcrypto    # Works only on Python 3.11
 https://github.com/KurimuzonAkuma/pyrogram/archive/refs/tags/v2.1.21.zip
 mysql-connector-python
 python-dotenv
