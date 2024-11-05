@@ -24,7 +24,7 @@ logger = logging.getLogger('Handler.Main')
 logger.setLevel(LOGLEVEL)
 
 VIBIN_TELEGRAM_ID = int(os.environ.get('VIBIN_TELEGRAM_ID'))
-
+STOSCBOT_APP_HOME_DIR = os.environ.get('STOSCBOT_APP_HOME_DIR')     # e.g. the vibinjk in '/home/vibinjk'
 
 def dynamic_data_filter(data):
     return filters.create(
@@ -174,7 +174,7 @@ async def run_commands(client: Client, message: Message):
     cmd_result = "No result"
     command = message.command[1]
     args = message.command[2:] if len(message.command) > 2 else None
-    log_file_path = '/home/ubuntu/bots/stoscbot/logs/stosc_logs.log' if platform.system() == "Linux" else 'logs/vjk_logs.log'
+    log_file_path = f"/home/{STOSCBOT_APP_HOME_DIR}/bots/stoscbot/logs/stosc_logs.log" if platform.system() == "Linux" else 'logs/vjk_logs.log'
 
     if command == 'logs':
         cmd_result = await handle_logs_command(args, log_file_path)
@@ -233,7 +233,7 @@ async def show_stats(client: Client, query: CallbackQuery):
     await query.answer()
 
     date_string = datetime.now().strftime("%Y-%m-")
-    log_file_path = os.path.join('/home', 'ubuntu', 'bots', 'stoscbot', 'logs', 'stosc_logs.log')
+    log_file_path = os.path.join('/home', STOSCBOT_APP_HOME_DIR, 'bots', 'stoscbot', 'logs', 'stosc_logs.log')
 
     if platform.system() == "Linux":
         msg = "** Top users by messages (current month) **\n"
@@ -266,7 +266,7 @@ async def show_logs(client: Client, query: CallbackQuery):
         msg = "** Last few log messages (current month) **\n"
         date_string = datetime.now().strftime("%Y-%m-")
 
-        cmd = f"grep -E '{date_string}' /home/ubuntu/bots/stoscbot/logs/stosc_logs.log | grep -P '\[\d+:[^:]+:[^:\]]+\]' | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]' | tail -n 20"
+        cmd = f"grep -E '{date_string}' /home/{STOSCBOT_APP_HOME_DIR}/bots/stoscbot/logs/stosc_logs.log | grep -P '\[\d+:[^:]+:[^:\]]+\]' | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]' | tail -n 20"
         cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
         cmd_result = cmd_result.replace('\n', '\n\n‣')
         # Remove the last newline
@@ -288,7 +288,7 @@ async def show_error_logs(client: Client, query: CallbackQuery):
         msg = "** Last few log messages (current month) **\n"
         date_string = datetime.now().strftime("%Y-")
 
-        cmd = f"grep -E '{date_string}' /home/ubuntu/bots/stoscbot/logs/stosc_logs.log | grep -iE 'error|exception' | grep -v 'Telegram server could not fetch the provided URL' | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]' | tail -n 30"
+        cmd = f"grep -E '{date_string}' /home/{STOSCBOT_APP_HOME_DIR}/bots/stoscbot/logs/stosc_logs.log | grep -iE 'error|exception' | grep -v 'Telegram server could not fetch the provided URL' | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]' | tail -n 30"
         cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
         cmd_result = cmd_result.replace('\n', '\n\n‣')
         # Remove the last newline

@@ -16,7 +16,9 @@ from stoscbots.util.utils import get_telegram_file_url
 logger = logging.getLogger('Handler.Streaming')
 logger.setLevel(LOGLEVEL)
 
-ANNOUNCEMENTS_SLIDES_DIR = '/home/ubuntu/jobs/stosc_announcements/announcements-slides'
+STOSCBOT_APP_HOME_DIR = os.environ.get('STOSCBOT_APP_HOME_DIR')
+
+ANNOUNCEMENTS_SLIDES_DIR = f"/home/{STOSCBOT_APP_HOME_DIR}/jobs/stosc_announcements/announcements-slides"
 ANNOUNCEMENTS_SLIDES_SCRIPT = 'launcher_slide_generator.sh'
 
 
@@ -67,5 +69,3 @@ async def generate_image_url(client: Client, message: Message):
         tf.flush()
 
     await message.reply_text(f"URL: \n\n{url}", disable_web_page_preview=True)
-
-
