@@ -16,9 +16,8 @@ from stoscbots.util.utils import get_telegram_file_url
 logger = logging.getLogger('Handler.Streaming')
 logger.setLevel(LOGLEVEL)
 
-STOSCBOT_APP_HOME_DIR = os.environ.get('STOSCBOT_APP_HOME_DIR')
-
-ANNOUNCEMENTS_SLIDES_DIR = f"/home/{STOSCBOT_APP_HOME_DIR}/jobs/stosc_announcements/announcements-slides"
+ANNOUNCEMENTS_SLIDES_DIR = os.path.join(os.path.expanduser(
+    '~'), 'jobs', 'stosc_announcements', 'announcements-slides')
 ANNOUNCEMENTS_SLIDES_SCRIPT = 'launcher_slide_generator.sh'
 
 
@@ -38,7 +37,8 @@ async def generate_announcement_slides(client: Client, query: CallbackQuery):
         # Generate the slides
         cmd = f"cd {ANNOUNCEMENTS_SLIDES_DIR} && ./{ANNOUNCEMENTS_SLIDES_SCRIPT}"
         logger.info(f"Executing {cmd}")
-        result = subprocess.run(cmd, shell=True, capture_output=True, text=True)
+        result = subprocess.run(
+            cmd, shell=True, capture_output=True, text=True)
 
         # Optionally send a message to the user indicating that the script was triggered
         await query.message.reply_text(f"Started slides generation... ⏳`{result}`"
@@ -65,7 +65,8 @@ async def generate_image_url(client: Client, message: Message):
 
         dt = (datetime.datetime.now()).strftime("%Y_%m_%d_%H_%M_%S")
         image_name = f"announcement_images/{dt}_{photo.file_unique_id}.jpg"
-        url = utils.upload_to_s3_and_get_url(image_file=tf, object_name=image_name)
+        url = utils.upload_to_s3_and_get_url(
+            image_file=tf, object_name=image_name)
         tf.flush()
 
     await message.reply_text(f"URL: \n\n{url}", disable_web_page_preview=True)
