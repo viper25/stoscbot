@@ -18,7 +18,6 @@ ENV = os.environ.get("ENV").upper()
 
 # Configuration
 def get_config(key, default=None):
-    print(f"🔴 Getting config for {key} = {os.environ.get(key, default)}")
     return os.environ.get(key, default)
 
 
