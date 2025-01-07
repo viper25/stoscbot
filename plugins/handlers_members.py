@@ -160,7 +160,7 @@ async def member_gb_ineligible(client: Client, query: CallbackQuery):
 # Check if there is any prayer request for this week submitted after current service starts at 7.45
 async def get_MC(client: Client, query: CallbackQuery):
     await query.answer()
-    msg = f"**Secretary**: Shakespeare Johnson Vairamon (S035)\n"
-    msg += f"**Lay Steward**: Sajan Chacko (S042)\n"
-    msg += f"**Management Committee**: \n\tSiby Varghese (S053)\n\tSusie Frederick (F001)\n\tGeorge Thomas (G006)\n\tJolly Samuel (S004)\n\tJosh Jacob (J017)"
+    msg = f"**Secretary**: Jacob Philip Kanianthara (J022)\n"
+    msg += f"**Lay Steward**: Vibin Joseph Kuriakose (V019)\n"
+    msg += f"**Management Committee**: \n\tSiby Varghese (S053)\n\tManu Joseph (M030)\n\tGeorge Thomas (G006)\n\tSaji Varghese (S029)\n\tRini Sara Reji (V018)"
     await utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
