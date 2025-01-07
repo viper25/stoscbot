@@ -162,5 +162,6 @@ async def get_MC(client: Client, query: CallbackQuery):
     await query.answer()
     msg = f"**Secretary**: Jacob Philip Kanianthara (J022)\n"
     msg += f"**Lay Steward**: Vibin Joseph Kuriakose (V019)\n"
+    msg += f"**Ex-Officio **: Sajan Chacko (S042)\n"
     msg += f"**Management Committee**: \n\tSiby Varghese (S053)\n\tManu Joseph (M030)\n\tGeorge Thomas (G006)\n\tSaji Varghese (S029)\n\tRini Sara Reji (V018)"
     await utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
