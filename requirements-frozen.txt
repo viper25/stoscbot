@@ -16,7 +16,7 @@ gspread==6.1.4
 idna==3.10
 iniconfig==2.0.0
 jmespath==1.0.1
-kiwisolver==1.4.7
+kiwisolver==1.4.8
 matplotlib==3.10.0
 mysql-connector-python==9.1.0
 numpy==2.2.1
