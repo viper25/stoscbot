@@ -7,7 +7,7 @@ charset-normalizer==3.4.1
 colorama==0.4.6
 contourpy==1.3.1
 convopyro @ git+https://github.com/Ripeey/Conversation-Pyrogram@a39cc9e0c1a689c9904dd5be5419246868daecfb
-coverage==7.6.9
+coverage==7.6.10
 cycler==0.12.1
 fonttools==4.55.3
 google-auth==2.37.0
