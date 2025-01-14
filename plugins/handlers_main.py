@@ -227,6 +227,8 @@ async def show_main_menu(client: Client, query: CallbackQuery):
 async def show_services_menu(client: Client, query: CallbackQuery):
     await query.answer()
     msg = "➖➖**Services Menu**➖➖\n"
+    # Add a link to download a PDF of the services
+    msg += "📜 [Liturgy Calendar](https://stosc.com/wp-content/uploads/2025/01/2025_STOSC_Liturgical_Calendar_Page.pdf)"
     await utils.edit_and_send_msg(query, msg, keyboards.get_services_keyboard())
 
 
