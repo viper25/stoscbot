@@ -93,7 +93,7 @@ jobs:
     needs: [ Version_Code ]
     if: ${{ true }}  # A switch to turn on/off the deployment
     env:
-      CLOUD_PROVIDER: ${{ secrets.CLOUD_PROVIDER }}
+      CLOUD_PROVIDER: ${{ secrets.CLOUD_PROVIDER }}   # AWS or Azure
 
     steps:
       - name: Get Cache for stoscbot workspace
