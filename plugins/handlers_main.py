@@ -191,6 +191,38 @@ async def member_search_cmd_handler(client: Client, message: Message):
                                      disable_web_page_preview=True)
 
 
+# -------------------------------------------------
+# Command Handlers
+@Client.on_message(filters.command(["t"]))
+@loggers.async_log_access
+@bot_auth.async_member_only
+async def mobile_search_cmd_handler(client: Client, message: Message):
+    if len(message.command) != 2:
+        msg = "Please enter a Singapore Telephone to search\n e.g. `/u 99999999`"
+        await message.reply_text(msg, quote=True)
+        return
+
+    # Normalize the telephone number i.e. remove spaces and hyphens and international codes if any
+    mobile_number = utils.normalize_telephone(message.command[1])
+    if not utils.valid_telephone(mobile_number):
+        await message.reply_text("Invalid Singapore Number", quote=True)
+        return
+
+    # Search for a member by telephone number
+    result = db.get_member_details(mobile_number, "mobile")
+
+    if not result or len(result) == 0:
+        await message.reply_text("No such Singapore Number", quote=True)
+    else:
+        if not result or len(result) == 0:
+            await message.reply_text("No such Member", quote=True)
+        elif len(result) >= 1:
+            msg = utils.generate_profile_msg_for_family(result)
+            await utils.send_profile_address_and_pic(
+                client, message, msg, result, searched_person=None, searched_person_name=None
+            )
+
+
 # ==================================================
 """
 Handle multiple callback queries data and return filter for each

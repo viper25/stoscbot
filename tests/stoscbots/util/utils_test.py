@@ -652,3 +652,26 @@ def test_upload_to_s3_and_get_url(mock_boto3_resource, mock_environ_get):
     # Assert
     expected_url = 'https://stoscsg.s3.ap-southeast-1.amazonaws.com/dummy_object_name'
     assert result == expected_url
+
+
+# ------------------------------------------------------------
+def test_normalize_telephone():
+    assert utils.normalize_telephone("123-456-7890") == "1234567890"
+    assert utils.normalize_telephone("+1 (234) 567-8901") == "12345678901"
+    assert utils.normalize_telephone(" 123 456 7890 ") == "1234567890"
+    assert utils.normalize_telephone("123.456.7890") == "1234567890"
+    assert utils.normalize_telephone("1234567890") == "1234567890"
+    assert utils.normalize_telephone("") == ""
+
+
+# ------------------------------------------------------------
+def test_valid_telephone():
+    assert utils.valid_telephone("61234567") is not None
+    assert utils.valid_telephone("81234567") is not None
+    assert utils.valid_telephone("91234567") is not None
+    assert utils.valid_telephone("51234567") is None
+    assert utils.valid_telephone("71234567") is None
+    assert utils.valid_telephone("1234567") is None
+    assert utils.valid_telephone("123456789") is None
+    assert utils.valid_telephone("abcdefgh") is None
+    assert utils.valid_telephone("") is None

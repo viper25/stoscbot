@@ -580,3 +580,15 @@ def upload_to_s3_and_get_url(image_file, object_name: str):
     file_url = f"https://stoscsg.s3.ap-southeast-1.amazonaws.com/{object_name}"
     logger.info(f"Uploaded file to: {file_url}")
     return file_url
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+def normalize_telephone(param):
+    """Normalize the telephone number i.e. remove spaces and hyphens and international codes if any"""
+    return re.sub(r"\D", "", param)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+def valid_telephone(telephone):
+    # Validate Singapore telephone numbers
+    return re.match(r"^(6|8|9)\d{7}$", telephone)
