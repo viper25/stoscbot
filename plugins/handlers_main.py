@@ -212,7 +212,7 @@ async def mobile_search_cmd_handler(client: Client, message: Message):
     result = db.get_member_details(mobile_number, "mobile")
 
     if not result or len(result) == 0:
-        await message.reply_text("No such Singapore Number", quote=True)
+        await message.reply_text("No STOSC member has that number", quote=True)
     else:
         if not result or len(result) == 0:
             await message.reply_text("No such Member", quote=True)
