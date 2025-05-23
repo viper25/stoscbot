@@ -172,9 +172,20 @@ async def member_search_cmd_handler(client: Client, message: Message):
             await message.reply_text("No such Member", quote=True)
             return
         elif len(result) >= 1:
+            target_id = None
+            target_name = None
+            if len(result[0]) >= 26: # target_per_ID is index 24, target_per_FullName is index 25
+                target_id = result[0][24]
+                target_name = result[0][25]
+            
             msg = utils.generate_profile_msg_for_family(result)
             await utils.send_profile_address_and_pic(
-                client, message, msg, result, searched_person=None, searched_person_name=None
+                client, 
+                message,  # Pass the Message object
+                msg, 
+                result, 
+                searched_person=str(target_id) if target_id is not None else None, 
+                searched_person_name=target_name if target_name is not None else None
             )
     else:
         # A search string and not member code

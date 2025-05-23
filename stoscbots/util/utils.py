@@ -93,58 +93,129 @@ def get_address_details(_zip: str):
 def generate_profile_msg_for_family(result: list) -> str:
     """Generate a profile message for a family based on the given result."""
 
-    # Helper function to format the message
-    def format_msg(label: str, value: str, index: int, link: bool = False) -> str:
-        if value and value != "":
-            if link:
-                return f"• {label}: [{value}](tel://{value})\n"
+    row = result[0]
+    msg = ""
+
+    # Check if target_per_ID is present (indicating 'code' search result)
+    # Indices 22-29 are for target person
+    if len(row) >= 30 and row[24] is not None and str(row[24]).strip() != "":
+        target_id_val = str(row[24]).strip()
+        target_fullname_val = str(row[25]).strip()
+        fmr_id_val = row[23] 
+        target_dob_val = str(row[26]).strip() if row[26] else None
+        target_email_val = str(row[27]).strip() if row[27] else None
+        target_cellphone_val = str(row[28]).strip() if row[28] else None
+        target_homephone_val = str(row[29]).strip() if row[29] else None
+
+        role_map = {1: 'Head of Family', 2: 'Spouse', 3: 'Child', 7: 'Other Family Member'}
+        role_str_val = role_map.get(fmr_id_val, 'Member')
+
+        msg += "**Searched Person:**\n"
+        msg += f"• Name: **{target_fullname_val}** ({target_id_val})\n"
+        msg += f"• Role: **{role_str_val}**\n"
+        if target_dob_val and target_dob_val.lower() != 'null' and target_dob_val.strip() != '//':
+            msg += f"• DOB: **{target_dob_val}**\n"
+        if target_email_val and target_email_val.lower() != 'null':
+            msg += f"• Email: **{target_email_val}**\n"
+        
+        if target_cellphone_val and target_cellphone_val.lower() != 'null':
+            clean_cell_digits = re.sub(r'\D', '', target_cellphone_val) # Get only digits
+            display_cell = target_cellphone_val
+            if not display_cell.startswith('+') and clean_cell_digits: # Add + if not present for display
+                 display_cell = f"+{target_cellphone_val}"
+
+            link_cell = clean_cell_digits
+            if re.match(r"^(65)?(6|8|9)\d{7}$", clean_cell_digits): # SG Number
+                 link_cell = "65" + clean_cell_digits[-8:] # Ensure 65 prefix for link
+            
+            if link_cell: # Only add if we have a linkable number
+                msg += f"• Mobile: [{display_cell}](https://wa.me/{link_cell})\n"
+
+        if target_homephone_val and target_homephone_val.lower() != 'null':
+            clean_home_digits = target_homephone_val.replace(' ', '').replace('-', '')
+            if clean_home_digits:
+                msg += f"• Home: [{target_homephone_val}](tel://{clean_home_digits})\n"
+        msg += "\n**Family Details:**\n"
+
+    # Helper function to format the message for family details
+    def format_family_msg(label: str, value: Optional[str], link_type: Optional[str] = None) -> str:
+        if value is not None and str(value).strip() != "" and str(value).strip().lower() != 'null' and str(value).strip() != '//':
+            val_str = str(value).strip()
+            if link_type == "tel":
+                clean_val_digits = val_str.replace(' ', '').replace('-', '')
+                if clean_val_digits:
+                    return f"• {label}: [{val_str}](tel://{clean_val_digits})\n"
+            elif link_type == "wa":
+                clean_val_digits = re.sub(r'\D', '', val_str) # Get only digits
+                display_val = val_str
+                if not display_val.startswith('+') and clean_val_digits: # Add + if not present for display
+                    display_val = f"+{val_str}"
+                
+                link_val_digits = clean_val_digits
+                if re.match(r"^(65)?(6|8|9)\d{7}$", clean_val_digits): # SG Number
+                    link_val_digits = "65" + clean_val_digits[-8:] # Ensure 65 prefix for link
+                elif clean_val_digits.startswith('+'): # If original had +, remove for link path
+                    link_val_digits = clean_val_digits[1:]
+
+                if link_val_digits: # Only add if we have a linkable number
+                    return f"• {label}: [{display_val}](https://wa.me/{link_val_digits})\n"
             else:
-                return f"• {label}: **{value}**\n"
+                return f"• {label}: **{val_str}**\n"
         return ""
 
-    # Extract the first row from the result
-    row = result[0]
+    # Family Details Section (Indices 0-21 primarily)
+    msg += format_family_msg(f"Family: **{row[2]} ({row[1]})**", None) # Special case for first line, no label before **
 
-    # Start with the family name and head
-    msg = f"• Family: **{row[2]} ({row[1]})**\n"
+    # Husband (Head) and Wife (Spouse) details
+    husband_name = str(row[4]) if row[4] else None
+    husband_dob = str(row[20]) if row[20] else None
+    wife_name = str(row[6]) if row[6] else None
+    wife_dob = str(row[21]) if row[21] else None
 
-    # Add other details
-    msg += format_msg("DOB", row[20], 20)
-    msg += format_msg("Spouse", row[6], 6)
-    msg += format_msg("Spouse DOB", row[21], 21)
-    msg += format_msg("Children", row[8], 8)
-    msg += format_msg("Other family members", row[9], 9)
+    if husband_name and husband_name.strip() != "" and husband_name.lower() != 'null':
+        msg += format_family_msg("Head", husband_name)
+        if husband_dob and husband_dob.strip() != "" and husband_dob.lower() != 'null' and husband_dob.strip() != '//':
+            msg += format_family_msg("  DOB", husband_dob)
+    elif husband_dob and husband_dob.strip() != "" and husband_dob.lower() != 'null' and husband_dob.strip() != '//': # Only DOB for Head
+        msg += format_family_msg("Head DOB", husband_dob)
 
-    # Handle address concatenation
-    address_parts = [row[i] for i in range(10, 13) if row[i] and row[i] != ""]
+    if wife_name and wife_name.strip() != "" and wife_name.lower() != 'null':
+        msg += format_family_msg("Spouse", wife_name)
+        if wife_dob and wife_dob.strip() != "" and wife_dob.lower() != 'null' and wife_dob.strip() != '//':
+            msg += format_family_msg("  DOB", wife_dob)
+    elif wife_dob and wife_dob.strip() != "" and wife_dob.lower() != 'null' and wife_dob.strip() != '//': # Only DOB for Spouse
+        msg += format_family_msg("Spouse DOB", wife_dob)
+    
+    msg += format_family_msg("Children", str(row[8]) if row[8] else None)
+    msg += format_family_msg("Other family members", str(row[9]) if row[9] else None)
+
+    address_parts = [str(row[i]).strip() for i in range(10, 13) if row[i] and str(row[i]).strip() != "" and str(row[i]).lower() != 'null']
     if address_parts:
         msg += "• Add: " + ", ".join([f"**{part}**" for part in address_parts]) + "\n"
 
-    # Add contact details
-    # Define the regex pattern for Singapore phone numbers
-    pattern = re.compile(r"^(6|8|9)\d{7}$")
-    if pattern.match(row[13]):
-        msg += format_msg("Mobile", f"[{row[13]}](https://wa.me/+65{row[13]})", 13, link=False)
-    else:
-        # Not a Singapore number
-        if row[13] and row[13] != "":
-            msg += format_msg("Mobile", f"[+{row[13]}](https://wa.me/+{row[13]})", 13, link=False)
-        else:
-            # No mobile
-            pass
-    msg += format_msg("Home", row[14], 14, link=True)
-    msg += format_msg("Email", row[3], 3)
-    if row[7] and row[7] != "" and row[7] != row[5]:
-        msg += format_msg("Spouse Email", row[7], 7)
+    msg += format_family_msg("Mobile", str(row[13]) if row[13] else None, link_type="wa") 
+    msg += format_family_msg("Home", str(row[14]) if row[14] else None, link_type="tel")   
+    msg += format_family_msg("Family Email", str(row[3]) if row[3] else None) 
 
-    # Add other details
-    msg += format_msg("Home Parish", row[15], 15)
-    msg += format_msg("Membership Date", row[16], 16)
-    msg += format_msg("Related Families", row[17], 17)
-    msg += format_msg("Electoral Roll", row[18], 18)
-    msg += format_msg("Prayer Group", row[19], 19)
+    # Spouse Email (row[7]), Husband_Email (row[5])
+    spouse_email_val = str(row[7]).strip() if row[7] and str(row[7]).strip().lower() != 'null' else None
+    if spouse_email_val:
+        display_spouse_email = True
+        if len(row) >= 30: # Only compare if full 'code' search result makes row[5] reliable
+            husband_email_val = str(row[5]).strip() if row[5] and str(row[5]).strip().lower() != 'null' else None
+            if husband_email_val and spouse_email_val == husband_email_val:
+                display_spouse_email = False
+        
+        if display_spouse_email:
+            msg += format_family_msg("Spouse Email", spouse_email_val)
 
-    return msg
+    msg += format_family_msg("Home Parish", str(row[15]) if row[15] else None)
+    msg += format_family_msg("Membership Date", str(row[16]) if row[16] else None)
+    msg += format_family_msg("Related Families", str(row[17]) if row[17] else None)
+    msg += format_family_msg("Electoral Roll", str(row[18]) if row[18] is not None else None) # Handle boolean
+    msg += format_family_msg("Prayer Group", str(row[19]) if row[19] else None)
+
+    return msg.strip()
 
 
 # ----------------------------------------------------------------------------------------------------------------------

@@ -107,15 +107,205 @@ def get_members_for_area(area_code: str):
 # ----------------------------------------------------------------------------------------------------------------------
 def get_member_details(search: str, search_type: str):
     if search_type == 'code':
-        sql = "select f.fam_ID, SUBSTRING(f.fam_Name, POSITION('(' IN f.fam_Name) + 1, 4) as fam_Code, LEFT(f.fam_Name, char_length(f.fam_Name) -7) as fam_Name, f.fam_Email, tbl_husband.Husband, tbl_husband.Husband_Email, tbl_wife.Wife, tbl_wife.Wife_Email, tbl_children.Children, tbl_others.Others, f.fam_Address1, f.fam_Address2, f.fam_Zip, f.fam_CellPhone, f.fam_HomePhone, IFNULL(fc.c1, '') as 'Home Parish', IFNULL(fc.c2, '') as 'Membership Date', IFNULL(fc.c4, '') as 'Related Families', IFNULL(fc.c5, FALSE) as 'Electoral Roll', IFNULL(l.lst_OptionName, '') as 'Prayer Group', Husband_DOB, Wife_DOB, pp.per_Gender, pp.per_fmr_ID from family_fam f inner join family_custom fc on f.fam_ID = fc.fam_ID and SUBSTRING(f.fam_Name, POSITION('(' IN f.fam_Name) + 1, 4) = %s and f.fam_DateDeactivated is null INNER join person_per pp on f.fam_ID = pp.per_fam_ID /*  Remove deceased  */ and pp.per_cls_ID != 4 left join list_lst l on fc.c8 = l.lst_OptionID /*  Area Prayer Group List  */ and l.lst_ID = 30 left OUTER JOIN ( select per_fam_id, group_concat( pp.per_FirstName, ' ', if(pp.per_LastName != '', pp.per_LastName, '') ORDER BY pp.per_BirthYear) as Children from person_per pp where per_fmr_ID = 3 GROUP BY per_fam_id order by per_fam_ID ) as tbl_children ON tbl_children.per_fam_ID = f.fam_ID left OUTER JOIN ( select per_fam_id, per_Email as Husband_Email, group_concat( pp.per_FirstName, ' ', if(pp.per_LastName != '', pp.per_LastName, '')) as Husband, CONCAT( per_BirthYear, '-', LPAD(per_BirthMonth, 2, '0'), '-', LPAD(per_BirthDay, 2, '0') ) as Husband_DOB from person_per pp where per_Gender  = 1 and per_fmr_ID in (1,2) GROUP BY per_fam_id order by per_fam_ID ) as tbl_husband ON tbl_husband.per_fam_ID = f.fam_ID left OUTER JOIN ( select per_fam_id, per_Email as Wife_Email, group_concat( pp.per_FirstName, ' ', if(pp.per_LastName != '', pp.per_LastName, '') ) as Wife, CONCAT( per_BirthYear, '-', LPAD(per_BirthMonth, 2, '0'), '-', LPAD(per_BirthDay, 2, '0') ) as Wife_DOB from person_per pp where per_Gender = 2 and per_fmr_ID in (1,2) GROUP BY per_fam_id order by per_fam_ID ) as tbl_wife ON tbl_wife.per_fam_ID = f.fam_ID left OUTER JOIN ( select per_fam_id, group_concat( pp.per_FirstName, ' ', if(pp.per_LastName != '', pp.per_LastName, '') ) as Others from person_per pp where per_fmr_ID = 7 GROUP BY per_fam_id order by per_fam_ID ) as tbl_others ON tbl_others.per_fam_ID = f.fam_ID GROUP by fam_Code order by fam_Code"
+        sql = """SELECT
+    f.fam_ID,
+    SUBSTRING(f.fam_Name, POSITION('(' IN f.fam_Name) + 1, 4) AS fam_Code,
+    LEFT(f.fam_Name, CHAR_LENGTH(f.fam_Name) - 7) AS fam_Name,
+    f.fam_Email,
+    tbl_husband.Husband,
+    tbl_husband.Husband_Email,
+    tbl_wife.Wife,
+    tbl_wife.Wife_Email,
+    tbl_children.Children,
+    tbl_others.Others,
+    f.fam_Address1,
+    f.fam_Address2,
+    f.fam_Zip,
+    f.fam_CellPhone AS fam_fam_CellPhone,
+    f.fam_HomePhone AS fam_fam_HomePhone,
+    IFNULL(fc.c1, '') AS Home_Parish,
+    IFNULL(fc.c2, '') AS Membership_Date,
+    IFNULL(fc.c4, '') AS Related_Families,
+    IFNULL(fc.c5, FALSE) AS Electoral_Roll,
+    IFNULL(l.lst_OptionName, '') AS Prayer_Group,
+    tbl_husband.Husband_DOB,
+    tbl_wife.Wife_DOB,
+    target_person.per_Gender AS target_per_Gender,
+    target_person.per_fmr_ID AS target_per_fmr_ID,
+    target_person.per_ID AS target_per_ID,
+    CONCAT(target_person.per_FirstName, ' ', IFNULL(target_person.per_LastName, '')) AS target_per_FullName,
+    CONCAT(target_person.per_BirthDay, '/', target_person.per_BirthMonth, '/', target_person.per_BirthYear) AS target_per_DOB_Short,
+    target_person.per_Email AS target_per_Email,
+    target_person.per_CellPhone AS target_per_CellPhone,
+    target_person.per_HomePhone AS target_per_HomePhone
+FROM
+    person_per target_person
+INNER JOIN
+    family_fam f ON target_person.per_fam_ID = f.fam_ID AND f.fam_DateDeactivated IS NULL
+INNER JOIN
+    family_custom fc ON f.fam_ID = fc.fam_ID
+LEFT JOIN
+    list_lst l ON fc.c8 = l.lst_OptionID AND l.lst_ID = 30
+LEFT OUTER JOIN (
+    SELECT
+        per_fam_id,
+        GROUP_CONCAT(CONCAT(pp.per_FirstName, ' ', IFNULL(pp.per_LastName, '')) ORDER BY pp.per_BirthYear SEPARATOR ', ') AS Husband,
+        GROUP_CONCAT(pp.per_Email SEPARATOR ', ') AS Husband_Email,
+        GROUP_CONCAT(CONCAT(pp.per_BirthYear, '-', LPAD(pp.per_BirthMonth, 2, '0'), '-', LPAD(pp.per_BirthDay, 2, '0')) SEPARATOR ', ') AS Husband_DOB
+    FROM
+        person_per pp
+    WHERE
+        pp.per_Gender = 1 AND pp.per_fmr_ID IN (1, 2) AND pp.per_cls_ID != 4
+    GROUP BY
+        per_fam_id
+) AS tbl_husband ON tbl_husband.per_fam_ID = f.fam_ID
+LEFT OUTER JOIN (
+    SELECT
+        per_fam_id,
+        GROUP_CONCAT(CONCAT(pp.per_FirstName, ' ', IFNULL(pp.per_LastName, '')) ORDER BY pp.per_BirthYear SEPARATOR ', ') AS Wife,
+        GROUP_CONCAT(pp.per_Email SEPARATOR ', ') AS Wife_Email,
+        GROUP_CONCAT(CONCAT(pp.per_BirthYear, '-', LPAD(pp.per_BirthMonth, 2, '0'), '-', LPAD(pp.per_BirthDay, 2, '0')) SEPARATOR ', ') AS Wife_DOB
+    FROM
+        person_per pp
+    WHERE
+        pp.per_Gender = 2 AND pp.per_fmr_ID IN (1, 2) AND pp.per_cls_ID != 4
+    GROUP BY
+        per_fam_id
+) AS tbl_wife ON tbl_wife.per_fam_ID = f.fam_ID
+LEFT OUTER JOIN (
+    SELECT
+        per_fam_id,
+        GROUP_CONCAT(CONCAT(pp.per_FirstName, ' ', IFNULL(pp.per_LastName, '')) ORDER BY pp.per_BirthYear SEPARATOR ', ') AS Children
+    FROM
+        person_per pp
+    WHERE
+        pp.per_fmr_ID = 3 AND pp.per_cls_ID != 4
+    GROUP BY
+        per_fam_id
+) AS tbl_children ON tbl_children.per_fam_ID = f.fam_ID
+LEFT OUTER JOIN (
+    SELECT
+        per_fam_id,
+        GROUP_CONCAT(CONCAT(pp.per_FirstName, ' ', IFNULL(pp.per_LastName, '')) ORDER BY pp.per_BirthYear SEPARATOR ', ') AS Others
+    FROM
+        person_per pp
+    WHERE
+        pp.per_fmr_ID = 7 AND pp.per_cls_ID != 4
+    GROUP BY
+        per_fam_id
+) AS tbl_others ON tbl_others.per_fam_ID = f.fam_ID
+WHERE
+    target_person.per_ShortCode = %s AND target_person.per_cls_ID != 4
+LIMIT 1;
+"""
         _result = __db_executeQuery(sql, Databases.CRM, True, search)
     elif search_type == 'mobile':
         search = '%' + search + '%'
-        sql = "select f.fam_ID, SUBSTRING(f.fam_Name, POSITION('(' IN f.fam_Name) + 1, 4) as fam_Code, LEFT(f.fam_Name, char_length(f.fam_Name) -7) as fam_Name, f.fam_Email, tbl_husband.Husband, tbl_husband.Husband_Email, tbl_wife.Wife, tbl_wife.Wife_Email, tbl_children.Children, tbl_others.Others, f.fam_Address1, f.fam_Address2, f.fam_Zip, f.fam_CellPhone, f.fam_HomePhone, IFNULL(fc.c1, '') as 'Home Parish', IFNULL(fc.c2, '') as 'Membership Date', IFNULL(fc.c4, '') as 'Related Families', IFNULL(fc.c5, FALSE) as 'Electoral Roll', IFNULL(l.lst_OptionName, '') as 'Prayer Group', Husband_DOB, Wife_DOB, pp.per_Gender, pp.per_fmr_ID from family_fam f inner join family_custom fc on f.fam_ID = fc.fam_ID and f.fam_DateDeactivated is null INNER join person_per pp on f.fam_ID = pp.per_fam_ID /*  Remove deceased  */ and pp.per_cls_ID != 4 and (pp.per_CellPhone like %s or pp.per_HomePhone like %s or f.fam_CellPhone like %s or f.fam_HomePhone like %s) left join list_lst l on fc.c8 = l.lst_OptionID /*  Area Prayer Group List  */ and l.lst_ID = 30 left OUTER JOIN ( select per_fam_id, group_concat( pp.per_FirstName, ' ', if(pp.per_LastName != '', pp.per_LastName, '') ORDER BY pp.per_BirthYear) as Children from person_per pp where per_fmr_ID = 3 GROUP BY per_fam_id order by per_fam_ID ) as tbl_children ON tbl_children.per_fam_ID = f.fam_ID left OUTER JOIN ( select per_fam_id, per_Email as Husband_Email, group_concat( pp.per_FirstName, ' ', if(pp.per_LastName != '', pp.per_LastName, '')) as Husband, CONCAT( per_BirthYear, '-', LPAD(per_BirthMonth, 2, '0'), '-', LPAD(per_BirthDay, 2, '0') ) as Husband_DOB from person_per pp where per_Gender  = 1 and per_fmr_ID in (1,2) GROUP BY per_fam_id order by per_fam_ID ) as tbl_husband ON tbl_husband.per_fam_ID = f.fam_ID left OUTER JOIN ( select per_fam_id, per_Email as Wife_Email, group_concat( pp.per_FirstName, ' ', if(pp.per_LastName != '', pp.per_LastName, '') ) as Wife, CONCAT( per_BirthYear, '-', LPAD(per_BirthMonth, 2, '0'), '-', LPAD(per_BirthDay, 2, '0') ) as Wife_DOB from person_per pp where per_Gender = 2 and per_fmr_ID in (1,2) GROUP BY per_fam_id order by per_fam_ID ) as tbl_wife ON tbl_wife.per_fam_ID = f.fam_ID left OUTER JOIN ( select per_fam_id, group_concat( pp.per_FirstName, ' ', if(pp.per_LastName != '', pp.per_LastName, '') ) as Others from person_per pp where per_fmr_ID = 7 GROUP BY per_fam_id order by per_fam_ID ) as tbl_others ON tbl_others.per_fam_ID = f.fam_ID GROUP by fam_Code order by fam_Code"
+        sql = """SELECT
+    f.fam_ID,
+    SUBSTRING(f.fam_Name, POSITION('(' IN f.fam_Name) + 1, 4) AS fam_Code,
+    LEFT(f.fam_Name, CHAR_LENGTH(f.fam_Name) - 7) AS fam_Name,
+    f.fam_Email,
+    tbl_husband.Husband,
+    tbl_husband.Husband_Email,
+    tbl_wife.Wife,
+    tbl_wife.Wife_Email,
+    tbl_children.Children,
+    tbl_others.Others,
+    f.fam_Address1,
+    f.fam_Address2,
+    f.fam_Zip,
+    f.fam_CellPhone AS fam_fam_CellPhone,
+    f.fam_HomePhone AS fam_fam_HomePhone,
+    IFNULL(fc.c1, '') AS 'Home Parish',
+    IFNULL(fc.c2, '') AS 'Membership Date',
+    IFNULL(fc.c4, '') AS 'Related Families',
+    IFNULL(fc.c5, FALSE) AS 'Electoral Roll',
+    IFNULL(l.lst_OptionName, '') AS 'Prayer Group',
+    tbl_husband.Husband_DOB,
+    tbl_wife.Wife_DOB,
+    pp.per_Gender,
+    pp.per_fmr_ID
+FROM
+    family_fam f
+INNER JOIN
+    family_custom fc ON f.fam_ID = fc.fam_ID AND f.fam_DateDeactivated IS NULL
+INNER JOIN
+    person_per pp ON f.fam_ID = pp.per_fam_ID AND pp.per_cls_ID != 4 AND (pp.per_CellPhone LIKE %s OR pp.per_HomePhone LIKE %s OR f.fam_CellPhone LIKE %s OR f.fam_HomePhone LIKE %s)
+LEFT JOIN
+    list_lst l ON fc.c8 = l.lst_OptionID AND l.lst_ID = 30
+LEFT OUTER JOIN (
+    SELECT per_fam_id, GROUP_CONCAT(CONCAT(pp.per_FirstName, ' ', IFNULL(pp.per_LastName, '')) ORDER BY pp.per_BirthYear SEPARATOR ', ') AS Children
+    FROM person_per pp WHERE pp.per_fmr_ID = 3 AND pp.per_cls_ID != 4 GROUP BY per_fam_id
+) AS tbl_children ON tbl_children.per_fam_ID = f.fam_ID
+LEFT OUTER JOIN (
+    SELECT per_fam_id, GROUP_CONCAT(pp.per_Email SEPARATOR ', ') AS Husband_Email, GROUP_CONCAT(CONCAT(pp.per_FirstName, ' ', IFNULL(pp.per_LastName, '')) SEPARATOR ', ') AS Husband, GROUP_CONCAT(CONCAT(pp.per_BirthYear, '-', LPAD(pp.per_BirthMonth, 2, '0'), '-', LPAD(pp.per_BirthDay, 2, '0')) SEPARATOR ', ') AS Husband_DOB
+    FROM person_per pp WHERE pp.per_Gender = 1 AND pp.per_fmr_ID IN (1,2) AND pp.per_cls_ID != 4 GROUP BY per_fam_id
+) AS tbl_husband ON tbl_husband.per_fam_ID = f.fam_ID
+LEFT OUTER JOIN (
+    SELECT per_fam_id, GROUP_CONCAT(pp.per_Email SEPARATOR ', ') AS Wife_Email, GROUP_CONCAT(CONCAT(pp.per_FirstName, ' ', IFNULL(pp.per_LastName, '')) SEPARATOR ', ') AS Wife, GROUP_CONCAT(CONCAT(pp.per_BirthYear, '-', LPAD(pp.per_BirthMonth, 2, '0'), '-', LPAD(pp.per_BirthDay, 2, '0')) SEPARATOR ', ') AS Wife_DOB
+    FROM person_per pp WHERE pp.per_Gender = 2 AND pp.per_fmr_ID IN (1,2) AND pp.per_cls_ID != 4 GROUP BY per_fam_id
+) AS tbl_wife ON tbl_wife.per_fam_ID = f.fam_ID
+LEFT OUTER JOIN (
+    SELECT per_fam_id, GROUP_CONCAT(CONCAT(pp.per_FirstName, ' ', IFNULL(pp.per_LastName, '')) SEPARATOR ', ') AS Others
+    FROM person_per pp WHERE pp.per_fmr_ID = 7 AND pp.per_cls_ID != 4 GROUP BY per_fam_id
+) AS tbl_others ON tbl_others.per_fam_ID = f.fam_ID
+GROUP BY f.fam_ID ORDER BY fam_Code;"""
         _result = __db_executeQuery(sql, Databases.CRM, True, search, search, search, search)
     elif search_type == 'free_text':
         search = '%' + search + '%'
-        sql = "select f.fam_ID, SUBSTRING(f.fam_Name, POSITION('(' IN f.fam_Name) + 1, 4) as fam_Code, LEFT(f.fam_Name, char_length(f.fam_Name) -7) as fam_Name, f.fam_Email, tbl_husband.Husband, tbl_husband.Husband_Email, tbl_wife.Wife, tbl_wife.Wife_Email, tbl_children.Children, tbl_others.Others, f.fam_Address1, f.fam_Address2, f.fam_Zip, f.fam_CellPhone, f.fam_HomePhone, IFNULL(fc.c1, '') as 'Home Parish', IFNULL(fc.c2, '') as 'Membership Date', IFNULL(fc.c4, '') as 'Related Families', IFNULL(fc.c5, FALSE) as 'Electoral Roll', IFNULL(l.lst_OptionName, '') as 'Prayer Group', Husband_DOB, Wife_DOB, pp.per_Gender, pp.per_fmr_ID, CONCAT(pp.per_FirstName,' ',pp.per_MiddleName,pp.per_LastName) as search_person, pp.per_ID from family_fam f inner join family_custom fc on f.fam_ID = fc.fam_ID and f.fam_DateDeactivated is null INNER join person_per pp on f.fam_ID = pp.per_fam_ID /*  Remove deceased  */ and pp.per_cls_ID != 4 and (pp.per_FirstName like %s or pp.per_MiddleName like %s or pp.per_LastName like %s) left join list_lst l on fc.c8 = l.lst_OptionID /*  Area Prayer Group List  */ and l.lst_ID = 30 left OUTER JOIN ( select per_fam_id, group_concat( pp.per_FirstName, ' ', if(pp.per_LastName != '', pp.per_LastName, '') ORDER BY pp.per_BirthYear) as Children from person_per pp where per_fmr_ID = 3 GROUP BY per_fam_id order by per_fam_ID ) as tbl_children ON tbl_children.per_fam_ID = f.fam_ID left OUTER JOIN ( select per_fam_id, per_Email as Husband_Email, group_concat( pp.per_FirstName, ' ', if(pp.per_LastName != '', pp.per_LastName, '') ) as Husband, CONCAT( per_BirthYear, '-', LPAD(per_BirthMonth, 2, '0'), '-', LPAD(per_BirthDay, 2, '0') ) as Husband_DOB from person_per pp where per_Gender = 1 and per_fmr_ID in (1,2) GROUP BY per_fam_id order by per_fam_ID ) as tbl_husband ON tbl_husband.per_fam_ID = f.fam_ID left OUTER JOIN ( select per_fam_id, per_Email as Wife_Email, group_concat( pp.per_FirstName, ' ', if(pp.per_LastName != '', pp.per_LastName, '') ) as Wife, CONCAT( per_BirthYear, '-', LPAD(per_BirthMonth, 2, '0'), '-', LPAD(per_BirthDay, 2, '0') ) as Wife_DOB from person_per pp where per_Gender = 2 and per_fmr_ID in (1,2) GROUP BY per_fam_id order by per_fam_ID ) as tbl_wife ON tbl_wife.per_fam_ID = f.fam_ID left OUTER JOIN ( select per_fam_id, group_concat( pp.per_FirstName, ' ', if(pp.per_LastName != '', pp.per_LastName, '') ) as Others from person_per pp where per_fmr_ID = 7 GROUP BY per_fam_id order by per_fam_ID ) as tbl_others ON tbl_others.per_fam_ID = f.fam_ID GROUP by fam_Code order by fam_Code"
+        sql = """SELECT
+    f.fam_ID,
+    SUBSTRING(f.fam_Name, POSITION('(' IN f.fam_Name) + 1, 4) AS fam_Code,
+    LEFT(f.fam_Name, CHAR_LENGTH(f.fam_Name) - 7) AS fam_Name,
+    f.fam_Email,
+    tbl_husband.Husband,
+    tbl_husband.Husband_Email,
+    tbl_wife.Wife,
+    tbl_wife.Wife_Email,
+    tbl_children.Children,
+    tbl_others.Others,
+    f.fam_Address1,
+    f.fam_Address2,
+    f.fam_Zip,
+    f.fam_CellPhone AS fam_fam_CellPhone,
+    f.fam_HomePhone AS fam_fam_HomePhone,
+    IFNULL(fc.c1, '') AS 'Home Parish',
+    IFNULL(fc.c2, '') AS 'Membership Date',
+    IFNULL(fc.c4, '') AS 'Related Families',
+    IFNULL(fc.c5, FALSE) AS 'Electoral Roll',
+    IFNULL(l.lst_OptionName, '') AS 'Prayer Group',
+    tbl_husband.Husband_DOB,
+    tbl_wife.Wife_DOB,
+    pp.per_Gender,
+    pp.per_fmr_ID,
+    CONCAT(pp.per_FirstName, ' ', IFNULL(pp.per_MiddleName, ''), ' ', IFNULL(pp.per_LastName, '')) AS search_person,
+    pp.per_ID
+FROM
+    family_fam f
+INNER JOIN
+    family_custom fc ON f.fam_ID = fc.fam_ID AND f.fam_DateDeactivated IS NULL
+INNER JOIN
+    person_per pp ON f.fam_ID = pp.per_fam_ID AND pp.per_cls_ID != 4 AND (pp.per_FirstName LIKE %s OR pp.per_MiddleName LIKE %s OR pp.per_LastName LIKE %s)
+LEFT JOIN
+    list_lst l ON fc.c8 = l.lst_OptionID AND l.lst_ID = 30
+LEFT OUTER JOIN (
+    SELECT per_fam_id, GROUP_CONCAT(CONCAT(pp.per_FirstName, ' ', IFNULL(pp.per_LastName, '')) ORDER BY pp.per_BirthYear SEPARATOR ', ') AS Children
+    FROM person_per pp WHERE pp.per_fmr_ID = 3 AND pp.per_cls_ID != 4 GROUP BY per_fam_id
+) AS tbl_children ON tbl_children.per_fam_ID = f.fam_ID
+LEFT OUTER JOIN (
+    SELECT per_fam_id, GROUP_CONCAT(pp.per_Email SEPARATOR ', ') AS Husband_Email, GROUP_CONCAT(CONCAT(pp.per_FirstName, ' ', IFNULL(pp.per_LastName, '')) SEPARATOR ', ') AS Husband, GROUP_CONCAT(CONCAT(pp.per_BirthYear, '-', LPAD(pp.per_BirthMonth, 2, '0'), '-', LPAD(pp.per_BirthDay, 2, '0')) SEPARATOR ', ') AS Husband_DOB
+    FROM person_per pp WHERE pp.per_Gender = 1 AND pp.per_fmr_ID IN (1,2) AND pp.per_cls_ID != 4 GROUP BY per_fam_id
+) AS tbl_husband ON tbl_husband.per_fam_ID = f.fam_ID
+LEFT OUTER JOIN (
+    SELECT per_fam_id, GROUP_CONCAT(pp.per_Email SEPARATOR ', ') AS Wife_Email, GROUP_CONCAT(CONCAT(pp.per_FirstName, ' ', IFNULL(pp.per_LastName, '')) SEPARATOR ', ') AS Wife, GROUP_CONCAT(CONCAT(pp.per_BirthYear, '-', LPAD(pp.per_BirthMonth, 2, '0'), '-', LPAD(pp.per_BirthDay, 2, '0')) SEPARATOR ', ') AS Wife_DOB
+    FROM person_per pp WHERE pp.per_Gender = 2 AND pp.per_fmr_ID IN (1,2) AND pp.per_cls_ID != 4 GROUP BY per_fam_id
+) AS tbl_wife ON tbl_wife.per_fam_ID = f.fam_ID
+LEFT OUTER JOIN (
+    SELECT per_fam_id, GROUP_CONCAT(CONCAT(pp.per_FirstName, ' ', IFNULL(pp.per_LastName, '')) SEPARATOR ', ') AS Others
+    FROM person_per pp WHERE pp.per_fmr_ID = 7 AND pp.per_cls_ID != 4 GROUP BY per_fam_id
+) AS tbl_others ON tbl_others.per_fam_ID = f.fam_ID
+GROUP BY f.fam_ID ORDER BY fam_Code;"""
         _result = __db_executeQuery(sql, Databases.CRM, True, search, search, search)
     return _result
 
