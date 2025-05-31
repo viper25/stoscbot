@@ -27,6 +27,7 @@ __MAIN_MY_HARVEST_BUTTON = InlineKeyboardButton("🌽 My Harvest Festival", call
 __MAIN_PAYNOW_BUTTON = InlineKeyboardButton("💵 PayNow", callback_data="PayNow Menu")
 
 __MEMBERS_BDAY_TODAY_BUTTON = InlineKeyboardButton("🎂 Birthdays today", callback_data="Member Birthday Today Button")
+__MEMBERS_NEW_BUTTON = InlineKeyboardButton("🆕 New members", callback_data="New Members Button")
 __MEMBERS_BDAY_WEEK_BUTTON = InlineKeyboardButton("🎂 Birthdays this week", callback_data="Member Birthday Week Button")
 __MEMBERS_ANNIVERSARY_TODAY_BUTTON = InlineKeyboardButton("💍 Anniversaries today",
                                                           callback_data="Member Anniversary Today Button")
@@ -75,6 +76,7 @@ members_menu_keyboard = InlineKeyboardMarkup([
     [__MEMBERS_BDAY_TODAY_BUTTON, __MEMBERS_ANNIVERSARY_TODAY_BUTTON],
     [__MEMBERS_BDAY_WEEK_BUTTON, __MEMBERS_ANNIVERSARY_WEEK_BUTTON],
     [__WHO_IS_MY_MC_BUTTON, __MEMBERS_GB_INELIGIBLE_BUTTON],
+    [__MEMBERS_NEW_BUTTON],
     [BACK_TO_MAIN_BUTTON, ]
 ])
 

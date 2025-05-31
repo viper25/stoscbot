@@ -166,6 +166,7 @@ def add_user(telegram_id, member_code, name):
         # Use exists, 500 indicating existing user
         return 500
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 def get_all_members_telegram_ids():
     resource = boto3.resource(
@@ -181,3 +182,7 @@ def get_all_members_telegram_ids():
 
     return items
 
+
+def get_new_members(months: int = 6) -> list:
+    sql = "select fam_Name from family_fam WHERE DATE_SUB(NOW(),INTERVAL %s MONTH)<fam_DateEntered ORDER BY fam_DateEntered  desc; "
+    return __db_executeQuery(sql, Databases.CRM, True, months)
