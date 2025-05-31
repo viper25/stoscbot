@@ -97,7 +97,7 @@ below
 
 1. Update server timezone to local timezone
 2. [Do not re-use](https://docs.pyrogram.org/faq/using-multiple-clients-at-once-on-the-same-account) a session file when
-   deploying to a new instance. On a new isntance, delete any existing `.session` file
+   deploying to a new instance. On a new instance, delete any existing `.session` file
    and [generate a new session file](https://docs.pyrogram.org/start/auth#bot-authorization).
 3. Keep the `.env` and `.session` files in a `..\credentials\` directory.
    The [deployment scripts](.github\workflows\python-app.yml) will copy these files to the correct location.
