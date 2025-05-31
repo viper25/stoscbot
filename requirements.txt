@@ -1,6 +1,7 @@
-# https://docs.pyrogram.org/topics/tgcrypto
-tgcrypto    # Works only on Python 3.11
-https://github.com/KurimuzonAkuma/pyrogram/archive/refs/tags/v2.1.21.zip
+# Replacement for tgcrypto - https://pypi.org/project/PyTgCrypto/ (use either one of the wheels)
+# https://files.pythonhosted.org/packages/1c/94/ab5eb15f1b8b87c7630f88ab252931fabd1b7ab3e0f55a5c9d35cf7df74a/PyTgCrypto-1.2.11-cp313-cp313-win_amd64.whl
+https://github.com/TelegramPlayground/pyrogram-tgcrypto/releases/download/v1.2.11/PyTgCrypto-1.2.11-cp313-cp313-win_amd64.whl
+kurigram
 mysql-connector-python
 python-dotenv
 pendulum
@@ -9,7 +10,7 @@ requests
 gspread
 git+https://github.com/Ripeey/Conversation-Pyrogram
 pandas
-convopyro
+# convopyro
 tabulate   # For rendering tables generated via dataframes
 colorama
 matplotlib
