@@ -157,7 +157,7 @@ def generate_profile_msg_for_family(result: list) -> str:
     # Add contact details
     # Define the regex pattern for Singapore phone numbers
     pattern = re.compile(r"^(6|8|9)\d{7}$")
-    if pattern.match(row[13]):
+    if row[13] is not None and pattern.match(row[13]):
         msg += format_msg("Mobile", f"[{row[13]}](https://wa.me/+65{row[13]})", 13, link=False)
     else:
         # Not a Singapore number
