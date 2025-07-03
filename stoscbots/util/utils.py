@@ -87,9 +87,43 @@ def get_address_details(_zip: str):
     except Exception as e:
         logger.error(f"Exception in onemap API: {e}")
 
-
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate a Member Profile msg
+def generate_profile_msg_for_member(result: list) -> str:
+    """Generate a profile message for a family based on the given result."""
+
+    # Helper function to format the message
+    def format_msg(label: str, value: str, index: int, link: bool = False) -> str:
+        if value and value != "":
+            if link:
+                return f"• {label}: [{value}](tel://{value})\n"
+            else:
+                return f"• {label}: **{value}**\n"
+        return ""
+
+    # Extract the first row from the result
+    row = result[0]
+
+    # Start with the family name and head
+    msg = f"• Family: **{row[1]} ({row[9]})**\n"
+    msg += f"• Name: **{row[0]}{f' ({row[2]})' if row[2] else ''}**\n"
+
+    # Add other details
+    msg += format_msg("DOB", row[8], 8)
+    msg += format_msg("Email", row[5] if row[5] else row[6], 5 if row[5] else 6)
+    msg += format_msg("Mobile", row[7], 7)
+    msg += format_msg("Related Families", row[13], 13)
+
+    # Handle address concatenation
+    address_parts = [row[i] for i in range(10, 12) if row[i] and row[i] != ""]
+    if address_parts:
+        msg += "• Add: " + ", ".join([f"**{part}**" for part in address_parts]) + "\n"
+    msg += format_msg("Electoral Roll", row[14], 14)
+
+    return msg
+
+# ----------------------------------------------------------------------------------------------------------------------
+# Generate a Family Profile msg
 def generate_profile_msg_for_family(result: list) -> str:
     """Generate a profile message for a family based on the given result."""
 

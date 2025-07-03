@@ -362,10 +362,9 @@ async def show_streaming_menu(client: Client, query: CallbackQuery):
 @loggers.async_log_access
 async def member_search_button_handler(client: Client, query: CallbackQuery):
     await query.answer()
-    _member_code = query.data.split("_")[1]
     person_ID = query.data.split("_")[2]
-    result = db.get_member_details(_member_code, "code")
-    msg = utils.generate_profile_msg_for_family(result)
+    result = db.get_member_details(person_ID, "person")
+    msg = utils.generate_profile_msg_for_member(result)
     await utils.send_profile_address_and_pic(
         client, query, msg, result, query.data.split("_")[2], db.get_person_name(person_ID)[0][0]
     )

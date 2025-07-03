@@ -45,6 +45,12 @@ def test_get_member_details_free_text():
     result = db.get_member_details("Vibin", "free_text")
     assert result[0][2] == "Vibin Joseph Kuriakose"
 
+def test_get_member_details_person():
+    result = db.get_member_details("1082", "person")
+    # Adjust the expected values as per your test database
+    assert result[0][0] == "Vibin Joseph Kuriakose"  # Name
+    assert result[0][2] == None
+    assert result[0][9] == "V019"  # First Name
 
 def test_get_members_born_on():
     result = db.get_members_born_on("1979")
