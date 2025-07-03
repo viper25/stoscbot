@@ -32,7 +32,7 @@ def test_get_anniversaries_daily():
 
 def test_get_members_for_area():
     memberlist, area_name = db.get_members_for_area("2")
-    assert memberlist[0][0] == "Ajish Samuel Thomas (A066)"
+    assert memberlist[0][0] == "Albin Jose (A062)"
     assert area_name[0][0] == "Houg|Sengk|Pungg"
 
 
