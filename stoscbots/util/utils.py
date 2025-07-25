@@ -115,7 +115,7 @@ def generate_profile_msg_for_member(result: list) -> str:
     msg += format_msg("Related Families", row[13], 13)
 
     # Handle address concatenation
-    address_parts = [row[i] for i in range(10, 12) if row[i] and row[i] != ""]
+    address_parts = [row[i] for i in range(10, 13) if row[i] and row[i] != ""]
     if address_parts:
         msg += "• Add: " + ", ".join([f"**{part}**" for part in address_parts]) + "\n"
     msg += format_msg("Electoral Roll", row[14], 14)
