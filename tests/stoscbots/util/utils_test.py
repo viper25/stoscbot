@@ -81,7 +81,7 @@ def test_generate_profile_msg_for_member():
             "",              # 14: Electoral Roll
         ]
     ]
-    expected_msg = "• Family: **Doe Family (JD123)**\n• Name: **John Doe (A001)**\n• DOB: **1980-01-01**\n• Email: **john.doe@example.com**\n• Mobile: **91234567**\n• Related Families: **A002**\n• Add: **123 Main St**, **Apt 4**, **546666**\n"
+    expected_msg = "• Family: **Doe Family (JD123)**\n• Name: **John Doe (A001)**\n• DOB: **1980-01-01**\n• Email: **john.doe@example.com**\n• Mobile: **[+6591234567](https://wa.me/+6591234567)**\n• Related Families: **A002**\n• Add: **123 Main St**, **Apt 4**, **546666**\n"
     msg = utils.generate_profile_msg_for_member(result)
     assert msg == expected_msg
 

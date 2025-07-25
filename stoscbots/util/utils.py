@@ -111,7 +111,7 @@ def generate_profile_msg_for_member(result: list) -> str:
     # Add other details
     msg += format_msg("DOB", row[8], 8)
     msg += format_msg("Email", row[5] if row[5] else row[6], 5 if row[5] else 6)
-    msg += format_msg("Mobile", row[7], 7)
+    msg += format_msg("Mobile", f"[+65{row[7]}](https://wa.me/+65{row[7]})", 13, link=False)
     msg += format_msg("Related Families", row[13], 13)
 
     # Handle address concatenation
