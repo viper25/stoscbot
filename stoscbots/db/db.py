@@ -141,9 +141,8 @@ def get_gb_eligible_count():
     sql = "SELECT count(1) FROM `person_per`  INNER JOIN `family_fam` ON family_fam.fam_ID = person_per.per_fam_ID INNER JOIN `family_custom` ON family_custom.fam_ID = person_per.per_fam_ID WHERE person_per.per_fmr_ID in (1,2) AND person_per.per_cls_ID <> 4 AND person_per.per_id not in (select r2p_record_id from record2property_r2p where record2property_r2p.r2p_pro_ID = 12) AND family_custom.c5 = 'TRUE' AND family_fam.fam_DateDeactivated is null ORDER BY family_custom.c7"
     return __db_executeQuery(sql, Databases.CRM, True)
 
-
 # ----------------------------------------------------------------------------------------------------------------------
-def add_user(telegram_id, member_code, name):
+def get_user_by_telegram_id(telegram_id):
     # Insert into DynamoDB table
     resource = boto3.resource(
         "dynamodb",
@@ -153,8 +152,12 @@ def add_user(telegram_id, member_code, name):
     )
     table = resource.Table('stosc_bot_member_telegram')
 
-    # First check if this user exists in DynamoDB
-    response = table.query(KeyConditionExpression=Key("telegram_id").eq(telegram_id))
+    return table.query(KeyConditionExpression=Key("telegram_id").eq(telegram_id))
+
+# ----------------------------------------------------------------------------------------------------------------------
+def add_user(telegram_id, member_code, name):
+    # Check if this user exists in DynamoDB
+    response = get_user_by_telegram_id(telegram_id)
 
     if len(response['Items']) == 0:
         # User does not exist, create a new record
@@ -164,6 +167,15 @@ def add_user(telegram_id, member_code, name):
             'Name': name,
             'hits': 0,
         }
+
+        resource = boto3.resource(
+            "dynamodb",
+            aws_access_key_id=os.environ.get("STOSC_DDB_ACCESS_KEY_ID"),
+            aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
+            region_name="ap-southeast-1",
+        )
+        table = resource.Table('stosc_bot_member_telegram')
+
         result = table.put_item(Item=chunk)
         return result['ResponseMetadata']['HTTPStatusCode']
     elif len(response['Items']) > 0:

@@ -225,6 +225,35 @@ async def show_admin_menu(client: Client, query: CallbackQuery):
     msg += "\n‣ Commands:\n `/cmd logs` or `/cmd logs [search_string]`"
     await query.message.reply_text(msg, reply_markup=keyboards.admin_menu_keyboard)
 
+# --------------------------------------------------
+# Helper: replace Telegram IDs with names using DynamoDB
+def _id_to_name(telegram_id: str, cache: dict) -> str:
+    NO_LOOKUP = "UNKNOWN"
+    if telegram_id in cache:
+        return cache[telegram_id]
+    try:
+        resp = db.get_user_by_telegram_id(str(telegram_id))
+        items = resp.get('Items', [])
+        name = items[0].get('Name') if items else NO_LOOKUP
+    except Exception as e:
+        logger.error(f"DDB lookup failed for {telegram_id}: {e}")
+        name = NO_LOOKUP
+    cache[telegram_id] = name
+    return name
+
+# --------------------------------------------------
+def _replace_ids_with_names(cmd_result: str) -> str:
+    cache = {}
+    lines = []
+    for line in cmd_result.strip().splitlines():
+        parts = line.strip().split()
+        if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():
+            count, telegram_id = parts[0], parts[1]
+            name = _id_to_name(telegram_id, cache)
+            lines.append(f"{count} {name}")
+        else:
+            lines.append(line)
+    return "\n".join(lines)
 
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Show Stats"))
@@ -238,17 +267,20 @@ async def show_stats(client: Client, query: CallbackQuery):
     if platform.system() == "Linux":
         msg = "** Top users by messages (current month) **\n"
 
+        # Build pipeline: filter current-month logs, extract Telegram IDs from `[ID:...]`, count occurrences, sort desc, and take top 15.
         cmd = f"""
         grep -E '{date_string}' {log_file_path} |
-        grep -oP '\[.*:.*:.*\]' | 
-        awk -F: '{{print $NF}}' |
-        sed 's/\]$//' | \
+        grep -oP '(?<=\[)\d+(?=:)' |
         sort |
         uniq -c |
         sort -nr |
         head -n 15
         """
         cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
+
+        # Replace Telegram IDs with names from DynamoDB
+        cmd_result = _replace_ids_with_names(cmd_result)
+
         msg += f"`{cmd_result}`"
         await utils.edit_and_send_msg(query, msg, keyboards.admin_menu_keyboard)
     else:
