@@ -14,7 +14,7 @@ from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from pyrogram.enums import ParseMode
 from pyrogram.errors import MessageNotModified, BadRequest
-from pyrogram.types import CallbackQuery, InlineKeyboardMarkup
+from pyrogram.types import CallbackQuery, InlineKeyboardMarkup, LinkPreviewOptions
 
 from stoscbots.util.loggers import LOGLEVEL
 from stoscbots.xero import xero_utils
@@ -307,7 +307,7 @@ def generate_msg_xero_member_invoices(member_code: str, year: str):
 # Send a message to a Telegram user with an optional inline keyboard
 async def edit_and_send_msg(query: CallbackQuery, msg: str, keyboard: InlineKeyboardMarkup = None):
     try:
-        await query.message.edit_text(text=msg, reply_markup=keyboard, disable_web_page_preview=True)
+        await query.message.edit_text(text=msg, reply_markup=keyboard, link_preview_options=LinkPreviewOptions(is_disabled=True))
     except MessageNotModified as e:
         logger.warning(str(e))
     except BadRequest as e:
@@ -483,11 +483,11 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
                 else:
                     logger.error(f"{getattr(e2, 'MESSAGE', str(e2))}: for [{result[0][PERSON_NAME_INDEX]}]")
                 await client.send_message(chat_id=_x.from_user.id, text=msg, reply_markup=keyboard,
-                                          disable_web_page_preview=True)
+                                          link_preview_options=LinkPreviewOptions(is_disabled=True))
         else:
             logger.error(f"{getattr(e1, 'MESSAGE', str(e1))}: for [{result[0][PERSON_NAME_INDEX]}]")
             await client.send_message(chat_id=_x.from_user.id, text=msg, reply_markup=keyboard,
-                                      disable_web_page_preview=True)
+                                      link_preview_options=LinkPreviewOptions(is_disabled=True))
 
 
 # ----------------------------------------------------------------------------------------------------------------------

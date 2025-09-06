@@ -3,7 +3,7 @@ import logging
 
 import aiofiles
 from pyrogram import Client, filters
-from pyrogram.types import Message, CallbackQuery
+from pyrogram.types import Message, CallbackQuery, LinkPreviewOptions
 
 from stoscbots.bot import keyboards
 from stoscbots.db import db
@@ -30,7 +30,7 @@ async def start_handler(client: Client, message: Message):
                                   sticker='CAACAgIAAxkBAAIFJV-X6UKaAAEDx4Nqup6acSBW6DlThgACoAMAAvoLtgj5yjtMiAXK4hsE')
         await message.reply_text(
             "**You are not authorized to use this bot**\nHowever, if you are a STOSC member, do provide your details for access.\n\n`Enter your member code:`",
-            disable_web_page_preview=True)
+            link_preview_options=LinkPreviewOptions(is_disabled=True))
         try:
             member_code = await client.listen.Message(filters.text, id=filters.user(message.from_user.id), timeout=30)
             logger.info(f"Unauthorized Member Request Code: {member_code.text}")
@@ -85,7 +85,7 @@ async def privacy_handler(client: Client, message: Message):
         async with aiofiles.open('privacy_policy.txt', mode='r', encoding='utf-8') as file:
             privacy_policy = await file.read()
         await message.reply_text(privacy_policy, reply_markup=keyboards.back_to_main_keyboard,
-                                 disable_web_page_preview=True)
+                                 link_preview_options=LinkPreviewOptions(is_disabled=True))
     except IOError as e:
         logging.error(f"Failed to read privacy policy file: {e}")
         await message.reply_text("Sorry, the privacy policy is currently unavailable.",
@@ -125,7 +125,8 @@ async def help_handler(client: Client, message: Message):
     # Join the list to form the final message
     msg = '\n'.join(help_msg)
 
-    await message.reply_text(msg, reply_markup=keyboards.back_to_main_keyboard, disable_web_page_preview=True)
+    await message.reply_text(msg, reply_markup=keyboards.back_to_main_keyboard,
+                             link_preview_options=LinkPreviewOptions(is_disabled=True))
 
 
 # -------------------------------------------------
@@ -188,7 +189,7 @@ async def member_search_cmd_handler(client: Client, message: Message):
             msg += "`\n👦🏻 = Boy   👧🏻 = Girl`"
             msg += "`\n🧔🏻 = Man   👩🏻 = Woman`"
             await message.reply_text(msg, reply_markup=keyboards.get_member_listing_keyboard(result),
-                                     disable_web_page_preview=True)
+                                     link_preview_options=LinkPreviewOptions(is_disabled=True))
 
 
 # -------------------------------------------------

@@ -4,6 +4,7 @@ from functools import wraps
 
 import boto3
 from boto3.dynamodb.conditions import Key
+from pyrogram.types import LinkPreviewOptions
 
 from stoscbots.util.loggers import LOGLEVEL
 
@@ -35,7 +36,8 @@ async def send_access_denied_msg(client, msg_or_query):
         # For Commands not buttons
         await msg_or_query.reply_sticker(
             sticker='CAACAgIAAxkBAAIFJV-X6UKaAAEDx4Nqup6acSBW6DlThgACoAMAAvoLtgj5yjtMiAXK4hsE')
-        await msg_or_query.reply_text(text=ACCESS_DENIED_MEMBERS_TEXT, quote=True, disable_web_page_preview=True)
+        await msg_or_query.reply_text(text=ACCESS_DENIED_MEMBERS_TEXT, quote=True,
+                                      link_preview_options=LinkPreviewOptions(is_disabled=True))
         arg_msg = f"'{msg_or_query.text}'"
         # arg_msg=f" with args={message.command[0]}"
         logger.warning(
@@ -46,7 +48,7 @@ async def send_access_denied_msg(client, msg_or_query):
         await client.send_sticker(chat_id=msg_or_query.from_user.id,
                                   sticker='CAACAgIAAxkBAAIFJV-X6UKaAAEDx4Nqup6acSBW6DlThgACoAMAAvoLtgj5yjtMiAXK4hsE')
         await client.send_message(chat_id=msg_or_query.from_user.id, text=ACCESS_DENIED_MEMBERS_TEXT,
-                                  disable_web_page_preview=True)
+                                  link_preview_options=LinkPreviewOptions(is_disabled=True))
         # The Callback text for the Button
         arg_msg = f"'{msg_or_query.data}'"
         logger.warning(

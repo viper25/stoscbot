@@ -7,7 +7,7 @@ from tempfile import NamedTemporaryFile
 
 import requests
 from pyrogram import Client, filters
-from pyrogram.types import CallbackQuery, Message
+from pyrogram.types import CallbackQuery, Message, LinkPreviewOptions
 
 from stoscbots.util import loggers, utils, bot_auth
 from stoscbots.util.loggers import LOGLEVEL
@@ -68,4 +68,4 @@ async def generate_image_url(client: Client, message: Message):
         url = utils.upload_to_s3_and_get_url(image_file=tf, object_name=image_name)
         tf.flush()
 
-    await message.reply_text(f"URL: \n\n{url}", disable_web_page_preview=True)
+    await message.reply_text(f"URL: \n\n{url}", link_preview_options=LinkPreviewOptions(is_disabled=True))
