@@ -1,4 +1,6 @@
 name: Codacy Analysis CLI
+permissions:
+  contents: read
 
 on:
   push:
