@@ -24,8 +24,13 @@ async def get_prayer_requests(client: Client, query: CallbackQuery):
     await query.answer()
     await utils.edit_and_send_msg(query, "Please wait... ⌛", keyboards.get_services_keyboard())
 
-    # Credentials are at %APPDATA%\gspread\service_account.json or
-    # ~/.config/gspread/service_account.json
+    """
+    Credentials are at %APPDATA%\gspread\service_account.json or
+    ~/.config/gspread/service_account.json
+    
+    See https://console.cloud.google.com/apis/dashboard?project=api-project-57990973458
+    Create a service account, and get an emailID. Add that email as a Viewer to the Google Sheet.
+    """
     gc = gspread.service_account()
     sh = gc.open("Prayer Request (Responses)")
     list_requests = sh.sheet1.get_all_values()
