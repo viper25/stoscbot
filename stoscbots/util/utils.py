@@ -6,7 +6,7 @@ import re
 from datetime import date
 from datetime import timedelta
 from multiprocessing.connection import Client
-from typing import Optional
+from typing import Optional, Union, List, Dict
 
 import boto3
 import requests
@@ -87,6 +87,7 @@ def get_address_details(_zip: str):
     except Exception as e:
         logger.error(f"Exception in onemap API: {e}")
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate a Member Profile msg
 def generate_profile_msg_for_member(result: list) -> str:
@@ -124,6 +125,23 @@ def generate_profile_msg_for_member(result: list) -> str:
 
     return msg
 
+
+# ----------------------------------------------------------------------------------------------------------------------
+def format_iso_date_readable(date_str: str) -> str:
+    """
+        Convert an ISO date (YYYY-MM-DD) to 'Mon D, YYYY' (e.g. 'Oct 5, 1936').
+        Returns original string if parsing fails.
+        1936-10-05 --> Oct 5, 1936
+        """
+    if not date_str:
+        return ""
+    try:
+        dt = datetime.date.fromisoformat(date_str)
+        return f"{dt.strftime('%b')} {dt.day}, {dt.year}"
+    except ValueError:
+        return date_str
+
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Generate a Family Profile msg
 def generate_profile_msg_for_family(result: list) -> str:
@@ -142,15 +160,18 @@ def generate_profile_msg_for_family(result: list) -> str:
     row = result[0]
 
     # Start with the family name and head
-    msg = f"• Family: **{row[2]} ({row[1]})**\n"
-
+    msg = f"Family: **{row[2]} ({row[1]})**\n"
+    msg += "➖➖➖➖➖➖➖\n**🤵🏼 Member Details**\n"
     # Add other details
-    msg += format_msg("DOB", row[20], 20)
+    msg += format_msg("Head", row[2], 20)
+    msg += format_msg("Head DOB", format_iso_date_readable(row[20]), 20)
     msg += format_msg("Spouse", row[6], 6)
-    msg += format_msg("Spouse DOB", row[21], 21)
+    msg += format_msg("Spouse DOB", format_iso_date_readable(row[21]), 21)
+    msg += format_msg("Anniversary", format_iso_date_readable(row[24]), 21)
     msg += format_msg("Children", row[8], 8)
     msg += format_msg("Other family members", row[9], 9)
 
+    msg += "––––––––\n**🏠 Contact Details**\n"
     # Handle address concatenation
     address_parts = [row[i] for i in range(10, 13) if row[i] and row[i] != ""]
     if address_parts:
@@ -172,12 +193,15 @@ def generate_profile_msg_for_family(result: list) -> str:
     msg += format_msg("Email", row[3], 3)
     if row[7] and row[7] != "" and row[7] != row[5]:
         msg += format_msg("Spouse Email", row[7], 7)
-
+    msg += "––––––––\n**⚒️ Other Details**\n"
     # Add other details
     msg += format_msg("Home Parish", row[15], 15)
-    msg += format_msg("Membership Date", row[16], 16)
+    msg += format_msg("Membership Date", format_iso_date_readable(row[16]), 16)
     msg += format_msg("Related Families", row[17], 17)
-    msg += format_msg("Electoral Roll", row[18], 18)
+    _icon = "🔴"
+    if row[18] == 'true':
+        _icon = "🟢"
+    msg += format_msg("Electoral Roll", _icon, 18)
     msg += format_msg("Prayer Group", row[19], 19)
 
     return msg
@@ -307,7 +331,8 @@ def generate_msg_xero_member_invoices(member_code: str, year: str):
 # Send a message to a Telegram user with an optional inline keyboard
 async def edit_and_send_msg(query: CallbackQuery, msg: str, keyboard: InlineKeyboardMarkup = None):
     try:
-        await query.message.edit_text(text=msg, reply_markup=keyboard, link_preview_options=LinkPreviewOptions(is_disabled=True))
+        await query.message.edit_text(text=msg, reply_markup=keyboard,
+                                      link_preview_options=LinkPreviewOptions(is_disabled=True))
     except MessageNotModified as e:
         logger.warning(str(e))
     except BadRequest as e:
@@ -321,8 +346,6 @@ def year_start():
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-
-
 # Return the start of the week (from Sunday 7.45 AM onwards)
 def week_start_from_service_time():
     # Set to Sunday at current time
@@ -512,9 +535,6 @@ def is_valid_year(year: str) -> bool:
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-from typing import Union, List, Dict
-
-
 def get_tracked_projects(raw_data: bool = False) -> Union[str, List[Dict]]:
     response_items = table_stosc_xero_accounts_tracking.scan()['Items']
 
@@ -565,7 +585,6 @@ def get_outstandings():
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-
 def is_valid_email(email: str) -> bool:
     if not email:
         return False
@@ -575,7 +594,6 @@ def is_valid_email(email: str) -> bool:
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-
 def format_telegram_message(msg):
     """Formats the message to comply with Telegram's message length limit."""
     return (msg[:4076] + '\n`... (truncated)`') if len(msg) > 4096 else msg
@@ -595,7 +613,6 @@ async def get_telegram_file_url(photo):
 
 
 # ----------------------------------------------------------------------------------------------------------------------
-
 def upload_to_s3_and_get_url(image_file, object_name: str):
     s3_resource = boto3.resource(
         "s3",

@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from stoscbots.util import utils
-from stoscbots.util.utils import format_telegram_message, get_telegram_file_url, upload_to_s3_and_get_url
+from stoscbots.util.utils import format_telegram_message, get_telegram_file_url, upload_to_s3_and_get_url, format_iso_date_readable
 from tests.stoscbots.util import bot_auth_test
 
 
@@ -26,38 +26,83 @@ def test_get_address_details():
     assert x[1] == "103.888370952522"
 
 
-def test_generate_profile_msg():
-    result = [
-        (
-            587,
-            "A001",
-            "John Mathai",
-            "john@example.com",
-            "John mathai",
-            "john@example.com",
-            "John Wife",
-            "john_wife@example.com",
-            "Johnson",
-            "John Mother",
-            "Address 1",
-            "Address 2",
-            "547777",
-            "99999999",
-            "66666666",
-            "Home Parish",
-            "2005-07-05",
-            "A003",
-            "true",
-            "Houg|Sengk|Pungg",
-            "1979-12-25",
-            "1985-12-25",
-        )
-    ]
-    x = utils.generate_profile_msg_for_family(result)
-    assert (
-            "• Family: **John Mathai (A001)**\n• DOB: **1979-12-25**\n• Spouse: **John Wife**\n• Spouse DOB: **1985-12-25**\n• Children: **Johnson**\n• Other family members: **John Mother**\n• Add: **Address 1**, **Address 2**, **547777**\n• Mobile: **[99999999](https://wa.me/+6599999999)**\n• Home: [66666666](tel://66666666)\n• Email: **john@example.com**\n• Spouse Email: **john_wife@example.com**\n• Home Parish: **Home Parish**\n• Membership Date: **2005-07-05**\n• Related Families: **A003**\n• Electoral Roll: **true**\n• Prayer Group: **Houg|Sengk|Pungg**\n"
-            == x
+
+def test_generate_profile_msg_for_family():
+    result = [(
+        709, "S080", "John Honai", "johnman@example.com", "John Honai", "johnman@example.com", "Thomaskutty Part",
+        "konnai@example.com", "Mary john,Paavanai", None, "655 George Street 41",
+        "#01-100 Mannar Gardens", "520422", "99999999", "", "St. Thomas Orthodox Church", "2021-09-19", "",
+        "false", "East Coast", "1976-05-04", "1987-04-27", 1, 1, "2011-11-20"
+    )]
+
+    # Expected output
+    expected_msg = (
+        "Family: **John Honai (S080)**\n"
+        "➖➖➖➖➖➖➖\n"
+        "**🤵🏼 Member Details**\n"
+        "• Head: **John Honai**\n"
+        "• Head DOB: **May 4, 1976**\n"
+        "• Spouse: **Thomaskutty Part**\n"
+        "• Spouse DOB: **Apr 27, 1987**\n"
+        "• Anniversary: **Nov 20, 2011**\n"
+        "• Children: **Mary john,Paavanai**\n"
+        "––––––––\n"
+        "**🏠 Contact Details**\n"
+        "• Add: **655 George Street 41**, **#01-100 Mannar Gardens**, **520422**\n"
+        "• Mobile: **[99999999](https://wa.me/+6599999999)**\n"
+        "• Email: **johnman@example.com**\n"
+        "• Spouse Email: **konnai@example.com**\n"
+        "––––––––\n"
+        "**⚒️ Other Details**\n"
+        "• Home Parish: **St. Thomas Orthodox Church**\n"
+        "• Membership Date: **Sep 19, 2021**\n"
+        "• Electoral Roll: **🔴**\n"
+        "• Prayer Group: **East Coast**\n"
     )
+
+    # Call the function
+    msg = utils.generate_profile_msg_for_family(result)
+
+    # Assert that the generated message matches the expected message
+    assert msg == expected_msg
+
+def test_generate_profile_msg_for_family_no_mobile():
+    result = [(
+        709, "S080", "John Honai", "johnman@example.com", "John Honai", "johnman@example.com", "Thomaskutty Part",
+        "konnai@example.com", "Mary john,Paavanai", None, "655 George Street 41",
+        "#01-100 Mannar Gardens", "520422", "", "", "St. Thomas Orthodox Church", "2021-09-19", "",
+        "false", "East Coast", "1976-05-04", "1987-04-27", 1, 1, "2011-11-20"
+    )]
+
+    # Expected output
+    expected_msg = (
+        "Family: **John Honai (S080)**\n"
+        "➖➖➖➖➖➖➖\n"
+        "**🤵🏼 Member Details**\n"
+        "• Head: **John Honai**\n"
+        "• Head DOB: **May 4, 1976**\n"
+        "• Spouse: **Thomaskutty Part**\n"
+        "• Spouse DOB: **Apr 27, 1987**\n"
+        "• Anniversary: **Nov 20, 2011**\n"
+        "• Children: **Mary john,Paavanai**\n"
+        "––––––––\n"
+        "**🏠 Contact Details**\n"
+        "• Add: **655 George Street 41**, **#01-100 Mannar Gardens**, **520422**\n"
+        "• Email: **johnman@example.com**\n"
+        "• Spouse Email: **konnai@example.com**\n"
+        "––––––––\n"
+        "**⚒️ Other Details**\n"
+        "• Home Parish: **St. Thomas Orthodox Church**\n"
+        "• Membership Date: **Sep 19, 2021**\n"
+        "• Electoral Roll: **🔴**\n"
+        "• Prayer Group: **East Coast**\n"
+    )
+
+    # Call the function
+    msg = utils.generate_profile_msg_for_family(result)
+
+    # Assert that the generated message matches the expected message
+    assert msg == expected_msg
 
 
 def test_generate_profile_msg_for_member():
@@ -700,3 +745,35 @@ def test_valid_telephone():
     assert utils.valid_telephone("123456789") is None
     assert utils.valid_telephone("abcdefgh") is None
     assert utils.valid_telephone("") is None
+
+
+# ------------------------------------------------------------
+# Tests for format_iso_date_readable
+
+def test_format_iso_date_readable_valid_date():
+    assert format_iso_date_readable("1936-10-05") == "Oct 5, 1936"
+
+
+def test_format_iso_date_readable_valid_date_sep():
+    # Date used elsewhere in tests; ensures consistency
+    assert format_iso_date_readable("2021-09-19") == "Sep 19, 2021"
+
+
+def test_format_iso_date_readable_invalid_date():
+    # Invalid month should return the original string
+    assert format_iso_date_readable("2021-13-01") == "2021-13-01"
+
+
+def test_format_iso_date_readable_empty_string():
+    assert format_iso_date_readable("") == ""
+
+
+def test_format_iso_date_readable_none():
+    assert format_iso_date_readable(None) == ""
+
+
+def test_format_iso_date_readable_malformed():
+    # Completely malformed string returns itself
+    malformed = "not-a-date"
+    assert format_iso_date_readable(malformed) == malformed
+
