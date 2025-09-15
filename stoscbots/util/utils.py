@@ -121,7 +121,11 @@ def generate_profile_msg_for_member(result: list) -> str:
     address_parts = [row[i] for i in range(10, 13) if row[i] and row[i] != ""]
     if address_parts:
         msg += "• Add: " + ", ".join([f"**{part}**" for part in address_parts]) + "\n"
-    msg += format_msg("Electoral Roll", row[14], 14)
+
+    _icon = "🔴"
+    if row[14] == 'true':
+        _icon = "🟢"
+    msg += format_msg("Electoral Roll", _icon, 14)
 
     return msg
 

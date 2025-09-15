@@ -126,7 +126,32 @@ def test_generate_profile_msg_for_member():
             "",              # 14: Electoral Roll
         ]
     ]
-    expected_msg = "• Family: **Doe Family (JD123)**\n• Name: **John Doe (A001)**\n• DOB: **1980-01-01**\n• Email: **john.doe@example.com**\n• Mobile: **[+6591234567](https://wa.me/+6591234567)**\n• Related Families: **A002**\n• Add: **123 Main St**, **Apt 4**, **546666**\n"
+    expected_msg = "• Family: **Doe Family (JD123)**\n• Name: **John Doe (A001)**\n• DOB: **1980-01-01**\n• Email: **john.doe@example.com**\n• Mobile: **[+6591234567](https://wa.me/+6591234567)**\n• Related Families: **A002**\n• Add: **123 Main St**, **Apt 4**, **546666**\n• Electoral Roll: **🔴**\n"
+    msg = utils.generate_profile_msg_for_member(result)
+    assert msg == expected_msg
+
+def test_generate_profile_msg_for_member_elecotral_roll():
+    # Sample result row (order must match the function's expectations)
+    result = [
+        [
+            "John Doe",      # 0: Name
+            "Doe Family",    # 1: Family Name
+            "A001",          # 2: Family Code
+            "john@example.com",  # 3: Email (not used)
+            "",              # 4: (unused)
+            "john.doe@example.com",  # 5: Email (used)
+            "",              # 6: (unused)
+            "91234567",      # 7: Mobile
+            "1980-01-01",    # 8: DOB
+            "JD123",         # 9: Head Code
+            "123 Main St",   # 10: Address 1
+            "Apt 4",         # 11: Address 2
+            "546666",        # 12: Zip Code
+            "A002",          # 13: Related Families
+            "true",          # 14: Electoral Roll
+        ]
+    ]
+    expected_msg = "• Family: **Doe Family (JD123)**\n• Name: **John Doe (A001)**\n• DOB: **1980-01-01**\n• Email: **john.doe@example.com**\n• Mobile: **[+6591234567](https://wa.me/+6591234567)**\n• Related Families: **A002**\n• Add: **123 Main St**, **Apt 4**, **546666**\n• Electoral Roll: **🟢**\n"
     msg = utils.generate_profile_msg_for_member(result)
     assert msg == expected_msg
 
