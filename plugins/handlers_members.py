@@ -157,7 +157,6 @@ async def member_gb_ineligible(client: Client, query: CallbackQuery):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("MC"))
 @loggers.async_log_access
-# Check if there is any prayer request for this week submitted after the current service starts at 7.45
 async def get_MC(client: Client, query: CallbackQuery):
     await query.answer()
     msg = f"**Secretary**: Jacob Philip Kanianthara (J022)\n"

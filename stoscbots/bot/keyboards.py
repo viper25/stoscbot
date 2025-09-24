@@ -5,7 +5,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInf
 from stoscbots.util import bot_auth
 
 WEB_APP_PR = WebAppInfo(
-    url="https://docs.google.com/forms/d/e/1FAIpQLSdJ0SQTC487_RwjdnbBVq5sHyfsXhC2PZyDmL63K4GJvp-BVA/viewform")
+    url="https://forms.office.com/r/ThXjcLLr5Z")
 
 
 # Define a function to create a button to avoid repetitive code
@@ -54,7 +54,6 @@ __MYDETAILS_MY_SUBSCRIPTIONS_BUTTON = InlineKeyboardButton("📜 My Dues", callb
 __MYDETAILS_PRAYER_REQUESTS_BUTTON = InlineKeyboardButton("🙏🏽 Submit Prayer Requests", web_app=WEB_APP_PR)
 __MYDETAILS_LIST_OF_ACCOUNTS_BUTTON = InlineKeyboardButton("ℹ List of Accounts", callback_data="List of Accounts")
 
-PRAYER_REQUESTS_LISTING_BUTTON = InlineKeyboardButton("📿 Prayer Requests", callback_data="Prayer Requests")
 __WHO_IS_MY_MC_BUTTON = InlineKeyboardButton("👥 Management Committee", callback_data="MC")
 __MAIN_STREAMING_BUTTON = InlineKeyboardButton("📡 Streaming", callback_data="Streaming Menu")
 __STREAMING_GEN_ANNOUNCEMENT_SLIDES_BUTTON = InlineKeyboardButton("📺 Generate Announcement Slides",
@@ -155,7 +154,7 @@ def get_main_keyboard(telegram_id):
 
 # Dynamically generate a keyboard with prayer requests
 def get_services_keyboard():
-    return InlineKeyboardMarkup([[BACK_TO_MAIN_BUTTON, PRAYER_REQUESTS_LISTING_BUTTON]])
+    return InlineKeyboardMarkup([[BACK_TO_MAIN_BUTTON]])
 
 
 def get_icon(item):

@@ -19,7 +19,7 @@ from stoscbots.bot import keyboards
       'Child1,Child2', None, '123 Test Street', '#01-01', '123456', '12345678', '', 'Test Church1', '2000-01-01', '',
       'false', 'Region1', '2005-04-10', '2007-05-15', 1, 1, 'Test User1', 101), '⚡🧔🏻'),
     ((2, 'A002', 'Test User2', 'test2@example.com', 'Test User2', 'test2@example.com', 'Spouse2', 'spouse2@example.com',
-      'Child3,Child4', None, '456 Test Avenue', '#02-02', '654321', '87654321', '', 'Test Church2', '1995-02-02', '',
+      'Child3,Child4', None, '456 Test Avenue', '#02-02', '654321', '87654321', '', 'Test Church2', f'{date.today().year - 19}-06-20', '',
       'false', 'Region2', f'{date.today().year - 19}-06-20', '1983-07-23', 2, 1, 'Test User2', 102), '⚡👩🏻'),
     # Testing for non-head of family with different age groups and genders
     ((3, 'A003', 'Test User3', 'test3@example.com', 'Test User3', 'test3@example.com', 'Spouse3', 'spouse3@example.com',
@@ -146,19 +146,15 @@ def test_get_services_keyboard():
     assert isinstance(keyboard,
                       keyboards.InlineKeyboardMarkup), "The return type should be an InlineKeyboardMarkup instance"
 
+    # Expect a single row with only the back button now
     assert len(keyboard.inline_keyboard) == 1, "The keyboard should have one row"
 
     row = keyboard.inline_keyboard[0]
-    assert len(row) == 2, "The row should have two buttons"
+    assert len(row) == 1, "The row should have one button"
 
-    back_to_main_button, prayer_requests_listing_button = row
+    back_to_main_button = row[0]
 
     assert isinstance(back_to_main_button,
-                      InlineKeyboardButton), "The first button should be an InlineKeyboardButton instance"
-    assert back_to_main_button.callback_data == "Main Menu", "The first button's callback data should be 'Main Menu'"
-    assert back_to_main_button.text == "🔙 Return to Main menu", "The first button's text should be '🔙 Return to Main menu'"
-
-    assert isinstance(prayer_requests_listing_button,
-                      InlineKeyboardButton), "The second button should be an InlineKeyboardButton instance"
-    assert prayer_requests_listing_button.callback_data == "Prayer Requests", "The second button's callback data should be 'Prayer Requests'"
-    assert prayer_requests_listing_button.text == "📿 Prayer Requests", "The second button's text should be '📿 Prayer Requests'"
+                      InlineKeyboardButton), "The button should be an InlineKeyboardButton instance"
+    assert back_to_main_button.callback_data == "Main Menu", "The button's callback data should be 'Main Menu'"
+    assert back_to_main_button.text == "🔙 Return to Main menu", "The button's text should be '🔙 Return to Main menu'"
