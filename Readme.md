@@ -15,78 +15,27 @@ Cathedral (STOSC), Singapore.
 
 Create a `.env` file by modifying the [.env.sample](.env.sample)
 
-<details>
-
-<summary>
-Setup virtual environment
-</summary>
-
 ```bash
-python -m venv .venv
+uv sync
+uv run python run_stoscbot.py
 ```
-
-Activate (on Windows):
-
-```dos
-.venv\Scripts\activate.bat
-```
-
-On Linux:
-
-Change `config.ini` for server.
-
-```bash
-source .venv/bin/activate
-nohup python3 run_stoscbot.py &
-```
-
-</details>
-
-<details>
-
-<summary>
-Dependencies
-</summary>
-
-## Install dependencies.
-
-```bash
-pip install -r requirements.txt
-```
-
-### Upgrade dependencies
-
-Upgrade dependencies, test locally and then freeze to `requirements_pro.txt`
-
-```bash
-pip install --upgrade pip
-pip install --upgrade -r requirements.txt
-```
-
-To freeze requirements, delete the virtual env and recreate it to remove cruft installs. Then run the above command to 
-install the dependencies and freeze them (with the command below).
-
-```bash
-pip freeze --exclude pytest-cov --exclude pytest --exclude pytest-asyncio > requirements-frozen.txt
-```
-
-</details>
-
-<details>
-<summary>
-Tests
-</summary>
 
 ## Run Tests
 
-Ensure `pytest` and `pytest-asyncio` is installed so that VSCode and find tests. Run the below command to run the tests.
+```bash
+uv sync --group test
+uv run -m pytest
+```
+
+Using [pytest-cov](https://github.com/pytest-dev/pytest-cov)
 
 ```bash
 pytest --cov=./ --cov-report=xml
 coverage report
 ```
+## Bump Version
 
-</details>
+Bump version explicitly `uv version 0.1.0` or [semantically](https://docs.astral.sh/uv/reference/cli/#uv-version--bump) `uv version --bump minor`
 
 ## Deployment
 

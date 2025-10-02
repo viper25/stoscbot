@@ -13,21 +13,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
-      - name: Set up Python 3.11
-        uses: actions/setup-python@master
+      # Setup uv with Python (uv will handle toolchain + caching of interpreter)
+      - name: Setup uv (Python 3.12)
+        uses: astral-sh/setup-uv@v4
         with:
-          python-version: "3.11"
-      - name: Install dependencies
+          python-version: '3.12'
+
+      - name: Cache uv environments
+        uses: actions/cache@v4
+        with:
+          path: |
+            .venv
+            ~/.cache/uv
+          key: ${{ runner.os }}-uv-${{ hashFiles('pyproject.toml', 'uv.lock') }}
+
+      - name: Sync dependencies (prod + test)
         run: |
-          python -m pip install --upgrade pip
-          pip install flake8 pytest pytest-asyncio pytest-cov
-          if [ -f requirements-frozen.txt ]; then pip install -r requirements-frozen.txt; fi
-      - name: Lint with flake8
-        run: |
-          # stop the build if there are Python syntax errors or undefined names
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          uv sync --group test
 
       - name: Run Tests
         env:
@@ -44,7 +46,7 @@ jobs:
           ENV: 'PRO'
           LOGLEVEL: 'INFO'
         run: |
-          pytest --cov=./ --cov-report=xml
+          uv run pytest --cov=./ --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4.0.1
@@ -94,7 +96,7 @@ jobs:
   Deploy_to_VM:
     runs-on: ubuntu-latest
     needs: [ Version_Code ]
-    if: ${{ true }}  # A switch to turn on/off the deployment
+    if: ${{ false }}  # A switch to turn on/off the deployment
     env:
       CLOUD_PROVIDER: ${{ secrets.CLOUD_PROVIDER }}   # AWS or Azure
 
@@ -105,10 +107,10 @@ jobs:
           path: ${{ github.workspace }}
           key: ${{ runner.os }}-stoscbot-${{ github.sha }}
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@master
+      - name: Set up uv (Python 3.12)
+        uses: astral-sh/setup-uv@v4
         with:
-          python-version: "3.11"
+          python-version: '3.12'
 
       - name: Remove unwanted folders
         run: |
@@ -169,7 +171,7 @@ jobs:
           user: ${{ env.CLOUD_PROVIDER == 'Azure' && 'vibinjk' || 'ubuntu' }}
           key: ${{ secrets.BOT_HOST_PRIVATE_KEY }}
 
-      - name: Install & Start the bot on VM
+      - name: Install & Start the bot on VM (uv)
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.BOT_HOST }}
@@ -179,11 +181,12 @@ jobs:
           script: |
             cd ${{ env.CLOUD_PROVIDER == 'Azure' && '/home/vibinjk/bots/stoscbot/workspace' || '/home/ubuntu/bots/stoscbot/workspace' }}
             cp -r ../credentials/* .
-            cp -r ../credentials/.* .
-            python3.11 -m venv .venv
-            source .venv/bin/activate
-            if [ -f requirements-frozen.txt ]; then python3 -m pip install --upgrade -r requirements-frozen.txt; fi
-            nohup python run_stoscbot.py > /dev/null 2>&1 &
+            cp -r ../credentials/.* . 2>/dev/null
+            # Install uv (if not already). It will provision the correct Python automatically.
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            export PATH="$HOME/.local/bin:$PATH"
+            uv sync --no-dev
+            nohup uv run python run_stoscbot.py > /dev/null 2>&1 &
 
       - name: Remove Github Actions IP from AWS security group
         if: env.CLOUD_PROVIDER == 'AWS'
