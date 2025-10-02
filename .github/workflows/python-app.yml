@@ -171,40 +171,40 @@ jobs:
           user: ${{ env.CLOUD_PROVIDER == 'Azure' && 'vibinjk' || 'ubuntu' }}
           key: ${{ secrets.BOT_HOST_PRIVATE_KEY }}
 
-#      - name: Install & Start the bot on VM (uv)
-#        uses: appleboy/ssh-action@master
-#        with:
-#          host: ${{ secrets.BOT_HOST }}
-#          username: ${{ env.CLOUD_PROVIDER == 'Azure' && 'vibinjk' || 'ubuntu' }}
-#          key: ${{ secrets.BOT_HOST_PRIVATE_KEY }}
-#          port: 22
-#          script: |
-#            cd ${{ env.CLOUD_PROVIDER == 'Azure' && '/home/vibinjk/bots/stoscbot/workspace' || '/home/ubuntu/bots/stoscbot/workspace' }}
-#            cp -r ../credentials/* .
-#            cp -r ../credentials/.* . 2>/dev/null
-#            # Install uv (if not already). It will provision the correct Python automatically.
-#            curl -LsSf https://astral.sh/uv/install.sh | sh
-#            export PATH="$HOME/.local/bin:$PATH"
-#            uv sync --no-dev
-#            nohup uv run python run_stoscbot.py > /dev/null 2>&1 &
+      - name: Install & Start the bot on VM (uv)
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.BOT_HOST }}
+          username: ${{ env.CLOUD_PROVIDER == 'Azure' && 'vibinjk' || 'ubuntu' }}
+          key: ${{ secrets.BOT_HOST_PRIVATE_KEY }}
+          port: 22
+          script: |
+            cd ${{ env.CLOUD_PROVIDER == 'Azure' && '/home/vibinjk/bots/stoscbot/workspace' || '/home/ubuntu/bots/stoscbot/workspace' }}
+            cp -r ../credentials/* .
+            cp -r ../credentials/.* . 2>/dev/null
+            # Install uv (if not already). It will provision the correct Python automatically.
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+            export PATH="$HOME/.local/bin:$PATH"
+            uv sync --no-dev
+            nohup uv run python run_stoscbot.py > /dev/null 2>&1 &
 #
-#      - name: Remove Github Actions IP from AWS security group
-#        if: env.CLOUD_PROVIDER == 'AWS'
-#        run: |
-#          aws ec2 revoke-security-group-ingress --group-name ${{ env.AWS_SG_NAME }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
-#        env:
-#          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_GITHUB_ACTIONS }}
-#          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_GITHUB_ACTIONS }}
-#          AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
-#
-#      - name: Remove Github Actions IP from Azure Network Security Group
-#        if: env.CLOUD_PROVIDER == 'Azure'
-#        run: |
-#          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
-#          az network nsg rule delete --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --nsg-name ${{ secrets.AZURE_NSG_NAME }} --name AllowGitHubActionsIP
-#        env:
-#          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-#          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-#          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-#          AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
-#          AZURE_NSG_NAME: ${{ secrets.AZURE_NSG_NAME }}
+      - name: Remove Github Actions IP from AWS security group
+        if: env.CLOUD_PROVIDER == 'AWS'
+        run: |
+          aws ec2 revoke-security-group-ingress --group-name ${{ env.AWS_SG_NAME }} --protocol tcp --port 22 --cidr ${{ steps.ip.outputs.ipv4 }}/32
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_GITHUB_ACTIONS }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_GITHUB_ACTIONS }}
+          AWS_DEFAULT_REGION: ${{ env.AWS_DEFAULT_REGION }}
+
+      - name: Remove Github Actions IP from Azure Network Security Group
+        if: env.CLOUD_PROVIDER == 'Azure'
+        run: |
+          az login --service-principal -u ${{ secrets.AZURE_CLIENT_ID }} -p ${{ secrets.AZURE_CLIENT_SECRET }} --tenant ${{ secrets.AZURE_TENANT_ID }}
+          az network nsg rule delete --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} --nsg-name ${{ secrets.AZURE_NSG_NAME }} --name AllowGitHubActionsIP
+        env:
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+          AZURE_NSG_NAME: ${{ secrets.AZURE_NSG_NAME }}
