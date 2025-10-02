@@ -503,7 +503,7 @@ wheels = [
 
 [[package]]
 name = "stoscbot"
-version = "7.2.0"
+version = "7.2.1"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofiles" },

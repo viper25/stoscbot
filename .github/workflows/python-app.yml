@@ -14,10 +14,10 @@ jobs:
     steps:
       - uses: actions/checkout@master
       # Setup uv with Python (uv will handle toolchain + caching of interpreter)
-      - name: Setup uv (Python 3.12)
+      - name: Setup uv (Python 3.13)
         uses: astral-sh/setup-uv@v4
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Cache uv environments
         uses: actions/cache@v4
@@ -107,10 +107,10 @@ jobs:
           path: ${{ github.workspace }}
           key: ${{ runner.os }}-stoscbot-${{ github.sha }}
 
-      - name: Set up uv (Python 3.12)
+      - name: Set up uv (Python 3.13)
         uses: astral-sh/setup-uv@v4
         with:
-          python-version: '3.12'
+          python-version: '3.13'
 
       - name: Remove unwanted folders
         run: |
