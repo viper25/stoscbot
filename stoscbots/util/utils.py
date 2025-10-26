@@ -33,7 +33,8 @@ resource = boto3.resource(
 table_stosc_bot_member_telegram = resource.Table('stosc_bot_member_telegram')
 table_member_payments = resource.Table('stosc_xero_member_payments')
 
-table_harvest_metrics = resource.Table('stosc_harvest_metrics')
+# These tables are manually updated via a script in the dashboard-streamlit GitLab repo
+# TODO: Reduce this manual dependency
 table_stosc_harvest_winners = resource.Table('stosc_harvest_winners')
 table_stosc_harvest_contributors = resource.Table('stosc_harvest_contributors')
 
