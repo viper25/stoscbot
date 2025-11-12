@@ -277,5 +277,6 @@ async def get_finance_tracking(client: Client, query: CallbackQuery):
 async def get_finance_outstandings(client: Client, query: CallbackQuery):
     await query.answer()
     msg = utils.get_outstandings()
+    logger.info(f"Got oustandings: {len(msg)} rows.")
     client.set_parse_mode(enums.ParseMode.MARKDOWN)
     await utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)

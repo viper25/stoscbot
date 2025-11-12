@@ -577,6 +577,7 @@ def get_outstandings():
         pickle_path = "C:\\DATA\\git\\viper25\\xero_helpers\\outstandings.pickle"
     else:
         pickle_path = os.environ.get("OUTSTANDING_PICKLE_PATH")
+        logger.info(f"Loading pickle: {pickle_path}")
 
     # Use context manager for file handling
     with open(pickle_path, 'rb') as filehandler:
