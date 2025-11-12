@@ -503,7 +503,7 @@ wheels = [
 
 [[package]]
 name = "stoscbot"
-version = "7.3.1"
+version = "7.3.2"
 source = { virtual = "." }
 dependencies = [
     { name = "aiofiles" },
@@ -511,6 +511,7 @@ dependencies = [
     { name = "convopyro" },
     { name = "kurigram" },
     { name = "mysql-connector-python" },
+    { name = "pandas" },
     { name = "pendulum" },
     { name = "pytgcrypto" },
     { name = "python-dotenv" },
@@ -533,6 +534,7 @@ requires-dist = [
     { name = "convopyro", specifier = ">=0.5" },
     { name = "kurigram", specifier = ">=2.2.12" },
     { name = "mysql-connector-python", specifier = ">=9.4.0" },
+    { name = "pandas", specifier = ">=2.3.3" },
     { name = "pendulum", specifier = ">=3.1.0" },
     { name = "pytgcrypto", specifier = ">=1.2.11" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
