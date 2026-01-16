@@ -18,7 +18,7 @@ LOGGER.setLevel(LOGLEVEL)
 
 XERO_TENANT_ID = os.environ.get('STOSC_XERO_STOSC_TENANT_ID')
 XERO_CLIENT_ID = os.environ.get('STOSC_XERO_CLIENT_ID')
-STOSC_REFRESH_TOKEN_KEY = "stosc-bot"
+STOSC_REFRESH_TOKEN_KEY = "xero-helpers"
 
 RESOURCE = boto3.resource(
     "dynamodb",
