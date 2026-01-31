@@ -169,10 +169,10 @@ async def member_search_cmd_handler(client: Client, message: Message):
     if utils.is_valid_member_code(message.command[1]):
         # A member code has been sent
         result = db.get_member_details(message.command[1], "code")
-        if len(result) == 0:
+        if result and len(result) == 0:
             await message.reply_text("No such Member", quote=True)
             return
-        elif len(result) >= 1:
+        elif result and len(result) >= 1:
             msg = utils.generate_profile_msg_for_family(result)
             await utils.send_profile_address_and_pic(
                 client, message, msg, result, searched_person=None, searched_person_name=None
