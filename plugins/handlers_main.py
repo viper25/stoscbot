@@ -335,7 +335,7 @@ You may pay by one of these ways:
     • PayNow to UEN: `S79SS0001L`
     • PayNow to QR code shown above
     • Bank transfer to DBS: `0480155596`
-    • NETS, Cash or Cheque (payable to `St. Thomas Orthodox Syrian Cathedral`) at the church office
+    • Cash or Cheque (payable to `St. Thomas Orthodox Syrian Cathedral`) at the church office
 
 `Please mention your family code and purpose of contribution.`
 `For multiple payments, you can make one transfer and email the breakdown to` accounts@stosc.com

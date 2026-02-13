@@ -2,7 +2,7 @@
 name = "stoscbot"
 authors = ["Vibin"]
 readme = "README.md"
-version = "8.0.0"
+version = "8.0.1"
 description = "Telegram Bot for the St. Thomas Orthodox Syrian Cathedral"
 requires-python = ">=3.13"
 dependencies = [
