@@ -5,7 +5,7 @@
 
 version: 2
 updates:
-  - package-ecosystem: "pip" # See documentation for possible values
-    directory: "/" # Location of package manifests
+  - package-ecosystem: "uv" # Enable version updates for uv
+    directory: "/" # Look for `lock` files in the `root` directory
     schedule:
       interval: "weekly"
