@@ -1,5 +1,3 @@
-from typing import Coroutine
-
 from stoscbots.util import bot_auth
 from stoscbots.util.bot_auth import get_super_admin_id, VIBIN_TELEGRAM_ID, is_super_admin, get_super_admin_ids
 from tests.mocks import *
@@ -45,6 +43,11 @@ def test_is_area_prayer_coordinator_member_False():
 # --------------------------------------------------
 @pytest.mark.asyncio
 async def test_decorator_member_only(monkeypatch):
+    async def fake_send_access_denied_msg(*_args, **_kwargs):
+        return None
+
+    monkeypatch.setattr(bot_auth, "send_access_denied_msg", fake_send_access_denied_msg)
+
     @bot_auth.async_member_only
     async def to_be_decorated_fn(telegram_client, telegram_query):
         # If access denied then this function isn't called and only a Coroutine is returned
@@ -55,8 +58,8 @@ async def test_decorator_member_only(monkeypatch):
     assert value == "In Function"
 
     telegram_query.from_user = telegram_member_non
-    value = to_be_decorated_fn(telegram_client, telegram_query)
-    assert isinstance(value, Coroutine)
+    value = await to_be_decorated_fn(telegram_client, telegram_query)
+    assert value is None
 
     telegram_query.from_user = telegram_member_harvest_admin
     value = await to_be_decorated_fn(telegram_client, telegram_query)
@@ -69,6 +72,11 @@ async def test_decorator_member_only(monkeypatch):
 # --------------------------------------------------
 @pytest.mark.asyncio
 async def test_decorator_management_only(monkeypatch):
+    async def fake_send_access_denied_msg(*_args, **_kwargs):
+        return None
+
+    monkeypatch.setattr(bot_auth, "send_access_denied_msg", fake_send_access_denied_msg)
+
     @bot_auth.async_management_only
     async def to_be_decorated_fn(telegram_client, telegram_query):
         # If access denied then this function isn't called and only a Coroutine is returned
@@ -79,20 +87,25 @@ async def test_decorator_management_only(monkeypatch):
     assert value == "In Function"
 
     telegram_query.from_user = telegram_member_non
-    value = to_be_decorated_fn(telegram_client, telegram_query)
-    assert isinstance(value, Coroutine)
+    value = await to_be_decorated_fn(telegram_client, telegram_query)
+    assert value is None
 
     telegram_query.from_user = telegram_member_harvest_admin
-    value = to_be_decorated_fn(telegram_client, telegram_query)
-    assert isinstance(value, Coroutine)
+    value = await to_be_decorated_fn(telegram_client, telegram_query)
+    assert value is None
 
     telegram_query.from_user = telegram_member_area_prayer_coordinator
-    value = to_be_decorated_fn(telegram_client, telegram_query)
-    assert isinstance(value, Coroutine)
+    value = await to_be_decorated_fn(telegram_client, telegram_query)
+    assert value is None
 
 # --------------------------------------------------
 @pytest.mark.asyncio
 async def test_decorator_area_prayer_coordinator_only(monkeypatch):
+    async def fake_send_access_denied_msg(*_args, **_kwargs):
+        return None
+
+    monkeypatch.setattr(bot_auth, "send_access_denied_msg", fake_send_access_denied_msg)
+
     @bot_auth.async_area_prayer_coordinator_only
     async def to_be_decorated_fn(telegram_client, telegram_query):
         # If access denied then this function isn't called and only a Coroutine is returned
@@ -103,19 +116,19 @@ async def test_decorator_area_prayer_coordinator_only(monkeypatch):
     assert value == "In Function"
 
     telegram_query.from_user = telegram_member_non
-    value = to_be_decorated_fn(telegram_client, telegram_query)
-    assert isinstance(value, Coroutine)
+    value = await to_be_decorated_fn(telegram_client, telegram_query)
+    assert value is None
 
     telegram_query.from_user = telegram_member_harvest_admin
-    value = to_be_decorated_fn(telegram_client, telegram_query)
-    assert isinstance(value, Coroutine)
+    value = await to_be_decorated_fn(telegram_client, telegram_query)
+    assert value is None
 
     telegram_query.from_user = telegram_member_area_prayer_coordinator
     value = await to_be_decorated_fn(telegram_client, telegram_query)
     assert value == "In Function"
 
-    value = to_be_decorated_fn(telegram_client, telegram_query)
-    assert isinstance(value, Coroutine)
+    value = await to_be_decorated_fn(telegram_client, telegram_query)
+    assert value == "In Function"
 
 # --------------------------------------------------
 def test_get_super_admin_id():
