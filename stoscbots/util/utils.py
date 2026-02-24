@@ -496,8 +496,15 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
             tmp_path = tmp.name
             logger.debug(f"Downloaded image to temporary file: {tmp_path}")
         logger.info(f"Send Photo URL: {tmp_path}")
-        await client.send_photo(chat_id=_x.from_user.id, photo=tmp_path, caption=caption,
-                                reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
+        try:
+            await client.send_photo(chat_id=_x.from_user.id, photo=tmp_path, caption=caption,
+                                    reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
+        finally:
+            try:
+                os.remove(tmp_path)
+                logger.debug(f"Deleted temporary file: {tmp_path}")
+            except Exception as e:
+                logger.warning(f"Failed to delete temporary file {tmp_path}: {e}")
 
     # Send venue if conditions are met
     if result[0][ZIP_CODE_INDEX] and not searched_person:
