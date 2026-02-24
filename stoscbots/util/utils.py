@@ -5,8 +5,10 @@ import pickle
 import re
 from datetime import date
 from datetime import timedelta
+from io import BytesIO
 from multiprocessing.connection import Client
 from typing import Optional, Union, List, Dict
+import tempfile
 
 import boto3
 import requests
@@ -476,18 +478,26 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
 
     # Helper function to send photo
     async def send_photo(extension: str):
+        headers = {"x-api-key": os.environ.get("CHURCHCRM_API_KEY")}
+
         if searched_person:
-            person_pic_caption = f"{searched_person_name} `({result[0][PERSON_NAME_INDEX]})`"
-            # All images are png, so try looking that up first. Adding parameter to the URL to avoid stale cache
-            photo_url = f"https://crm.stosc.com/churchcrm/Images/Person/{searched_person}.{extension}?rand={hash(datetime.datetime.today())}"
-            logger.info(f"Send Photo URL: {photo_url}")
-            await client.send_photo(chat_id=_x.from_user.id, photo=photo_url, caption=person_pic_caption + "\n\n" + msg,
-                                    parse_mode=ParseMode.MARKDOWN)
+            photo_endpoint = f"person/{searched_person}"
+            caption_prefix = f"{searched_person_name} `({result[0][PERSON_NAME_INDEX]})`"
+            caption = caption_prefix + "\n\n" + msg
+            reply_markup = None
         else:
-            photo_url = f"https://crm.stosc.com/churchcrm/Images/Family/{result[0][FAMILY_CODE_INDEX]}.{extension}?rand={hash(datetime.datetime.today())}"
-            logger.info(f"Send Photo URL: {photo_url}")
-            await client.send_photo(chat_id=_x.from_user.id, photo=photo_url, caption=msg, reply_markup=keyboard,
-                                    parse_mode=ParseMode.MARKDOWN)
+            photo_endpoint = f"family/{result[0][FAMILY_CODE_INDEX]}"
+            caption = msg
+            reply_markup = keyboard
+
+        response = requests.get(f"https://crm.stosc.com/api/{photo_endpoint}/photo", headers=headers)
+        with tempfile.NamedTemporaryFile(suffix=f".{extension}", delete=False) as tmp:
+            tmp.write(response.content)
+            tmp_path = tmp.name
+            logger.debug(f"Downloaded image to temporary file: {tmp_path}")
+        logger.info(f"Send Photo URL: {tmp_path}")
+        await client.send_photo(chat_id=_x.from_user.id, photo=tmp_path, caption=caption,
+                                reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
 
     # Send venue if conditions are met
     if result[0][ZIP_CODE_INDEX] and not searched_person:
