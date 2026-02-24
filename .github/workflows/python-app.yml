@@ -153,7 +153,7 @@ jobs:
       - name: Stop the bot and clear the folder
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.BOT_HOST }}
+          host: ${{ secrets.STOSC_DB_HOST }}
           username: ${{ env.CLOUD_PROVIDER == 'Azure' && 'vibinjk' || 'ubuntu' }}
           key: ${{ secrets.BOT_HOST_PRIVATE_KEY }}
           port: 22
@@ -167,7 +167,7 @@ jobs:
         with:
           local: ${{ github.workspace }}
           remote: ${{ env.CLOUD_PROVIDER == 'Azure' && '/home/vibinjk/bots/stoscbot/' || '/home/ubuntu/bots/stoscbot/' }}
-          host: ${{ secrets.BOT_HOST }}
+          host: ${{ secrets.STOSC_DB_HOST }}
           port: 22
           user: ${{ env.CLOUD_PROVIDER == 'Azure' && 'vibinjk' || 'ubuntu' }}
           key: ${{ secrets.BOT_HOST_PRIVATE_KEY }}
@@ -175,7 +175,7 @@ jobs:
       - name: Install & Start the bot on VM (uv)
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.BOT_HOST }}
+          host: ${{ secrets.STOSC_DB_HOST }}
           username: ${{ env.CLOUD_PROVIDER == 'Azure' && 'vibinjk' || 'ubuntu' }}
           key: ${{ secrets.BOT_HOST_PRIVATE_KEY }}
           port: 22
