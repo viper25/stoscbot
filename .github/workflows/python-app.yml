@@ -193,6 +193,9 @@ jobs:
           AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
           AZURE_NSG_NAME: ${{ secrets.AZURE_NSG_NAME }}
 
+      - name: Wait for NSG rule propagation
+        run: sleep 30
+
       - name: Remove unwanted folders
         run: |
           cd ${{ github.workspace }}
