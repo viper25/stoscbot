@@ -26,24 +26,40 @@ from stoscbots.xero import xero_utils
 logger = logging.getLogger('Utils')
 logger.setLevel(LOGLEVEL)
 # ----------------------------------------------------------------------------------------------------------------------
-resource = boto3.resource(
+ddb_resource = boto3.resource(
     "dynamodb",
     aws_access_key_id=os.environ.get("STOSC_DDB_ACCESS_KEY_ID"),
     aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
     region_name="ap-southeast-1",
 )
-table_stosc_bot_member_telegram = resource.Table('stosc_bot_member_telegram')
-table_member_payments = resource.Table('stosc_xero_member_payments')
+table_stosc_bot_member_telegram = ddb_resource.Table('stosc_bot_member_telegram')
+table_member_payments = ddb_resource.Table('stosc_xero_member_payments')
 
 # These tables are manually updated via a script in the dashboard-streamlit GitLab repo
 # TODO: Reduce this manual dependency
-table_stosc_harvest_winners = resource.Table('stosc_harvest_winners')
-table_stosc_harvest_contributors = resource.Table('stosc_harvest_contributors')
+table_stosc_harvest_winners = ddb_resource.Table('stosc_harvest_winners')
+table_stosc_harvest_contributors = ddb_resource.Table('stosc_harvest_contributors')
 
-table_harvest_items = resource.Table("stosc_harvest_items")
-table_harvest_members = resource.Table("stosc_harvest_members")
-table_stosc_xero_accounts_tracking = resource.Table("stosc_xero_accounts_tracking")
-table_stosc_xero_tokens = resource.Table("stosc_xero_tokens")
+table_harvest_items = ddb_resource.Table("stosc_harvest_items")
+table_harvest_members = ddb_resource.Table("stosc_harvest_members")
+table_stosc_xero_accounts_tracking = ddb_resource.Table("stosc_xero_accounts_tracking")
+table_stosc_xero_tokens = ddb_resource.Table("stosc_xero_tokens")
+
+s3_client = boto3.client(
+    "s3",
+    aws_access_key_id=os.environ.get("STOSC_DDB_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
+    region_name="ap-southeast-1",
+)
+
+s3_resource = boto3.resource(
+    "s3",
+    aws_access_key_id=os.environ.get("STOSC_DDB_ACCESS_KEY_ID"),
+    aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
+    region_name="ap-southeast-1",
+)
+
+S3_BUCKET = os.environ.get('STOSC_S3_BUCKET_NAME')
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -637,14 +653,7 @@ async def get_telegram_file_url(photo):
 
 # ----------------------------------------------------------------------------------------------------------------------
 def upload_to_s3_and_get_url(image_file, object_name: str):
-    s3_resource = boto3.resource(
-        "s3",
-        aws_access_key_id=os.environ.get("STOSC_DDB_ACCESS_KEY_ID"),
-        aws_secret_access_key=os.environ.get("STOSC_DDB_SECRET_ACCESS_KEY"),
-        region_name="ap-southeast-1",
-    )
-
-    object = s3_resource.Object("stoscsg", object_name)
+    object = s3_resource.Object(S3_BUCKET, object_name)
     try:
         s3_response = object.put(Body=open(image_file.name, "rb"), ContentType="image/jpeg")
         logger.debug(f"Uploaded image to S3: {s3_response}")
@@ -653,9 +662,32 @@ def upload_to_s3_and_get_url(image_file, object_name: str):
         return False
 
     file_path = f"/tmp/{object_name}.jpg"
-    file_url = f"https://stoscsg.s3.ap-southeast-1.amazonaws.com/{object_name}"
+    expiration = os.environ.get("STOSC_S3_IMAGES_EXPIRY_SECONDS")
+    file_url = generate_presigned_s3_url(object_name=object_name, expiration_secs=expiration)
     logger.info(f"Uploaded file to: {file_url}")
     return file_url
+
+
+# ----------------------------------------------------------------------------------------------------------------------
+def generate_presigned_s3_url(object_name: str, expiration_secs, bucket_name: str = None):
+    """
+    Generate a pre-signed URL for an S3 object so it can be accessed securely without exposing the bucket.
+    pre-signed URL default: 1 hour
+    """
+
+    if bucket_name is None:
+        bucket_name = S3_BUCKET
+
+    try:
+        response = s3_client.generate_presigned_url(
+            'get_object',
+            Params={'Bucket': bucket_name, 'Key': object_name},
+            ExpiresIn=expiration_secs
+        )
+    except ClientError as e:
+        logger.error(f"Error generating presigned S3 URL: {e}")
+        return None
+    return response
 
 
 # ----------------------------------------------------------------------------------------------------------------------

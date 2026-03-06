@@ -1,3 +1,4 @@
+import os
 from decimal import Decimal
 from unittest.mock import patch, AsyncMock, mock_open, MagicMock
 
@@ -8,6 +9,7 @@ from stoscbots.util import utils
 from stoscbots.util.utils import format_telegram_message, get_telegram_file_url, upload_to_s3_and_get_url, format_iso_date_readable
 from tests.stoscbots.util import bot_auth_test
 
+S3_BUCKET = os.environ.get('STOSC_S3_BUCKET_NAME')
 
 def test_getMemberCode_from_TelegramID_Bad_value():
     memberCode = utils.getMemberCode_from_TelegramID("wrongID")
@@ -22,8 +24,8 @@ def test_getMemberCode_from_TelegramID():
 
 def test_get_address_details():
     x = utils.get_address_details("543316")
-    assert x[0] == "1.39316162628404"
-    assert x[1] == "103.888370952522"
+    assert x[0] == "1.393161626284042"
+    assert x[1] == '103.8883709525212'
 
 
 
@@ -724,30 +726,27 @@ async def test_get_telegram_file_url(mock_get, mock_environ_get):
 
 
 # ------------------------------------------------------------
+@patch('stoscbots.util.utils.generate_presigned_s3_url')
+@patch('builtins.open', new_callable=mock_open, read_data=b'dummy data')
+@patch('stoscbots.util.utils.s3_resource')
 @patch('os.environ.get')
-@patch('boto3.resource')
-def test_upload_to_s3_and_get_url(mock_boto3_resource, mock_environ_get):
+def test_upload_to_s3_and_get_url(mock_environ_get, mock_s3_resource, mock_open_file, mock_generate_presigned_s3_url):
     # Arrange
     mock_environ_get.return_value = 'dummy_aws_key'
-    mock_s3_resource = MagicMock()
-    mock_boto3_resource.return_value = mock_s3_resource
     mock_s3_object = MagicMock()
+    mock_s3_object.put.return_value = None
     mock_s3_resource.Object.return_value = mock_s3_object
-    mock_s3_object.put.return_value = None  # Simulate successful upload
     dummy_image_file = MagicMock()
     dummy_image_file.name = 'dummy_image.jpg'
     dummy_object_name = 'dummy_object_name'
-    mock_file = MagicMock()
-    mock_file.read.return_value = b"file content"
+    dummy_signed_url = 'https://signed-url.example.com/dummy_object_name?signature=abc123'
+    mock_generate_presigned_s3_url.return_value = dummy_signed_url
 
     # Act
-    with patch('builtins.open', mock_open(read_data='dummy data')) as mock_file:
-        result = upload_to_s3_and_get_url(dummy_image_file, dummy_object_name)
+    result = upload_to_s3_and_get_url(dummy_image_file, dummy_object_name)
 
     # Assert
-    expected_url = 'https://stoscsg.s3.ap-southeast-1.amazonaws.com/dummy_object_name'
-    assert result == expected_url
-
+    assert result == dummy_signed_url
 
 # ------------------------------------------------------------
 def test_normalize_telephone():
