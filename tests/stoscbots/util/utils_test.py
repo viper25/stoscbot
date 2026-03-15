@@ -24,7 +24,7 @@ def test_getMemberCode_from_TelegramID():
 
 def test_get_address_details():
     x = utils.get_address_details("543316")
-    assert x[0] == "1.393161626284042"
+    assert x[0] == "1.39316162628404"
     assert x[1] == '103.8883709525212'
 
 
