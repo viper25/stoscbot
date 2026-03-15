@@ -5,7 +5,7 @@ from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInf
 from stoscbots.util import bot_auth
 
 WEB_APP_PR = WebAppInfo(
-    url="https://forms.office.com/r/ThXjcLLr5Z")
+    url="https://stosc.com/pr")
 
 
 # Define a function to create a button to avoid repetitive code
