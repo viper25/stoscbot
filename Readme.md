@@ -11,7 +11,7 @@ Cathedral (STOSC), Singapore.
 
 ![image](https://user-images.githubusercontent.com/327990/142089101-04f782d3-0982-4ac0-83d0-899d714bc1cb.png) ![02](https://user-images.githubusercontent.com/327990/142300513-b2cbde04-f695-40f3-92f3-5e56649550f9.png) ![markup_41332 (1)](https://user-images.githubusercontent.com/327990/145735665-da9a6c31-29cc-4a5e-8824-8cd8653b84f8.png)
 
-## Setup
+## Setup Dev Environment
 
 Create a `.env` file by modifying the [.env.sample](.env.sample)
 
@@ -58,18 +58,3 @@ below
 
 ![Alt](https://repobeats.axiom.co/api/embed/8f7c105c760f4c1728a380d4940249878f8775b4.svg "Repobeats analytics image")
 
-## TODO
-
-* Make better decorators. See https://youtu.be/QH5fw9kxDQA?t=843
-    * Add arguments to decorators(https://youtu.be/QH5fw9kxDQA?t=1164)
-* [Define Default Values in Dictionaries With `.get()` and `.setdefault()`](https://realpython.com/python-coding-interview-tips/#define-default-values-in-dictionaries-with-get-and-setdefault)
-* In iterating over long lists,
-  use [generators](https://realpython.com/python-coding-interview-tips/#save-memory-with-generators)
-* Check if using `logger` or `loggers` class
-* [How to make a async function to async](https://youtu.be/GpqAQxH1Afc?t=968)
-* Split the GitHub Actions Job `Build_Lint_Test_Coverage` to two jobs: `Build_Lint` and `Test_Coverage`. Use cache
-* Change to dictionary `_get` e.g. `income = _item.get('income', 0.0)`
-
-## Reference
-
-* [Pyrogram version updates](https://github.com/pyrogram/pyrogram/compare/v2.0.34...v2.0.35) 
