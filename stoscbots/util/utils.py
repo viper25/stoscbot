@@ -509,10 +509,11 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
         auth = (os.environ.get("CHURCHCRM_PHOTO_API_USER"), os.environ.get("CHURCHCRM_PHOTO_API_PWD"))
         response = requests.get(f"https://crm.stosc.com/api/{photo_endpoint}/photo", headers=headers, auth=auth)
         with tempfile.NamedTemporaryFile(suffix=f".{extension}", delete=False) as tmp:
+            logger.info(f"Downloaded image size: {(len(response.content) / 1024):.2f} KB")
             tmp.write(response.content)
             tmp_path = tmp.name
             logger.debug(f"Downloaded image to temporary file: {tmp_path}")
-        logger.info(f"Send Photo URL: {tmp_path}")
+        logger.debug(f"Send Photo URL: {tmp_path}")
         try:
             await client.send_photo(chat_id=_x.from_user.id, photo=tmp_path, caption=caption,
                                     reply_markup=reply_markup, parse_mode=ParseMode.MARKDOWN)
