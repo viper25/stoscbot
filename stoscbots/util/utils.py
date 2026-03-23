@@ -506,7 +506,8 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
             caption = msg
             reply_markup = keyboard
 
-        response = requests.get(f"https://crm.stosc.com/api/{photo_endpoint}/photo", headers=headers)
+        auth = (os.environ.get("CHURCHCRM_PHOTO_API_USER"), os.environ.get("CHURCHCRM_PHOTO_API_PWD"))
+        response = requests.get(f"https://crm.stosc.com/api/{photo_endpoint}/photo", headers=headers, auth=auth)
         with tempfile.NamedTemporaryFile(suffix=f".{extension}", delete=False) as tmp:
             tmp.write(response.content)
             tmp_path = tmp.name
