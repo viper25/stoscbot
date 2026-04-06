@@ -53,7 +53,7 @@ def test_get_member_details_person():
     assert result[0][9] == "V019"  # First Name
 
 def test_get_members_born_on():
-    result = db.get_members_born_on("1979")
+    result = db.get_members_born("1979")
     # Check if any 2nd item in the 2D array contains "Vibin Joseph Kuriakose (V019)"
     assert any("Vibin Joseph Kuriakose (V019)" in item[2] for item in result)
 

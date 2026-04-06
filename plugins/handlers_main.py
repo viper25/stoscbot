@@ -132,14 +132,14 @@ async def help_handler(client: Client, message: Message):
 # -------------------------------------------------
 @Client.on_message(filters.command(["year"]))
 @loggers.async_log_access
-async def year_handler(client: Client, message: Message):
+async def members_born_after_year_handler(client: Client, message: Message):
     if len(message.command) == 1:
         msg = "Please enter the year you want to view\ne.g. '/year 2020'"
         await message.reply_text(msg, reply_markup=keyboards.back_to_main_keyboard)
         return
     year = message.command[1]
     if utils.is_valid_year(year):
-        result = db.get_members_born_on(year)
+        result = db.get_members_born(year)
         if result:
             msg_parts = [f"**Members Born on {year}** ({len(result)})\n➖➖➖➖➖➖➖➖"]
             for member in result:
