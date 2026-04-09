@@ -99,6 +99,9 @@ def __xero_get(url: str, **extra_headers):
         # Make the call again with new access token
         response = requests.get(url, headers=get_headers())
 
+    if response.status_code == 429:
+        LOGGER.error(f"Rate limit exceeded when calling Xero API. Status code")
+        return None
     if response.status_code == 200:
         return response.json()
     else:
@@ -195,7 +198,10 @@ def get_chart_of_accounts(class_type: str = None) -> list[dict]:
     # https://api.xero.com/api.xro/2.0/Accounts?where=Status="ACTIVE"&&Class="REVENUE"
     # doesn't seem to filter at server side.
     url = construct_url('Accounts')
-    accounts = __xero_get(url)['Accounts']
+    _val = __xero_get(url)
+    if not _val:
+        return []
+    accounts = _val['Accounts']
     accounts = [x for x in accounts if x['Status'] == 'ACTIVE']
     if class_type:
         accounts = [x for x in accounts if x['Class'] == class_type]
