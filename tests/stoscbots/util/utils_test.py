@@ -157,13 +157,13 @@ def test_generate_profile_msg_for_member_elecotral_roll():
     msg = utils.generate_profile_msg_for_member(result)
     assert msg == expected_msg
 
-@pytest.mark.skip(reason="Temporarily Skip Test due to Xero API down")
+# @pytest.mark.skip(reason="Temporarily Skip Test due to Xero API down")
 def test_generate_msg_xero_member_payments_2020():
     result = utils.generate_msg_xero_member_payments(name="John", member_code="V019", year="2020")
     expected = ">**John**\n>`For Year 2020`\n➖➖➖➖➖➖➖\n► Birthday Offering: **$30**\n► Christmas Offering: **$70**\n► Annual Thanksgiving Auction: **$1265**\n\n`As of: 30/04/2021 18:23`"
     assert expected == result
 
-@pytest.mark.skip(reason="Temporarily Skip Test due to Xero API down")
+# @pytest.mark.skip(reason="Temporarily Skip Test due to Xero API down")
 def test_get_member_payments():
     result = utils.get_member_payments(member_code="V019", year="2020")
     expected = [
