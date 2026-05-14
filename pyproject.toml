@@ -11,7 +11,7 @@ dependencies = [
     "convopyro>=0.5",
     "kurigram>=2.2.12",
     "mysql-connector-python>=9.4.0",
-    "pandas>=2.3.3",
+    "pandas>=3.0.3",
     "pendulum>=3.1.0",
     "pytgcrypto>=1.2.11",
     "python-dotenv>=1.1.1",
@@ -22,7 +22,7 @@ dependencies = [
 [dependency-groups]
 # Test and CI tooling dependencies
 test = [
-    "pandas>=2.3.3",
+    "pandas>=3.0.3",
     "pytest>=8.4.2",
     "pytest-asyncio>=1.2.0",
     "pytest-cov>=7.0.0",
