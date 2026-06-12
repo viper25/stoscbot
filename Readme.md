@@ -1,5 +1,7 @@
 [![STOSCBot Build](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml/badge.svg)](https://github.com/viper25/stoscbot/actions/workflows/python-app.yml)  [![codecov](https://codecov.io/gh/viper25/stoscbot/branch/main/graph/badge.svg?token=QQ3WXQ2TSQ)](https://codecov.io/gh/viper25/stoscbot)
 
+[![Better Stack Badge](https://uptime.betterstack.com/status-badges/v2/monitor/2oncc.svg)](https://uptime.betterstack.com/?utm_source=status_badge)
+
 # STOSC Bot
 
 A Telegram bot (based on [Pyrogram](https://docs.pyrogram.org/)) to manage affairs of the St. Thomas Orthodox Syrian
