@@ -598,7 +598,7 @@ requires-dist = [
     { name = "convopyro", specifier = ">=0.5" },
     { name = "kurigram", specifier = ">=2.2.12" },
     { name = "mysql-connector-python", specifier = ">=9.4.0" },
-    { name = "pandas", specifier = ">=2.3.3" },
+    { name = "pandas", specifier = ">=3.0.3" },
     { name = "pendulum", specifier = ">=3.1.0" },
     { name = "pytgcrypto", specifier = ">=1.2.11" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
@@ -608,7 +608,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 test = [
-    { name = "pandas", specifier = ">=2.3.3" },
+    { name = "pandas", specifier = ">=3.0.3" },
     { name = "pytest", specifier = ">=8.4.2" },
     { name = "pytest-asyncio", specifier = ">=1.2.0" },
     { name = "pytest-cov", specifier = ">=7.0.0" },
