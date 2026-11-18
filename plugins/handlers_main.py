@@ -3,11 +3,11 @@ import logging
 
 import aiofiles
 from pyrogram import Client, filters
-from pyrogram.types import Message, CallbackQuery, LinkPreviewOptions
+from pyrogram.types import CallbackQuery, LinkPreviewOptions, Message
 
 from stoscbots.bot import keyboards
 from stoscbots.db import db
-from stoscbots.util import loggers, utils, bot_auth
+from stoscbots.util import bot_auth, loggers, utils
 from stoscbots.util.loggers import LOGLEVEL
 
 logger = logging.getLogger('Handler.Main')

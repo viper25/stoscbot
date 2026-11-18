@@ -1,6 +1,6 @@
 from datetime import date
 
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 
 from stoscbots.util import bot_auth
 

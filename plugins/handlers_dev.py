@@ -11,12 +11,11 @@ from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
 from pyrogram import Client, filters
-from pyrogram.types import Message, CallbackQuery
+from pyrogram.types import CallbackQuery, Message
 
 from stoscbots.bot import keyboards
 from stoscbots.db import db
-from stoscbots.util import bot_auth
-from stoscbots.util import loggers, utils
+from stoscbots.util import bot_auth, loggers, utils
 from stoscbots.util.loggers import LOGLEVEL
 from stoscbots.util.utils import format_telegram_message
 
