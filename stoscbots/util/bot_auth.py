@@ -131,18 +131,17 @@ def is_member(telegram_id: int) -> bool:
 # --------------------------------------------------
 def is_mgmt_member(telegram_id: int) -> bool:
     response = table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))
-    if len(response['Items']) == 1:
-        if 'auth' in response['Items'][0] and 'mc' in response['Items'][0]['auth']:
-            return True
+    if (len(response['Items']) == 1 and 'auth' in response['Items'][0]
+            and 'mc' in response['Items'][0]['auth']):
+        return True
 
 
 # --------------------------------------------------
 def is_area_prayer_coordinator_member(telegram_id: int) -> bool:
     response = table_stosc_bot_member_telegram.query(KeyConditionExpression=Key('telegram_id').eq(str(telegram_id)))
-    if len(response['Items']) == 1:
-        if 'auth' in response['Items'][0] and (
-                'apc' in response['Items'][0]['auth'] or 'mc' in response['Items'][0]['auth']):
-            return True
+    if (len(response['Items']) == 1 and 'auth' in response['Items'][0]
+            and ('apc' in response['Items'][0]['auth'] or 'mc' in response['Items'][0]['auth'])):
+        return True
 
 
 def get_super_admin_id():
@@ -152,7 +151,4 @@ def get_super_admin_id():
 def is_super_admin(telegram_id: int) -> bool:
     super_admin_ids_list = get_super_admin_ids().split(',')
     super_admin_ids = [int(id_str) for id_str in super_admin_ids_list if id_str.isdigit()]
-    if telegram_id in super_admin_ids:
-        return True
-    else:
-        return False
+    return telegram_id in super_admin_ids
