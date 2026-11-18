@@ -22,10 +22,19 @@ def test_getMemberCode_from_TelegramID():
     assert memberCode == "V019"
 
 
-def test_get_address_details():
+@patch("stoscbots.util.utils.requests.get")
+def test_get_address_details(mock_get):
+    mock_get.return_value.json.return_value = {
+        "results": [
+            {
+                "LATITUDE": "1.39316162628404",
+                "LONGITUDE": "103.888370952522",
+            }
+        ]
+    }
+
     x = utils.get_address_details("543316")
-    assert x[0] == "1.39316162628404"
-    assert x[1] == '103.888370952522'
+    assert x == ("1.39316162628404", "103.888370952522")
 
 
 
