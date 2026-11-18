@@ -1,11 +1,13 @@
-import os
-import mysql.connector
-import pendulum
 import enum
 import logging
+import os
+
 import boto3
+import mysql.connector
+import pendulum
 from boto3.dynamodb.conditions import Key
 from dotenv import load_dotenv
+
 from stoscbots.util.loggers import LOGLEVEL
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -20,7 +22,7 @@ USER = "stosc_ro"
 PASSWORD = os.environ.get('STOSC_DB_PWD')
 HOST = os.environ.get('STOSC_DB_HOST')
 PORT = 3306
-
+QUERY_TIMEOUT_SECONDS = int(os.environ.get('STOSC_DB_QUERY_TIMEOUT', 10))
 
 class Databases(enum.Enum):
     CRM = 'churchcrm'
@@ -36,7 +38,10 @@ def __db_executeQuery(sql: str, db: enum, prepared=False, *args):
             password=PASSWORD,
             host=HOST,
             port=PORT,
-            database=db.value
+            database=db.value,
+            # connection_timeout only bounds connecting; max_statement_time (MariaDB) aborts slow SELECTs server-side
+            connection_timeout=QUERY_TIMEOUT_SECONDS,
+            init_command=f"SET SESSION max_statement_time = {QUERY_TIMEOUT_SECONDS}"
         )
     except Exception as e:
         logger.error(e)
