@@ -10,7 +10,7 @@ from stoscbots.db import db
 from stoscbots.util import bot_auth, loggers, utils
 from stoscbots.util.loggers import LOGLEVEL
 
-logger = logging.getLogger('Handler.Main')
+logger = logging.getLogger("Handler.Main")
 logger.setLevel(LOGLEVEL)
 
 
@@ -24,32 +24,44 @@ async def start_handler(client: Client, message: Message):
     # Check if user is authorized
     if not bot_auth.is_member(message.from_user.id):
         unauth_msg = f"Unauthorized Access by **[{message.from_user.id}:{message.from_user.username}:{message.from_user.first_name}]**\nCmd `/start`"
-        await client.send_message(chat_id=bot_auth.get_super_admin_id(), text=unauth_msg)
+        await client.send_message(
+            chat_id=bot_auth.get_super_admin_id(), text=unauth_msg
+        )
         # Start a conversation with the user to ask for Member Code and Email
-        await client.send_sticker(chat_id=message.from_user.id,
-                                  sticker='CAACAgIAAxkBAAIFJV-X6UKaAAEDx4Nqup6acSBW6DlThgACoAMAAvoLtgj5yjtMiAXK4hsE')
+        await client.send_sticker(
+            chat_id=message.from_user.id,
+            sticker="CAACAgIAAxkBAAIFJV-X6UKaAAEDx4Nqup6acSBW6DlThgACoAMAAvoLtgj5yjtMiAXK4hsE",
+        )
         await message.reply_text(
             "**You are not authorized to use this bot**\nHowever, if you are a STOSC member, do provide your details for access.\n\n`Enter your member code:`",
-            link_preview_options=LinkPreviewOptions(is_disabled=True))
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
+        )
         try:
-            member_code = await client.listen.Message(filters.text, id=filters.user(message.from_user.id), timeout=30)
+            member_code = await client.listen.Message(
+                filters.text, id=filters.user(message.from_user.id), timeout=30
+            )
             logger.info(f"Unauthorized Member Request Code: {member_code.text}")
             if not utils.is_valid_member_code(member_code.text):
-                await message.reply_text("👎🏼 Invalid member code. Please try again: /start")
+                await message.reply_text(
+                    "👎🏼 Invalid member code. Please try again: /start"
+                )
                 # Cancel the conversation
                 await client.listen.Cancel(filters.user(message.from_user.id))
                 return
         except asyncio.TimeoutError:
-            await message.reply('Timed out, do type /start again')
+            await message.reply("Timed out, do type /start again")
             return
-        if member_code and member_code.text == '/start':
+        if member_code and member_code.text == "/start":
             # Cancel the conversation
             await client.listen.Cancel(filters.user(message.from_user.id))
             return
         await message.reply_text(
-            "`Enter your email or mobile number as present in church records.\nThis is only used for verification purposes:`")
+            "`Enter your email or mobile number as present in church records.\nThis is only used for verification purposes:`"
+        )
         try:
-            email = await client.listen.Message(filters.text, id=filters.user(message.from_user.id), timeout=30)
+            email = await client.listen.Message(
+                filters.text, id=filters.user(message.from_user.id), timeout=30
+            )
             logger.info(f"Unauthorized Member Request Email: {email.text}")
             #  Check if email is valid
             if not utils.is_valid_email(email.text):
@@ -58,23 +70,28 @@ async def start_handler(client: Client, message: Message):
                 await client.listen.Cancel(filters.user(message.from_user.id))
                 return
         except asyncio.TimeoutError:
-            await message.reply('Timed out, do type /start again')
+            await message.reply("Timed out, do type /start again")
             return
-        if email and email.text == '/start':
+        if email and email.text == "/start":
             # Cancel the conversation
             await client.listen.Cancel(filters.user(message.from_user.id))
             return
         if member_code and email:
             await message.reply_text(
-                f"I'll inform the Managing Committee of your request. Once your ID is verified, they shall add you for access to the Bot.\n\n**Details submitted:**\n`Member Code: {member_code.text}\nEmail: {email.text}`")
+                f"I'll inform the Managing Committee of your request. Once your ID is verified, they shall add you for access to the Bot.\n\n**Details submitted:**\n`Member Code: {member_code.text}\nEmail: {email.text}`"
+            )
             # Send Telegram message to Managing Committee
-            await client.send_message(chat_id=bot_auth.get_super_admin_id(),
-                                      text=f"**New member request:**\nMember Code: `{member_code.text}`\nEmail: `{email.text}`\nTelegram ID: `{message.from_user.id}`")
+            await client.send_message(
+                chat_id=bot_auth.get_super_admin_id(),
+                text=f"**New member request:**\nMember Code: `{member_code.text}`\nEmail: `{email.text}`\nTelegram ID: `{message.from_user.id}`",
+            )
         else:
             await message.reply_text("Sorry try again")
     else:
         msg = "What would you like to do?\n Select an option:"
-        await message.reply_text(msg, reply_markup=keyboards.get_main_keyboard(message.from_user.id))
+        await message.reply_text(
+            msg, reply_markup=keyboards.get_main_keyboard(message.from_user.id)
+        )
 
 
 # -------------------------------------------------
@@ -82,14 +99,21 @@ async def start_handler(client: Client, message: Message):
 @loggers.async_log_access
 async def privacy_handler(client: Client, message: Message):
     try:
-        async with aiofiles.open('privacy_policy.txt', mode='r', encoding='utf-8') as file:
+        async with aiofiles.open(
+            "privacy_policy.txt", mode="r", encoding="utf-8"
+        ) as file:
             privacy_policy = await file.read()
-        await message.reply_text(privacy_policy, reply_markup=keyboards.back_to_main_keyboard,
-                                 link_preview_options=LinkPreviewOptions(is_disabled=True))
+        await message.reply_text(
+            privacy_policy,
+            reply_markup=keyboards.back_to_main_keyboard,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
+        )
     except IOError as e:
         logging.error(f"Failed to read privacy policy file: {e}")
-        await message.reply_text("Sorry, the privacy policy is currently unavailable.",
-                                 reply_markup=keyboards.back_to_main_keyboard)
+        await message.reply_text(
+            "Sorry, the privacy policy is currently unavailable.",
+            reply_markup=keyboards.back_to_main_keyboard,
+        )
 
 
 # -------------------------------------------------
@@ -108,25 +132,28 @@ async def help_handler(client: Client, message: Message):
     help_msg = [
         "**Help**",
         "➖➖",
-        "Watch this [YouTube video](https://www.youtube.com/watch?v=lp8pLmTkRR4) to see how the STOSC Bot works \U0001F916",
+        "Watch this [YouTube video](https://www.youtube.com/watch?v=lp8pLmTkRR4) to see how the STOSC Bot works \U0001f916",
         "\nYou can control me by sending these commands or clicking the buttons at /start:",
         "\n• /help - Show this help message",
         "• /start - Start the bot",
         "• /u [member code or name] - Search for a member by member code or Name e.g. `/u A001`",
         "• /year [year in YYYY] - Show members born on this year e.g. `/year 1976`",
-        "\n** \U0001F6AB The below commands are for the management committee only: \U0001F6AB**",
+        "\n** \U0001f6ab The below commands are for the management committee only: \U0001f6ab**",
         "\n• /x [member code] - Show member contributions",
         "• /xs [member code] - Show member subscriptions",
         "• /version or /ver - Show bot version",
         "• /bday  - Show this week's bday list without age",
-        "• /anniv  - Show this week's anniversary list without years"
+        "• /anniv  - Show this week's anniversary list without years",
     ]
 
     # Join the list to form the final message
-    msg = '\n'.join(help_msg)
+    msg = "\n".join(help_msg)
 
-    await message.reply_text(msg, reply_markup=keyboards.back_to_main_keyboard,
-                             link_preview_options=LinkPreviewOptions(is_disabled=True))
+    await message.reply_text(
+        msg,
+        reply_markup=keyboards.back_to_main_keyboard,
+        link_preview_options=LinkPreviewOptions(is_disabled=True),
+    )
 
 
 # -------------------------------------------------
@@ -141,12 +168,20 @@ async def members_born_after_year_handler(client: Client, message: Message):
     if utils.is_valid_year(year):
         result = db.get_members_born(year)
         if result:
-            msg_parts = [f"**Members Born on {year}** ({len(result)})\n➖➖➖➖➖➖➖➖"]
+            msg_parts = [
+                f"**Members Born on {year}** ({len(result)})\n➖➖➖➖➖➖➖➖"
+            ]
             for member in result:
-                member_parts = [f"\n**{member[0]}**\n", f"({member[1]})\n", f"{member[2]}\n"]
+                member_parts = [
+                    f"\n**{member[0]}**\n",
+                    f"({member[1]})\n",
+                    f"{member[2]}\n",
+                ]
                 member_parts += [f"{member[i]}\n" for i in range(3, 6) if member[i]]
-                msg_parts.append(''.join(member_parts))
-            await message.reply_text(''.join(msg_parts), reply_markup=keyboards.back_to_main_keyboard)
+                msg_parts.append("".join(member_parts))
+            await message.reply_text(
+                "".join(msg_parts), reply_markup=keyboards.back_to_main_keyboard
+            )
         else:
             msg = f"No members born on {year}"
             await message.reply_text(msg)
@@ -174,7 +209,12 @@ async def member_search_cmd_handler(client: Client, message: Message):
             return
         msg = utils.generate_profile_msg_for_family(result)
         await utils.send_profile_address_and_pic(
-            client, message, msg, result, searched_person=None, searched_person_name=None
+            client,
+            message,
+            msg,
+            result,
+            searched_person=None,
+            searched_person_name=None,
         )
     else:
         # A search string and not member code
@@ -187,8 +227,11 @@ async def member_search_cmd_handler(client: Client, message: Message):
             msg += "`\n⚡ = Head of Family`"
             msg += "`\n👦🏻 = Boy   👧🏻 = Girl`"
             msg += "`\n🧔🏻 = Man   👩🏻 = Woman`"
-            await message.reply_text(msg, reply_markup=keyboards.get_member_listing_keyboard(result),
-                                     link_preview_options=LinkPreviewOptions(is_disabled=True))
+            await message.reply_text(
+                msg,
+                reply_markup=keyboards.get_member_listing_keyboard(result),
+                link_preview_options=LinkPreviewOptions(is_disabled=True),
+            )
 
 
 # -------------------------------------------------
@@ -219,7 +262,12 @@ async def mobile_search_cmd_handler(client: Client, message: Message):
         elif len(result) >= 1:
             msg = utils.generate_profile_msg_for_family(result)
             await utils.send_profile_address_and_pic(
-                client, message, msg, result, searched_person=None, searched_person_name=None
+                client,
+                message,
+                msg,
+                result,
+                searched_person=None,
+                searched_person_name=None,
             )
 
 
@@ -231,13 +279,15 @@ Handle multiple callback queries data and return filter for each
 
 def dynamic_data_filter1(data):
     return filters.create(
-        lambda flt, _, query: flt.data == query.data, data=data  # "data" kwarg is accessed with "flt.data" above
+        lambda flt, _, query: flt.data == query.data,
+        data=data,  # "data" kwarg is accessed with "flt.data" above
     )
 
 
 def dynamic_data_filter2(data):
     return filters.create(
-        lambda flt, _, query: query.data.startswith(flt.data), data=data
+        lambda flt, _, query: query.data.startswith(flt.data),
+        data=data,
         # "data" kwarg is accessed with "flt.data" above
     )
 
@@ -249,7 +299,9 @@ def dynamic_data_filter2(data):
 async def show_main_menu(client: Client, query: CallbackQuery):
     await query.answer()
     msg = "➖➖**Main Menu**➖➖"
-    await query.message.reply_text(msg, reply_markup=keyboards.get_main_keyboard(query.from_user.id))
+    await query.message.reply_text(
+        msg, reply_markup=keyboards.get_main_keyboard(query.from_user.id)
+    )
 
 
 # -------------------------------------------------
@@ -366,5 +418,10 @@ async def member_search_button_handler(client: Client, query: CallbackQuery):
     result = db.get_member_details(person_ID, "person")
     msg = utils.generate_profile_msg_for_member(result)
     await utils.send_profile_address_and_pic(
-        client, query, msg, result, query.data.split("_")[2], db.get_person_name(person_ID)[0][0]
+        client,
+        query,
+        msg,
+        result,
+        query.data.split("_")[2],
+        db.get_person_name(person_ID)[0][0],
     )
