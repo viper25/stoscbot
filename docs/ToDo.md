@@ -1,5 +1,6 @@
 ## TODO
 
+* Add try0catch for errors such as `db.get_anniversaries('d')` and return to user
 * Make better decorators. See https://youtu.be/QH5fw9kxDQA?t=843
     * Add arguments to decorators(https://youtu.be/QH5fw9kxDQA?t=1164)
 * [Define Default Values in Dictionaries With `.get()` and `.setdefault()`](https://realpython.com/python-coding-interview-tips/#define-default-values-in-dictionaries-with-get-and-setdefault)

@@ -726,7 +726,7 @@ requires-dist = [
     { name = "aiofiles", specifier = ">=24.1.0" },
     { name = "boto3", specifier = ">=1.40.43" },
     { name = "convopyro", specifier = ">=0.5" },
-    { name = "kurigram", specifier = ">=2.2.12" },
+    { name = "kurigram", specifier = ">=2.2.27" },
     { name = "mysql-connector-python", specifier = ">=9.4.0" },
     { name = "pandas", specifier = ">=2.3.3" },
     { name = "pendulum", specifier = ">=3.1.0" },

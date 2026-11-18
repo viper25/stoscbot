@@ -24,6 +24,14 @@ uv run python run_stoscbot.py
 
 ## Run Tests
 
+For a Telegram smoke test of the **Household first** layout, use an authorized
+account and run `/u <member code>`. The family and its photo appear first,
+followed by the head, spouse, children, and other household members when listed.
+Contact (including the map when available), dates, and membership start
+collapsed. Check the same command with a record that has no photo. Telegram
+replies that reject rich formatting fall back to text. Name search, phone
+search, and My Details keep their existing layouts.
+
 ```bash
 uv sync --group test
 uv run -m pytest

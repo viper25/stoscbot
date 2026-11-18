@@ -99,7 +99,7 @@ def get_address_details(_zip: str):
     try:
         # https://www.onemap.gov.sg/apidocs/apidocs/#search
         url = f"https://www.onemap.gov.sg/api/common/elastic/search?searchVal={_zip}&returnGeom=Y&getAddrDetails=Y&pageNum=1"
-        result = requests.get(url).json()
+        result = requests.get(url, timeout=5).json()
         if len(result['results']) > 0:
             return result['results'][0]['LATITUDE'], result['results'][0]['LONGITUDE']
     except Exception as e:
@@ -479,6 +479,12 @@ def generate_msg_member_auction_purchases(member_code: str) -> str:
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+def fetch_crm_profile_photo(endpoint: str) -> requests.Response:
+    headers = {"x-api-key": os.environ.get("CHURCHCRM_API_KEY")}
+    auth = (os.environ.get("CHURCHCRM_PHOTO_API_USER"), os.environ.get("CHURCHCRM_PHOTO_API_PWD"))
+    return requests.get(f"https://crm.stosc.com/api/{endpoint}/photo", headers=headers, auth=auth, timeout=5)
+
+
 async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: str, result: list,
                                        searched_person: str = None, searched_person_name: str = None,
                                        keyboard: InlineKeyboardMarkup = None):
@@ -493,8 +499,6 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
 
     # Helper function to send photo
     async def send_photo(extension: str):
-        headers = {"x-api-key": os.environ.get("CHURCHCRM_API_KEY")}
-
         if searched_person:
             photo_endpoint = f"person/{searched_person}"
             caption_prefix = f"{searched_person_name} `({result[0][PERSON_NAME_INDEX]})`"
@@ -505,8 +509,7 @@ async def send_profile_address_and_pic(client: Client, _x: CallbackQuery, msg: s
             caption = msg
             reply_markup = keyboard
 
-        auth = (os.environ.get("CHURCHCRM_PHOTO_API_USER"), os.environ.get("CHURCHCRM_PHOTO_API_PWD"))
-        response = requests.get(f"https://crm.stosc.com/api/{photo_endpoint}/photo", headers=headers, auth=auth)
+        response = fetch_crm_profile_photo(photo_endpoint)
         with tempfile.NamedTemporaryFile(suffix=f".{extension}", delete=False) as tmp:
             logger.info(f"Downloaded image size: {(len(response.content) / 1024):.2f} KB")
             tmp.write(response.content)

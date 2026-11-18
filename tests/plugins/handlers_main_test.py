@@ -2,7 +2,13 @@ from plugins import handlers_main
 from stoscbots.util.utils import generate_profile_msg_for_family
 from tests.mocks import *
 import pytest
+from io import BytesIO
 from types import SimpleNamespace
+from unittest.mock import AsyncMock
+
+from pyrogram import enums, errors, raw
+
+from stoscbots.bot import family_profile
 from stoscbots.util import bot_auth, utils
 
 
@@ -67,3 +73,119 @@ async def test_start_handler_invalid_member(monkeypatch):
     msg.from_user = telegram_member_non
     await handlers_main.start_handler(telegram_client, msg)
     assert 1 == 1
+
+
+@pytest.fixture
+def family_row():
+    return (
+        123, "A123", "Alex <Morgan>", "alex@example.com", "Alex <Morgan>", "alex@example.com",
+        "Jamie Morgan", "jamie@example.com", "Taylor Morgan", "Casey Morgan", "12 Example Lane", None,
+        "123456", "9123 4567", None, None, None, "B245", "true", "North District",
+        "1984-03-12", None, None, None, "2012-06-14",
+    )
+
+
+@pytest.mark.asyncio
+async def test_member_code_returns_rich_family_profile(monkeypatch, family_row):
+    lookups = []
+
+    def get_member(code, search_type):
+        lookups.append((code, search_type))
+        return [family_row]
+
+    monkeypatch.setattr(handlers_main.db, "get_member_details", get_member)
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    monkeypatch.setattr(family_profile, "_family_photo", lambda _id: None)
+    monkeypatch.setattr(utils, "get_address_details", lambda _zip: ("1.3521", "103.8198"))
+    client = SimpleNamespace(send_rich_message=AsyncMock(), send_message=AsyncMock(), send_venue=AsyncMock())
+    message = SimpleNamespace(command=["u", "a123"], from_user=SimpleNamespace(id=42), chat=SimpleNamespace(id=-100))
+    # Bypass access logging, but exercise the membership check.
+    await handlers_main.member_search_cmd_handler.__wrapped__(client, message)
+
+    assert lookups == [("a123", "code")]
+    client.send_rich_message.assert_awaited_once()
+    chat_id, rich = client.send_rich_message.await_args.args
+    assert chat_id == 42
+    blocks = (await rich.write(client=None)).blocks
+    assert blocks[0].text.text == "Alex <Morgan> & Jamie Morgan"
+    assert blocks[1].text.text == "Family profile (A123)"
+    assert blocks[2].text.text == "Household"
+    divider = next(i for i, block in enumerate(blocks) if isinstance(block, raw.types.PageBlockDivider))
+    assert [(block.text.texts[0].text.text, block.text.texts[1].text) for block in blocks[3:divider]] == [
+        ("Head: ", "Alex <Morgan>"),
+        ("Spouse: ", "Jamie Morgan"),
+        ("Children: ", "Taylor Morgan"),
+        ("Other family members: ", "Casey Morgan"),
+    ]
+    contact, dates, membership = blocks[divider + 1:]
+    assert [block.title.text for block in (contact, dates, membership)] == [
+        "Contact & address", "Birthdays & anniversary", "Membership & prayer group",
+    ]
+    assert all(not block.open for block in (contact, dates, membership))
+    assert contact.blocks[1].text.texts[1].url == "https://wa.me/6591234567"
+    assert isinstance(contact.blocks[-1], raw.types.InputPageBlockMap)
+    assert dates.blocks[0].text.texts[1].text == "Mar 12, 1984"
+    assert membership.blocks[1].text.texts[1].text == "On the roll"
+    client.send_venue.assert_not_called()
+    client.send_message.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_rejected_family_photo_retries_without_photo(monkeypatch, family_row):
+    photo = BytesIO(b"test photo")
+    monkeypatch.setattr(family_profile, "_family_photo", lambda _id: photo)
+    monkeypatch.setattr(utils, "get_address_details", lambda _zip: None)
+    layouts = []
+
+    async def send_rich(_chat, rich):
+        layouts.append([type(block).__name__ for block in rich.blocks])
+        if len(layouts) == 1:
+            raise errors.PhotoInvalidDimensions()
+
+    client = SimpleNamespace(send_rich_message=send_rich, send_message=AsyncMock())
+    await family_profile.send_family_profile(client, 42, family_row)
+
+    assert layouts[0][2] == "InputRichBlockPhoto"
+    assert layouts[1] == layouts[0][:2] + layouts[0][3:]
+    assert photo.closed
+    client.send_message.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_unsupported_rich_family_profile_falls_back_to_text(monkeypatch, family_row):
+    monkeypatch.setattr(family_profile, "_family_photo", lambda _id: None)
+    monkeypatch.setattr(utils, "get_address_details", lambda _zip: None)
+    client = SimpleNamespace(
+        send_rich_message=AsyncMock(side_effect=errors.RichMessageUnsupported()),
+        send_message=AsyncMock(),
+    )
+    await family_profile.send_family_profile(client, 42, family_row)
+
+    client.send_message.assert_awaited_once()
+    chat_id, text = client.send_message.await_args.args
+    assert chat_id == 42
+    assert "Alex <Morgan> & Jamie Morgan" in text
+    assert "Household\nHead: Alex <Morgan>\nSpouse: Jamie Morgan\nChildren: Taylor Morgan" in text
+    assert "Address: 12 Example Lane, 123456" in text
+    assert "Head DOB: Mar 12, 1984" in text
+    assert "Electoral roll: On the roll" in text
+    assert client.send_message.await_args.kwargs["parse_mode"] == enums.ParseMode.DISABLED
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("spouse", [None, "Alex <Morgan>"])
+async def test_household_shows_head_when_no_distinct_spouse(monkeypatch, family_row, spouse):
+    row = list(family_row)
+    row[6] = spouse
+    row[8:10] = [None, None]
+    monkeypatch.setattr(family_profile, "_family_photo", lambda _id: None)
+    monkeypatch.setattr(utils, "get_address_details", lambda _zip: None)
+    client = SimpleNamespace(send_rich_message=AsyncMock())
+
+    await family_profile.send_family_profile(client, 42, tuple(row))
+
+    _, rich = client.send_rich_message.await_args.args
+    blocks = (await rich.write(client=None)).blocks
+    assert blocks[2].text.text == "Household"
+    assert blocks[3].text.texts[1].text == "Alex <Morgan>"
+    assert isinstance(blocks[4], raw.types.PageBlockDivider)

@@ -544,7 +544,8 @@ def test_generate_msg_member_auction_purchases_with_bids():
 
 @pytest.mark.asyncio
 @patch('stoscbots.util.utils.get_address_details')
-async def test_send_profile_address_and_pic(mock_get_address_details):
+@patch('stoscbots.util.utils.fetch_crm_profile_photo')
+async def test_send_profile_address_and_pic(mock_photo, mock_get_address_details):
     # Mock client and callback query
     mock_client = AsyncMock()
     mock_query = AsyncMock()
@@ -552,6 +553,7 @@ async def test_send_profile_address_and_pic(mock_get_address_details):
 
     # Test scenario: Zip code present and no searched_person
     mock_get_address_details.return_value = (12.34, 56.78)  # Mock latitude and longitude
+    mock_photo.return_value.content = b"example image"
     # Mock result list
     result = [
         [

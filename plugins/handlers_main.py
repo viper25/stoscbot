@@ -5,7 +5,7 @@ import aiofiles
 from pyrogram import Client, filters
 from pyrogram.types import CallbackQuery, LinkPreviewOptions, Message
 
-from stoscbots.bot import keyboards
+from stoscbots.bot import family_profile, keyboards
 from stoscbots.db import db
 from stoscbots.util import bot_auth, loggers, utils
 from stoscbots.util.loggers import LOGLEVEL
@@ -207,15 +207,7 @@ async def member_search_cmd_handler(client: Client, message: Message):
         if not result:
             await message.reply_text("No such Member", quote=True)
             return
-        msg = utils.generate_profile_msg_for_family(result)
-        await utils.send_profile_address_and_pic(
-            client,
-            message,
-            msg,
-            result,
-            searched_person=None,
-            searched_person_name=None,
-        )
+        await family_profile.send_family_profile(client, message.from_user.id, result[0])
     else:
         # A search string and not member code
         result = db.get_member_details(message.command[1], "free_text")
