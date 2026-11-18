@@ -52,7 +52,7 @@ async def get_today_bdays(client: Client, query: CallbackQuery):
 @loggers.async_log_access
 async def get_today_anniversaries(client: Client, query: CallbackQuery):
     await query.answer()
-    start, end, result = db.get_anniversaries('d')
+    _, _, result = db.get_anniversaries('d')
     current_year = date.today().year
     if len(result) == 0:
         msg = "No Wedding Anniversary today"
