@@ -117,16 +117,28 @@ async def get_telegram_id_handler(client: Client, message: Message):
             if single:
                 entries = [single] if isinstance(single, dict) else single
 
+        chat_id = message.from_user.id
+        reply_markup = keyboards.get_member_id_keyboard(member_code.upper())
+
         if entries:
-            msg = f"**Member Details ({member_code.upper()})**\n"
+            fallback = f"**Member Details ({member_code.upper()})**\n"
             for entry in entries:
                 name = entry.get('Name', 'Unknown')
                 tid = entry.get('telegram_id', 'Unknown')
-                msg += f"{name}: `{tid}`\n"
-            await message.reply_text(msg)
+                fallback += f"{name}: `{tid}`\n"
+            try:
+                rich_card = keyboards.get_rich_member_telegram_ids(member_code.upper(), entries)
+                await client.send_rich_message(chat_id, rich_card, reply_markup=reply_markup)
+            except RichMessageUnsupported:
+                logger.warning("Telegram rejected rich member telegram ID card; sending plain text")
+                await message.reply_text(fallback, reply_markup=reply_markup)
         else:
-            msg = f"Member not found: `{member_code.upper()}`"
-            await message.reply_text(msg)
+            fallback = f"Member not found: `{member_code.upper()}`"
+            try:
+                rich_card = keyboards.get_rich_member_telegram_ids_not_found(member_code.upper())
+                await client.send_rich_message(chat_id, rich_card, reply_markup=reply_markup)
+            except RichMessageUnsupported:
+                await message.reply_text(fallback, reply_markup=reply_markup)
     else:
         msg = f"Invalid member code: `{member_code}`"
         await message.reply_text(msg)

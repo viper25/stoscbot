@@ -379,17 +379,17 @@ async def test_show_error_logs_rich_and_fallback(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_telegram_id_handler_success(monkeypatch):
+async def test_get_telegram_id_handler_rich_success(monkeypatch):
     monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: True)
     monkeypatch.setattr(
         utils,
         "get_all_TelegramIDs_from_MemberCode",
         lambda code: [
-            {"Name": "Vibin", "telegram_id": "22541119"},
+            {"Name": "Vibin", "telegram_id": "22541119", "auth": ["mc"]},
             {"Name": "Family Member", "telegram_id": "88888888"},
         ],
     )
-    client = SimpleNamespace()
+    client = SimpleNamespace(send_rich_message=AsyncMock())
     message = SimpleNamespace(
         from_user=_make_admin_user(),
         command=["id", "V019"],
@@ -399,15 +399,17 @@ async def test_get_telegram_id_handler_success(monkeypatch):
 
     await handlers_dev.get_telegram_id_handler(client, message)
 
-    message.reply_text.assert_awaited_once()
-    reply = message.reply_text.await_args.args[0]
-    assert "**Member Details (V019)**" in reply
-    assert "Vibin: `22541119`" in reply
-    assert "Family Member: `88888888`" in reply
+    client.send_rich_message.assert_awaited_once()
+    args, kwargs = client.send_rich_message.await_args
+    assert args[0] == 1234
+    page = await args[1].write(client=None)
+    assert page.blocks
+    markup = kwargs["reply_markup"]
+    assert markup.inline_keyboard[0][0].callback_data == "related_family:V019"
 
 
 @pytest.mark.asyncio
-async def test_get_telegram_id_handler_dict_fallback(monkeypatch):
+async def test_get_telegram_id_handler_fallback(monkeypatch):
     monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: True)
     monkeypatch.setattr(utils, "get_all_TelegramIDs_from_MemberCode", lambda code: [])
     monkeypatch.setattr(
@@ -415,7 +417,7 @@ async def test_get_telegram_id_handler_dict_fallback(monkeypatch):
         "get_TelegramID_from_MemberCode",
         lambda code: {"Name": "Vibin", "telegram_id": "22541119"},
     )
-    client = SimpleNamespace()
+    client = SimpleNamespace(send_rich_message=AsyncMock(side_effect=RichMessageUnsupported()))
     message = SimpleNamespace(
         from_user=_make_admin_user(),
         command=["id", "v019"],
@@ -429,14 +431,17 @@ async def test_get_telegram_id_handler_dict_fallback(monkeypatch):
     reply = message.reply_text.await_args.args[0]
     assert "**Member Details (V019)**" in reply
     assert "Vibin: `22541119`" in reply
+    assert message.reply_text.await_args.kwargs["reply_markup"].inline_keyboard[0][0].callback_data == "related_family:V019"
 
 
 @pytest.mark.asyncio
-async def test_get_telegram_id_handler_not_found(monkeypatch):
+async def test_get_telegram_id_handler_not_found_rich_and_fallback(monkeypatch):
     monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: True)
     monkeypatch.setattr(utils, "get_all_TelegramIDs_from_MemberCode", lambda code: [])
     monkeypatch.setattr(utils, "get_TelegramID_from_MemberCode", lambda code: None)
-    client = SimpleNamespace()
+
+    # Test rich not found
+    client = SimpleNamespace(send_rich_message=AsyncMock())
     message = SimpleNamespace(
         from_user=_make_admin_user(),
         command=["id", "Z999"],
@@ -446,7 +451,17 @@ async def test_get_telegram_id_handler_not_found(monkeypatch):
 
     await handlers_dev.get_telegram_id_handler(client, message)
 
-    message.reply_text.assert_awaited_once_with("Member not found: `Z999`")
+    client.send_rich_message.assert_awaited_once()
+    page = await client.send_rich_message.await_args.args[1].write(client=None)
+    assert page.blocks
+
+    # Test fallback not found
+    client_fallback = SimpleNamespace(send_rich_message=AsyncMock(side_effect=RichMessageUnsupported()))
+    await handlers_dev.get_telegram_id_handler(client_fallback, message)
+    message.reply_text.assert_awaited_once_with(
+        "Member not found: `Z999`",
+        reply_markup=keyboards.get_member_id_keyboard("Z999"),
+    )
 
 
 @pytest.mark.asyncio

@@ -177,6 +177,11 @@ All redesigned screens adhere to the following patterns established in the initi
       - Header with Recent System Activity (`📜`) or System Error Diagnostics (`⚠️`).
       - Formatted monospace code block (`RichTextCode`) with safe length truncation (capped to 3,000 chars) to prevent Telegram payload overflow.
       - Timestamped footer and full plain text fallback.
+    - **Member Telegram ID Lookup Card (`/id <member_code>`):**
+      - Header with `Registered Telegram Accounts 🆔`, member code badge (`RichTextCode`), and registered account count subtitle.
+      - Compact striped table (`InputRichBlockTable`) listing Parishioner name with role badges (`👑 Super Admin`, `🏛️ MC`) and tap-to-copy Telegram ID (`RichTextCode`).
+      - Not-found rich card if member code has no registered accounts yet.
+      - Direct action navigation button `[ 👨‍👩‍👧‍👦 View Family Profile (<CODE>) ]` linking to CRM profile/photos/household and `[ 🔙 Return to Main menu ]`.
     - **Security & Route Protection:**
       - Hardened `@bot_auth.super_admin_only` decorator to support both `Message` and `CallbackQuery` objects, ensuring super-admin restricted button callbacks reject unauthorized callers safely.
 

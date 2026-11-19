@@ -1560,6 +1560,68 @@ def get_rich_admin_logs(title: str, log_text: str, is_error: bool = False) -> In
     return InputRichMessage(blocks=blocks)
 
 
+def get_member_id_keyboard(member_code: str) -> InlineKeyboardMarkup:
+    keyboard = [
+        [InlineKeyboardButton(f"👨‍👩‍👧‍👦 View Family Profile ({member_code.upper()})", callback_data=f"related_family:{member_code.upper()}")],
+        [BACK_TO_MAIN_BUTTON],
+    ]
+    return InlineKeyboardMarkup(keyboard)
+
+
+def get_rich_member_telegram_ids(member_code: str, entries: list[dict]) -> InputRichMessage:
+    count_label = f"{len(entries)} registered account" if len(entries) == 1 else f"{len(entries)} registered accounts"
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Registered Telegram Accounts 🆔")),
+            f"\nMember Code: ", RichTextCode(cast(RichText, member_code.upper())),
+            f" · {count_label}",
+        ])),
+    ]
+
+    header_cells = [
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Parishioner")))),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Telegram ID"))), align="right"),
+    ]
+    table_cells: list[list[RichBlockTableCell]] = [header_cells]
+
+    for entry in entries:
+        name = entry.get('Name', 'Unknown')
+        tid = str(entry.get('telegram_id', 'Unknown'))
+
+        badges = []
+        auth = entry.get('auth', [])
+        if isinstance(auth, str):
+            auth = [auth]
+        if 'mc' in auth:
+            badges.append("🏛️")
+        if tid.isdigit() and bot_auth.is_super_admin(int(tid)):
+            badges.append("👑")
+
+        badge_suffix = f" {' '.join(badges)}" if badges else ""
+        table_cells.append([
+            RichBlockTableCell(text=cast(RichText, f"{name}{badge_suffix}")),
+            RichBlockTableCell(text=cast(RichText, RichTextCode(cast(RichText, tid))), align="right"),
+        ])
+
+    blocks.extend([
+        InputRichBlockTable(cells=table_cells, is_striped=True, is_compact=True),
+        InputRichBlockFooter(text=cast(RichText, "Tap ID to copy · Confidential super admin directory")),
+    ])
+    return InputRichMessage(blocks=blocks)
+
+
+def get_rich_member_telegram_ids_not_found(member_code: str) -> InputRichMessage:
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Registered Telegram Accounts 🆔")),
+            f"\nMember Code: ", RichTextCode(cast(RichText, member_code.upper())),
+            "\n\n~ No Telegram accounts registered for this member code in DynamoDB ~",
+        ])),
+        InputRichBlockFooter(text=cast(RichText, "Confidential super admin directory")),
+    ]
+    return InputRichMessage(blocks=blocks)
+
+
 def get_member_listing_keyboard(results):
     keyboard = []
     keyboard_rows = []
