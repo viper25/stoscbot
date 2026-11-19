@@ -146,7 +146,11 @@ def _related_families_field(value: str | None) -> Field:
     return "Related families", value, _rich_text(parts) if parts else None
 
 
-async def send_family_profile(client: Client, chat_id: int, row: tuple) -> None:
+async def send_family_profile(
+    client: Client, chat_id: int, row: tuple,
+    reply_markup: types.InlineKeyboardMarkup | None = None,
+    note: str = "",
+) -> None:
     """Send a household-first profile, degrading to a photo-free or plain-text reply."""
     # Match the SELECT column order in get_member_details for a code lookup.
     (
@@ -235,10 +239,16 @@ async def send_family_profile(client: Client, chat_id: int, row: tuple) -> None:
             details.append(profile_map)
         if details:
             blocks.append(types.InputRichBlockDetails(summary=_rich_text(label), blocks=details, is_open=False))
+    if note:
+        blocks.append(types.InputRichBlockFooter(text=_rich_text(note)))
+
+    extra: dict[str, object] = {}
+    if reply_markup is not None:
+        extra["reply_markup"] = reply_markup
 
     async def send_rich() -> None:
         # Rebuild from the current blocks so the retry can omit the rejected photo.
-        await client.send_rich_message(chat_id, types.InputRichMessage(blocks=blocks))
+        await client.send_rich_message(chat_id, types.InputRichMessage(blocks=blocks), **extra)
 
     try:
         try:
@@ -257,9 +267,12 @@ async def send_family_profile(client: Client, chat_id: int, row: tuple) -> None:
             values = [f"{key}: {value}" for key, value, _ in fields if value]
             if values:
                 lines.extend(["", label, *values])
+        if note:
+            lines.extend(["", note])
         await client.send_message(
             chat_id, "\n".join(lines), parse_mode=enums.ParseMode.DISABLED,
             link_preview_options=types.LinkPreviewOptions(is_disabled=True),
+            **extra,
         )
     finally:
         if photo:

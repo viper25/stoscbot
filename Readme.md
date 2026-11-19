@@ -54,8 +54,20 @@ collapsed. Birth dates, the anniversary, and the membership date use Telegram
 date entities where supported, while keeping their calendar-date labels.
 Under **Membership & prayer group**, tap a related family code to open its card.
 Check the same command with a record that has no photo. Telegram
-replies that reject rich formatting fall back to text. Name search, phone
-search, and My Details keep their existing layouts.
+replies that reject rich formatting fall back to text.
+
+For a smoke test of the **My Details** suite, tap **My details** from the main menu.
+The card shows quick actions for **My profile**, **Contributions**, and **Dues**, with
+**Church giving & services** collapsed.
+Tap **My profile** to check that your personal family card opens with an update disclaimer
+and a **Back to My Details** navigation button.
+Tap **Contributions** to check that your current year Xero receipts display as a compact
+striped table with right-aligned amounts, a total footer, and the Xero timestamp.
+Tap **Dues** to check that outstanding subscription invoices display with invoice numbers,
+line item descriptions, due balances, and a direct **PayNow** shortcut.
+Tap **List of accounts** to check that eligible contribution heads are listed in a compact
+table with bold formatting for contributed heads. Name and phone search keep their
+existing layouts.
 
 ```bash
 uv sync --group test

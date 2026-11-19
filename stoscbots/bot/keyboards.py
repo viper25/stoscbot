@@ -90,6 +90,15 @@ back_to_members_keyboard = InlineKeyboardMarkup([
     [InlineKeyboardButton("← Back to Members", callback_data="Members Menu")]
 ])
 
+back_to_my_details_keyboard = InlineKeyboardMarkup([
+    [InlineKeyboardButton("← Back to My Details", callback_data="My Details Menu")]
+])
+
+dues_payment_keyboard = InlineKeyboardMarkup([
+    [InlineKeyboardButton("💳 PayNow", callback_data="PayNow Menu")],
+    [InlineKeyboardButton("← Back to My Details", callback_data="My Details Menu")],
+])
+
 members_menu_keyboard = InlineKeyboardMarkup([
     [__MEMBERS_BDAY_TODAY_BUTTON, __MEMBERS_ANNIVERSARY_TODAY_BUTTON],
     [__MEMBERS_BDAY_WEEK_BUTTON, __MEMBERS_ANNIVERSARY_WEEK_BUTTON],
@@ -266,6 +275,41 @@ def get_rich_members_menu() -> InputRichMessage:
                 _rich_button_row(
                     ("Management committee", "MC", default),
                     ("General Body & quorum", "GB", default),
+                ),
+            ],
+            is_open=False,
+        ),
+        _rich_button_row(("← Main menu", "Main Menu", ButtonStyle.LINK)),
+    ])
+
+
+def get_rich_my_details_menu() -> InputRichMessage:
+    default = ButtonStyle.DEFAULT
+    return InputRichMessage(blocks=[
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "My Details")),
+            "\nYour church profile, contributions, and dues.",
+        ])),
+        _rich_button_row(
+            ("🧾 My profile", "My Profile", ButtonStyle.PRIMARY),
+        ),
+        _rich_button_row(
+            ("💳 Contributions", "My Contributions", default),
+            ("📜 Dues", "My Dues", default),
+        ),
+        InputRichBlockDetails(
+            summary=cast(RichText, "Church giving & services"),
+            blocks=[
+                _rich_button_row(("ℹ List of accounts", "List of Accounts", default)),
+                InputRichBlockButtons(
+                    buttons=[
+                        RichMessageButton(
+                            text=cast(RichText, "🙏 Submit prayer request"),
+                            web_app=WEB_APP_PR,
+                            style=default,
+                        ),
+                    ],
+                    align="left",
                 ),
             ],
             is_open=False,

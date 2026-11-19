@@ -364,10 +364,15 @@ async def show_finance_menu(client: Client, query: CallbackQuery):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("My Details Menu"))
 @loggers.async_log_access
+@bot_auth.async_member_only
 async def show_my_details_menu(client: Client, query: CallbackQuery):
     await query.answer()
-    msg = "➖➖**My Details Menu**➖➖"
-    await utils.edit_and_send_msg(query, msg, keyboards.my_details_menu_keyboard)
+    chat_id = query.from_user.id
+    try:
+        await client.send_rich_message(chat_id, keyboards.get_rich_my_details_menu())
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected the rich my details menu; sending the inline keyboard")
+        await client.send_message(chat_id, "My Details", reply_markup=keyboards.my_details_menu_keyboard)
 
 
 # --------------------------------------------------

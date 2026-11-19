@@ -1,5 +1,6 @@
 ## TODO
 
+* [Rich Messages Redesign Progress](file:///home/vibinjk/code/viper25/stoscbot/docs/RichMessagesProgress.md) — Progress tracking for Telegram rich message screen conversions
 * Add try0catch for errors such as `db.get_anniversaries('d')` and return to user
 * Make better decorators. See https://youtu.be/QH5fw9kxDQA?t=843
     * Add arguments to decorators(https://youtu.be/QH5fw9kxDQA?t=1164)
