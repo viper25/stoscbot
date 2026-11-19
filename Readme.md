@@ -38,6 +38,10 @@ visible immediately, while **This week** and **Church & membership** start colla
 Open a result and use **Back to Members** to return to the menu.
 In the birthday, anniversary, new member, and committee cards, tap a member
 code to open its family card. **General Body & quorum** shows aggregate counts only.
+Members results use compact striped tables. Check the highlighted **Today**
+label on weekly celebration tables, the family codes inside name cells,
+and the linked missing-year note when present. Telegram controls the colors.
+The `/bday` and `/anniv` commands keep their existing text output.
 
 For a Telegram smoke test of the **Household first** layout, use an authorized
 account and run `/u <member code>`. A compact header and the family photo appear
