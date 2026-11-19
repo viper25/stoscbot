@@ -645,8 +645,8 @@ async def test_member_search_free_text_rich(monkeypatch, member_search_result_ro
     assert len(serialized.blocks) == 3  # Header, Table, Footer
     assert "Directory Search Results" in repr(serialized.blocks[0].text)
     table_repr = repr(serialized.blocks[1])
-    assert "Thomas Mathew 🏠" in table_repr
-    assert "Annika Mathew 🌱" in table_repr
+    assert "Thomas Mathew ⭐" in table_repr
+    assert "Annika Mathew 🎒" in table_repr
     assert "T001" in table_repr
     assert "Member_T001_101" in table_repr
     assert "Member_T001_102" in table_repr

@@ -131,7 +131,7 @@ All redesigned screens adhere to the following patterns established in the initi
     - **Header & Match Count:** Search banner showing query and total matching parishioner count.
     - **Interactive 2-Column Table:** Clean 2-column table (`Parishioner` and `Code`) eliminating awkward name wrapping and redundant family names.
     - **Direct Tap Links:** Tapping any parishioner's name directly opens their individual profile (`Member_<fam>_<person_id>`); tapping the family code opens the household profile (`related_family:<fam_code>`).
-    - **Strict Left Name Alignment with Right-Side Indicators:** All names are perfectly left-aligned at column 0. Head of Household is marked with `🏠` on the right (e.g. `Anish Mathew Samuel 🏠`), and dependent children are marked with `🌱` on the right (e.g. `Annika Mathew 🌱`), completely avoiding prefix indentation jitter and ugly line wrapping.
+    - **Strict Left Name Alignment with Right-Side Indicators:** All names are perfectly left-aligned at column 0. Head of Family is marked with `⭐` on the right (e.g. `Anish Mathew Samuel ⭐`), and dependent children are marked with `🎒` on the right (e.g. `Annika Mathew 🎒`), completely avoiding prefix indentation jitter and ugly line wrapping.
     - **Clean Navigation:** Streamlined bottom keyboard with only `[ 🔙 Return to Main menu ]`, removing duplicate button bloat.
 
 - [x] **Individual Member Card (`Member_<fam>_<id>` button callback)**

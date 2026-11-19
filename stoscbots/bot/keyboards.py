@@ -1306,9 +1306,9 @@ def format_search_parishioner_name(item) -> str:
             pass
 
     if is_head:
-        return f"{person_name} 🏠"
+        return f"{person_name} ⭐"
     if is_kid:
-        return f"{person_name} 🌱"
+        return f"{person_name} 🎒"
     return person_name
 
 
@@ -1360,7 +1360,7 @@ def get_rich_member_search_results(query_str: str, results: list) -> InputRichMe
 
     blocks.extend([
         InputRichBlockTable(cells=table_cells, is_striped=True, is_compact=True),
-        InputRichBlockFooter(text=cast(RichText, "🏠 Head of Household · 🌱 Child\nTap any name to view profile, or code for family card.")),
+        InputRichBlockFooter(text=cast(RichText, "⭐ Head of Family · 🎒 Student / Child\nTap any name to view profile, or code for family card.")),
     ])
     return InputRichMessage(blocks=blocks)
 

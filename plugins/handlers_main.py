@@ -227,8 +227,8 @@ async def member_search_cmd_handler(client: Client, message: Message):
             fallback = (
                 f"🔎 Search results for `{query_str}`\n"
                 "➖➖➖➖➖➖➖➖➖➖➖\n"
-                "`🏠 = Head of Household`\n"
-                "`🌱 = Child`"
+                "`⭐ = Head of Family`\n"
+                "`🎒 = Student / Child`"
             )
             try:
                 rich_card = keyboards.get_rich_member_search_results(query_str, result)
