@@ -1,0 +1,1 @@
+@[STOSCBot Guidelines](.github/copilot-instructions.md)
