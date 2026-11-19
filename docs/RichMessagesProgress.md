@@ -115,18 +115,17 @@ All redesigned screens adhere to the following patterns established in the initi
     - **Menu Card (`get_rich_streaming_menu`):** Cathedral Media & Streaming title, collapsible guide drawer explaining slide generation and flyer image URL generation (via photo uploads), in-card link buttons to Google Drive slides and live broadcast, plus updated inline keyboard (`[ 📺 Generate Announcement Slides ]`, `[ 📂 Google Drive Slides ]`, `[ 🔙 Return to Main menu ]`).
     - **Trigger Feedback (`get_rich_slide_generation_result`):** Rich card indicating generation status (`✅` success on Linux, `⚠️` non-zero code or OS restriction) with direct link button to view synced output on Google Drive.
 
+- [x] **`Services Menu` (`Services Menu` callback)**
+  - *Location:* [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
+  - *Design:*
+    - **Schedule Table:** Compact striped table (`InputRichBlockTable`) detailing regular weekly liturgical schedules (Sunday Holy Qurbana, Saturday Evening Prayer, Wednesday Intercession).
+    - **Liturgical & Prayer Guide:** Collapsible drawer (`InputRichBlockDetails`) for MOSC lectionary/calendar observances and intercessory prayer remembrance guidance.
+    - **In-Message Actions:** Native in-card link buttons for Liturgical Calendar, Prayer Request (`https://stosc.com/pr`), and Live Broadcast.
+    - **Navigation Keyboard:** Clean `[ 🔙 Return to Main menu ]` (removed redundant duplicate action buttons).
+
 ---
 
 ## 3. Remaining Screens Identified for Redesign
-
----
-
-### Group C: Committee & Management Tools (MC / Super Admin)
-
-- [ ] **`Services Menu`**
-  - *Handler:* `show_services_menu` in [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py)
-  - *Current State:* Text menu with liturgical calendar link.
-  - *Proposed Redesign:* Clean rich card with schedule details, PDF calendar link button, and service booking links.
 
 ---
 
