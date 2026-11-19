@@ -119,7 +119,8 @@ async def test_today_celebrations_list_members_with_family_links(monkeypatch, ri
 @pytest.mark.parametrize(("handler", "lookup", "result", "heading", "headers", "first_row", "codes"), [
     (handlers_members.get_weeks_bdays, "get_bday", ("Nov 16", "Nov 22", [
         ("A123", "Alex Example", "19/11", None),
-    ]), "Birthdays this week 🎂", ["Date", "Member", "Age"], ["19 Nov\nToday", "Alex Example (A123)", "NA"], ["A123"]),
+        ("B456", "Jamie Example", "20/11", None),
+    ]), "Birthdays this week 🎂", ["Date", "Member", "Age"], ["19 Nov", "Alex Example (A123)", "NA"], ["A123", "B456"]),
     (handlers_members.get_new_members, "get_new_members", [
         ("New Example (C789)",), ("Family without a code",),
     ], "New members 🆕", ["Family"], ["New Example (C789)"], ["C789"]),
@@ -167,6 +168,8 @@ async def test_members_result_cards(monkeypatch, handler, lookup, result, headin
     if lookup == "get_bday":
         assert isinstance(rows[0].cells[0].text, raw.types.TextMarked)
         assert isinstance(rows[0].cells[2].text, raw.types.TextPlain)
+        assert isinstance(rows[1].cells[0].text, raw.types.TextPlain)
+        assert rows[1].cells[0].text.text == "20 Nov"
     elif lookup == "get_new_members":
         assert text(rows[1].cells[0].text) == "Family without a code"
     elif lookup == "get_gb_eligible_count":
@@ -203,7 +206,7 @@ async def test_weekly_anniversary_table(monkeypatch, rich_supported):
     assert client.send_rich_message.await_args.kwargs["reply_markup"] is handlers_members.keyboards.back_to_members_keyboard
     if not rich_supported:
         _, text = client.send_message.await_args.args
-        assert "19 Nov (Today) · Alex & Robin Example (A123) · 12" in text
+        assert "19 Nov · Alex & Robin Example (A123) · 12" in text
         assert "22 Nov · Jamie & Casey Example (B456) · —" in text
         assert "The wedding year is not available." in text
         return
@@ -218,7 +221,9 @@ async def test_weekly_anniversary_table(monkeypatch, rich_supported):
     assert [cell.text.text for cell in table.rows[0].cells] == ["Date", "Couple", "Years"]
     first, second = [row.cells for row in table.rows[1:]]
     assert isinstance(first[0].text, raw.types.TextMarked)
-    assert first[0].text.text.text == "19 Nov\nToday"
+    assert first[0].text.text.text == "19 Nov"
+    assert isinstance(second[0].text, raw.types.TextPlain)
+    assert second[0].text.text == "22 Nov"
     assert first[1].text.texts[2].type.data == b"related_family:A123"
     assert first[2].text.text == "12"
     assert second[2].text.url == f"#{note.text.texts[0].name}"

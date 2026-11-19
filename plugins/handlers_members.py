@@ -129,7 +129,7 @@ def _birthday_table_date(birthday: str, today: date) -> TableValue:
         return "—"
     label = f"{birthday_date.day} {birthday_date:%b}"
     if (birthday_date.month, birthday_date.day) == (today.month, today.day):
-        return f"{label} (Today)", types.RichTextMarked(text=cast(types.RichText, f"{label}\nToday"))
+        return label, types.RichTextMarked(text=cast(types.RichText, label))
     return label
 
 
@@ -150,8 +150,7 @@ async def _send_weekly_anniversary_card(
     for code, name, wedding in rows:
         day = f"{wedding.day} {wedding:%b}"
         is_today = (wedding.month, wedding.day) == (today.month, today.day)
-        date_text = f"{day}\nToday" if is_today else day
-        date_cell = cast(types.RichText, date_text)
+        date_cell = cast(types.RichText, day)
         if is_today:
             date_cell = types.RichTextMarked(text=date_cell)
 
@@ -174,7 +173,7 @@ async def _send_weekly_anniversary_card(
             types.RichBlockTableCell(text=year_cell, align="right"),
         ])
         label = f"{name} ({code})" if code else name
-        fallback.append(f"• {day}{' (Today)' if is_today else ''} · {label} · {years}")
+        fallback.append(f"• {day} · {label} · {years}")
 
     if len(cells) == 1:
         empty = "No wedding anniversaries this week"

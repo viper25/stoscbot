@@ -38,8 +38,9 @@ visible immediately, while **This week** and **Church & membership** start colla
 Open a result and use **Back to Members** to return to the menu.
 In the birthday, anniversary, new member, and committee cards, tap a member
 code to open its family card. **General Body & quorum** shows aggregate counts only.
-Members results use compact striped tables. Check the highlighted **Today**
-label on weekly celebration tables and the family codes inside name cells.
+Members results use compact striped tables. Check that today's date is
+highlighted in the weekly birthday and anniversary tables, and that the family
+codes inside name cells are tappable.
 Birthday tables show **NA** in the Age column when the birth year
 is missing; anniversary tables use a linked missing-year note.
 Telegram controls the colors.
