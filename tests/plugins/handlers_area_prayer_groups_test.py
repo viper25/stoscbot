@@ -54,15 +54,18 @@ async def test_show_prayer_groups_menu_rich(monkeypatch):
     client.send_rich_message.assert_awaited_once()
     chat_id, rich = client.send_rich_message.await_args.args
     assert chat_id == 42
+    markup = client.send_rich_message.await_args.kwargs["reply_markup"]
+    assert markup is keyboards.area_prayer_groups_keyboard
     blocks = (await rich.write(client=None)).blocks
-    header, row1, row2, row3, row4, main_menu = blocks
-
-    assert header.text.texts[0].text.text == "Area Prayer Groups"
-    assert [b.type.data for b in row1.buttons] == [b"Area Prayer Group 1", b"Area Prayer Group 2"]
-    assert [b.type.data for b in row2.buttons] == [b"Area Prayer Group 3", b"Area Prayer Group 4"]
-    assert [b.type.data for b in row3.buttons] == [b"Area Prayer Group 5", b"Area Prayer Group 6"]
-    assert [b.type.data for b in row4.buttons] == [b"Area Prayer Group 7"]
-    assert main_menu.buttons[0].type.data == b"Main Menu"
+    assert len(blocks) == 1
+    assert "Area Prayer Groups" in blocks[0].text.texts[0].text.text
+    callbacks = [[b.callback_data for b in row] for row in markup.inline_keyboard]
+    assert callbacks == [
+        ["Area Prayer Group 1", "Area Prayer Group 2"],
+        ["Area Prayer Group 3", "Area Prayer Group 4"],
+        ["Area Prayer Group 5", "Area Prayer Group 6"],
+        ["Area Prayer Group 7", "Main Menu"],
+    ]
     client.send_message.assert_not_awaited()
 
 

@@ -288,28 +288,12 @@ def get_rich_members_menu() -> InputRichMessage:
 
 
 def get_rich_prayer_groups_menu() -> InputRichMessage:
-    default = ButtonStyle.DEFAULT
     return InputRichMessage(blocks=[
         InputRichBlockParagraph(text=cast(RichText, [
-            RichTextBold(cast(RichText, "Area Prayer Groups")),
-            "\nSelect an area to view its parish directory and member list:",
+            RichTextBold(cast(RichText, "Area Prayer Groups 🤲🏻")),
+            "\nParish fellowship and local area communities across Singapore.",
+            "\nSelect an area below to browse its directory:",
         ])),
-        _rich_button_row(
-            ("East Coast", "Area Prayer Group 1", default),
-            ("Houg | Seng | Pung", "Area Prayer Group 2", default),
-        ),
-        _rich_button_row(
-            ("Choa Chu Kang", "Area Prayer Group 3", default),
-            ("Jurong", "Area Prayer Group 4", default),
-        ),
-        _rich_button_row(
-            ("Woodlands", "Area Prayer Group 5", default),
-            ("Central", "Area Prayer Group 6", default),
-        ),
-        _rich_button_row(
-            ("Church Area", "Area Prayer Group 7", default),
-        ),
-        _rich_button_row(("← Main menu", "Main Menu", ButtonStyle.LINK)),
     ])
 
 
