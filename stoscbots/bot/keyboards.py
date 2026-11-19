@@ -10,9 +10,12 @@ from pyrogram.types import (
     InputRichBlock,
     InputRichBlockButtons,
     InputRichBlockDetails,
+    InputRichBlockFooter,
     InputRichBlockParagraph,
     InputRichBlockPhoto,
+    InputRichBlockTable,
     InputRichMessage,
+    RichBlockTableCell,
     RichMessageButton,
     RichText,
     RichTextBold,
@@ -155,7 +158,8 @@ my_details_menu_keyboard = InlineKeyboardMarkup([
 ])
 
 harvest_menu_keyboard = InlineKeyboardMarkup([
-    [BACK_TO_MAIN_BUTTON, InlineKeyboardButton("🔃 Refresh", callback_data="My Harvest Festival Menu")]
+    [InlineKeyboardButton("🔃 Refresh", callback_data="My Harvest Festival Menu")],
+    [BACK_TO_MAIN_BUTTON],
 ])
 
 streaming_menu_keyboard = InlineKeyboardMarkup([
@@ -399,6 +403,129 @@ def get_rich_paynow_menu(
             is_open=True,
         ),
     ])
+    return InputRichMessage(blocks=blocks)
+
+
+def _format_lot(code: object) -> str:
+    try:
+        return f"{int(code):03}"
+    except (ValueError, TypeError):
+        return str(code)
+
+
+def get_rich_harvest_festival_menu(
+    member_code: str | None = None,
+    purchases_data: dict | None = None,
+    contributions_data: dict | None = None,
+    auction_portal_url: str | None = None,
+) -> InputRichMessage:
+    header_elements: list[object] = [
+        RichTextBold(cast(RichText, "Harvest Festival 🌽")),
+        "\nSt. Thomas Orthodox Syrian Cathedral, Singapore",
+    ]
+    if member_code:
+        header_elements.extend(["\nMember: ", RichTextCode(cast(RichText, member_code))])
+
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, header_elements)),
+    ]
+
+    if auction_portal_url:
+        blocks.append(InputRichBlockButtons(
+            buttons=[
+                RichMessageButton(
+                    text=cast(RichText, "🌐 Open Auction Portal"),
+                    url=auction_portal_url,
+                    style=ButtonStyle.LINK,
+                )
+            ],
+            align="left",
+        ))
+
+    # Auction Wins section
+    purchases_items = (purchases_data or {}).get("items") or []
+    total_bid = (purchases_data or {}).get("total_bid", 0)
+
+    if purchases_items:
+        blocks.append(InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "🏆 Auction Wins")),
+            f"\n{len(purchases_items)} item{'s' if len(purchases_items) != 1 else ''} won",
+        ])))
+        cells = [
+            [
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Lot")))),
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Item")))),
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Won"))), align="right"),
+            ]
+        ]
+        for item in purchases_items:
+            lot = _format_lot(item.get("itemCode", ""))
+            name = str(item.get("itemName", "Item"))
+            bid_val = item.get("winning_bid", 0)
+            try:
+                bid_str = f"${float(bid_val):,.0f}"
+            except (ValueError, TypeError):
+                bid_str = f"${bid_val}"
+            cells.append([
+                RichBlockTableCell(text=cast(RichText, RichTextCode(cast(RichText, lot)))),
+                RichBlockTableCell(text=cast(RichText, name)),
+                RichBlockTableCell(text=cast(RichText, bid_str), align="right"),
+            ])
+        blocks.append(InputRichBlockTable(cells=cells, is_striped=True, is_compact=True))
+        try:
+            total_bid_str = f"${float(total_bid):,.0f}"
+        except (ValueError, TypeError):
+            total_bid_str = f"${total_bid}"
+        blocks.append(InputRichBlockFooter(text=cast(RichText, f"Total Purchases: {total_bid_str}")))
+    else:
+        blocks.append(InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "🏆 Auction Wins")),
+            "\n~ No bids or purchases yet ~",
+        ])))
+
+    # Donated Items (drawer)
+    donated_items = (contributions_data or {}).get("items") or []
+    total_fetched = (contributions_data or {}).get("total_fetched", 0)
+
+    if donated_items:
+        try:
+            total_fetched_str = f"${float(total_fetched):,.0f}"
+        except (ValueError, TypeError):
+            total_fetched_str = f"${total_fetched}"
+
+        summary = f"🎁 Donated Items ({len(donated_items)} item{'s' if len(donated_items) != 1 else ''} · {total_fetched_str})"
+        d_cells = [
+            [
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Lot")))),
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Item")))),
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Buyer")))),
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Sold"))), align="right"),
+            ]
+        ]
+        for d_item in donated_items:
+            lot = _format_lot(d_item.get("itemCode", ""))
+            name = str(d_item.get("itemName", "Item"))
+            buyer = str(d_item.get("winner", "—"))
+            bid_val = d_item.get("winning_bid", 0)
+            try:
+                sold_str = f"${float(bid_val):,.0f}"
+            except (ValueError, TypeError):
+                sold_str = f"${bid_val}"
+            d_cells.append([
+                RichBlockTableCell(text=cast(RichText, RichTextCode(cast(RichText, lot)))),
+                RichBlockTableCell(text=cast(RichText, name)),
+                RichBlockTableCell(text=cast(RichText, buyer)),
+                RichBlockTableCell(text=cast(RichText, sold_str), align="right"),
+            ])
+        blocks.append(InputRichBlockDetails(
+            summary=cast(RichText, summary),
+            blocks=[
+                InputRichBlockTable(cells=d_cells, is_striped=True, is_compact=True),
+                InputRichBlockFooter(text=cast(RichText, f"Total raised for cathedral: {total_fetched_str}")),
+            ],
+            is_open=False,
+        ))
+
     return InputRichMessage(blocks=blocks)
 
 

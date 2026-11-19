@@ -407,3 +407,92 @@ async def test_show_paynow_menu_fallback(monkeypatch):
     assert "S79SS0001L" in text
     assert client.send_message.await_args.kwargs["reply_markup"] is keyboards.paynow_keyboard
 
+
+@pytest.mark.asyncio
+async def test_show_my_harvest_festival_menu_rich_with_data(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    monkeypatch.setattr(utils, "getMemberCode_from_TelegramID", lambda _id: "A001")
+    monkeypatch.setattr(utils, "get_member_auction_purchases_data", lambda _c: {
+        "items": [{"itemCode": "014", "itemName": "Spice Cake (2kg)", "winning_bid": 120, "bids": 5}],
+        "total_bid": 120,
+    })
+    monkeypatch.setattr(utils, "get_member_auction_contributions_data", lambda _c: {
+        "items": [{"itemCode": "008", "itemName": "Wooden Cross", "winner": "Mathew", "winning_bid": 150, "bids": 3}],
+        "total_fetched": 150,
+    })
+    monkeypatch.setattr(utils, "get_member_auction_link", lambda _c: "https://harvest.stosc.com/?id=guid123")
+
+    client = SimpleNamespace(send_rich_message=AsyncMock(), send_message=AsyncMock())
+    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="My Harvest Festival Menu")
+    monkeypatch.setattr(query, "answer", AsyncMock())
+
+    handler, _group = handlers_main.show_my_harvest_festival_menu.handlers[0]
+    assert handler.filters(client, query)
+    await handlers_main.show_my_harvest_festival_menu.__wrapped__(client, query)
+
+    query.answer.assert_awaited_once()
+    client.send_rich_message.assert_awaited_once()
+    chat_id, rich = client.send_rich_message.await_args.args
+    assert chat_id == 42
+    assert client.send_rich_message.await_args.kwargs["reply_markup"] is keyboards.harvest_menu_keyboard
+
+    # Verify serialization of the rich message
+    serialized = await rich.write(client=None)
+    assert len(serialized.blocks) >= 4  # header, portal button, wins title, wins table, wins footer, donations drawer
+    client.send_message.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_show_my_harvest_festival_menu_empty(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    monkeypatch.setattr(utils, "getMemberCode_from_TelegramID", lambda _id: "A002")
+    monkeypatch.setattr(utils, "get_member_auction_purchases_data", lambda _c: None)
+    monkeypatch.setattr(utils, "get_member_auction_contributions_data", lambda _c: None)
+    monkeypatch.setattr(utils, "get_member_auction_link", lambda _c: "")
+
+    client = SimpleNamespace(send_rich_message=AsyncMock(), send_message=AsyncMock())
+    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="My Harvest Festival Menu")
+    monkeypatch.setattr(query, "answer", AsyncMock())
+
+    await handlers_main.show_my_harvest_festival_menu.__wrapped__(client, query)
+
+    query.answer.assert_awaited_once()
+    client.send_rich_message.assert_awaited_once()
+    chat_id, rich = client.send_rich_message.await_args.args
+    assert chat_id == 42
+
+    serialized = await rich.write(client=None)
+    # Header + No bids paragraph
+    assert len(serialized.blocks) == 2
+    assert "No bids or purchases yet" in repr(serialized.blocks[1].text)
+    client.send_message.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_show_my_harvest_festival_menu_fallback(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    monkeypatch.setattr(utils, "getMemberCode_from_TelegramID", lambda _id: "A001")
+    monkeypatch.setattr(utils, "get_member_auction_purchases_data", lambda _c: None)
+    monkeypatch.setattr(utils, "get_member_auction_contributions_data", lambda _c: None)
+    monkeypatch.setattr(utils, "get_member_auction_link", lambda _c: "")
+    monkeypatch.setattr(utils, "generate_msg_member_auction_purchases", lambda _c: "Purchases summary")
+    monkeypatch.setattr(utils, "generate_msg_member_auction_contributions", lambda _c: "Donations summary")
+
+    client = SimpleNamespace(
+        send_rich_message=AsyncMock(side_effect=errors.RichMessageUnsupported()),
+        send_message=AsyncMock(),
+    )
+    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="My Harvest Festival Menu")
+    monkeypatch.setattr(query, "answer", AsyncMock())
+
+    await handlers_main.show_my_harvest_festival_menu.__wrapped__(client, query)
+
+    query.answer.assert_awaited_once()
+    client.send_rich_message.assert_awaited_once()
+    client.send_message.assert_awaited_once()
+    chat_id, text = client.send_message.await_args.args
+    assert chat_id == 42
+    assert "Purchases summary" in text
+    assert client.send_message.await_args.kwargs["reply_markup"] is keyboards.harvest_menu_keyboard
+
+

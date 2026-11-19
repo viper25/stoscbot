@@ -395,11 +395,42 @@ def a_week_ago():
 
 # ----------------------------------------------------------------------------------------------------------------------
 def get_member_auction_link(_member_code: str) -> str:
-    response = table_harvest_members.query(KeyConditionExpression=Key("code").eq(_member_code))
-    if response['Items']:
-        return f"https://harvest.stosc.com/?id={response['Items'][0]['guid']}"
-    else:
+    if not _member_code:
         return ""
+    try:
+        response = table_harvest_members.query(KeyConditionExpression=Key("code").eq(_member_code))
+        if response.get('Items'):
+            return f"https://harvest.stosc.com/?id={response['Items'][0]['guid']}"
+        return ""
+    except Exception as e:
+        logger.error(e)
+        return ""
+
+
+def get_member_auction_purchases_data(member_code: str) -> Optional[dict]:
+    """Return raw harvest winners item for a member or None."""
+    if not member_code:
+        return None
+    try:
+        response = table_stosc_harvest_winners.query(KeyConditionExpression=Key("member_code").eq(member_code))
+        items = response.get('Items', [])
+        return items[0] if items else None
+    except Exception as e:
+        logger.error(e)
+        return None
+
+
+def get_member_auction_contributions_data(member_code: str) -> Optional[dict]:
+    """Return raw harvest contributors item for a member or None."""
+    if not member_code:
+        return None
+    try:
+        response = table_stosc_harvest_contributors.query(KeyConditionExpression=Key("member_code").eq(member_code))
+        items = response.get('Items', [])
+        return items[0] if items else None
+    except Exception as e:
+        logger.error(e)
+        return None
 
 
 # ----------------------------------------------------------------------------------------------------------------------

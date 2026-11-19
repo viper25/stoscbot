@@ -387,23 +387,47 @@ async def show_my_details_menu(client: Client, query: CallbackQuery):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("My Harvest Festival Menu"))
 @loggers.async_log_access
+@bot_auth.async_member_only
 async def show_my_harvest_festival_menu(client: Client, query: CallbackQuery):
     await query.answer()
-    member_code = utils.getMemberCode_from_TelegramID(query.from_user.id)
-    msg = "➖➖**🌽 My Harvest Details Menu** 🌽➖➖"
-    msg += "\n`Your activity from the Harvest Festival`"
-    my_auction_spend = utils.generate_msg_member_auction_purchases(member_code)
-    msg += "\n\n" + my_auction_spend
-    my_auction_contrib = utils.generate_msg_member_auction_contributions(member_code)
-    if my_auction_contrib:
-        msg += "\n\n" + my_auction_contrib
+    chat_id = query.from_user.id
+    member_code = utils.getMemberCode_from_TelegramID(chat_id)
 
-    # Auction Links
-    # my_auction_link = utils.get_member_auction_link(member_code)
-    # if my_auction_link:
-    #     msg += "\n\n" + f"——————\n▪️ Auction Link: {my_auction_link}\n"
-    #     msg += "\n" + f"▪️ Zoom Link: https://us06web.zoom.us/j/83256822894?pwd=ADWo8a16FaIy4xJBFnfK2pUvT8bxoJ.1"
-    await utils.edit_and_send_msg(query, msg, keyboards.harvest_menu_keyboard)
+    purchases_data = utils.get_member_auction_purchases_data(member_code)
+    contributions_data = utils.get_member_auction_contributions_data(member_code)
+    portal_link = utils.get_member_auction_link(member_code) or None
+
+    fallback_lines = ["**🌽 My Harvest Details Menu** 🌽\n`Your activity from the Harvest Festival`"]
+    purchases_text = utils.generate_msg_member_auction_purchases(member_code)
+    if purchases_text:
+        fallback_lines.append(purchases_text)
+    contributions_text = utils.generate_msg_member_auction_contributions(member_code)
+    if contributions_text:
+        fallback_lines.append(contributions_text)
+    if portal_link:
+        fallback_lines.append(f"▪️ Auction Link: {portal_link}")
+    fallback_text = "\n\n".join(fallback_lines)
+
+    try:
+        rich_menu = keyboards.get_rich_harvest_festival_menu(
+            member_code=member_code,
+            purchases_data=purchases_data,
+            contributions_data=contributions_data,
+            auction_portal_url=portal_link,
+        )
+        await client.send_rich_message(
+            chat_id,
+            rich_menu,
+            reply_markup=keyboards.harvest_menu_keyboard,
+        )
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected the rich Harvest Festival card; sending plain text")
+        await client.send_message(
+            chat_id,
+            fallback_text,
+            reply_markup=keyboards.harvest_menu_keyboard,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
+        )
 
 
 # --------------------------------------------------

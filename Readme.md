@@ -77,6 +77,11 @@ For a smoke test of **PayNow**, tap **PayNow** from the home screen or from **My
 Check that the card presents the payment options with tap-to-copy code blocks for the UEN
 (`S79SS0001L`) and DBS account number (`0480155596`), cash/cheque instructions, a reference and receipt
 guide drawer with clickable email, and navigation to both **Back to My Details** and **Main menu**.
+
+For a smoke test of **My Harvest Festival**, open **Community ▸ My Harvest Festival** from the home screen.
+Check that the card presents the cathedral header, member code, live auction web portal link button (if configured),
+a compact striped table for **Auction Wins** with total spend (or friendly notice if no bids),
+and an expandable drawer for **Donated Items** with sold prices, alongside **Refresh** and **Main menu** buttons.
 Name and phone search keep their existing layouts.
 
 ```bash

@@ -540,6 +540,36 @@ def test_generate_msg_member_auction_purchases_with_bids():
         assert result == expected_msg
 
 
+def test_get_member_auction_purchases_data():
+    assert utils.get_member_auction_purchases_data(None) is None
+    mock_item = {"items": [{"itemCode": "001"}], "total_bid": 500}
+    with patch('stoscbots.util.utils.table_stosc_harvest_winners.query', return_value={'Items': [mock_item]}):
+        assert utils.get_member_auction_purchases_data("test_code") == mock_item
+
+    with patch('stoscbots.util.utils.table_stosc_harvest_winners.query', side_effect=Exception("DB Error")):
+        assert utils.get_member_auction_purchases_data("test_code") is None
+
+
+def test_get_member_auction_contributions_data():
+    assert utils.get_member_auction_contributions_data(None) is None
+    mock_item = {"items": [{"itemCode": "002"}], "total_fetched": 300}
+    with patch('stoscbots.util.utils.table_stosc_harvest_contributors.query', return_value={'Items': [mock_item]}):
+        assert utils.get_member_auction_contributions_data("test_code") == mock_item
+
+    with patch('stoscbots.util.utils.table_stosc_harvest_contributors.query', side_effect=Exception("DB Error")):
+        assert utils.get_member_auction_contributions_data("test_code") is None
+
+
+def test_get_member_auction_link():
+    assert utils.get_member_auction_link(None) == ""
+    assert utils.get_member_auction_link("") == ""
+    with patch('stoscbots.util.utils.table_harvest_members.query', return_value={'Items': [{'guid': 'guid-123'}]}):
+        assert utils.get_member_auction_link("test_code") == "https://harvest.stosc.com/?id=guid-123"
+
+    with patch('stoscbots.util.utils.table_harvest_members.query', side_effect=Exception("DB Error")):
+        assert utils.get_member_auction_link("test_code") == ""
+
+
 # ------------------------------------------------------------
 
 @pytest.mark.asyncio
