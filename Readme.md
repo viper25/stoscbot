@@ -36,7 +36,8 @@ rich message, the bot sends the original inline keyboard.
 Open **Members** to check that today's birthday and anniversary buttons are
 visible immediately, while **This week** and **Church & membership** start collapsed.
 Open a result and use **Back to Members** to return to the menu.
-In **Birthdays today** or **Anniversaries today**, tap a member code to open its family card.
+In the birthday, anniversary, new member, and committee cards, tap a member
+code to open its family card. **General Body & quorum** shows aggregate counts only.
 
 For a Telegram smoke test of the **Household first** layout, use an authorized
 account and run `/u <member code>`. A compact header and the family photo appear
