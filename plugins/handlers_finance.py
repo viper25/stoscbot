@@ -212,24 +212,73 @@ async def get_finance_bank_summary(client: Client, query: CallbackQuery):
 @bot_auth.async_management_only
 async def get_finance_trial_balance(client: Client, query: CallbackQuery):
     await query.answer()
+    chat_id = query.from_user.id
     is_income_report = "REVENUE" in query.data.upper()
 
-    def __get_msg(rows, report_type):
-        value_index = {'revenue': 4, 'expense': 3}
-        __msg = "\n".join(
-            f"{row['Cells'][0]['Value']}\n**${float(row['Cells'][value_index[report_type]]['Value'] or 0):,.2f}**\n––––————————————————"
-            for row in rows
+    try:
+        tb_data = xero_utils.xero_get_trial_balance(_paymentsOnly=is_income_report)
+        report = (tb_data or {}).get("Reports", [{}])[0].get("Rows", [])
+        if not report:
+            raise ValueError("Empty report data from Xero")
+    except Exception as exc:
+        logger.error("Failed to fetch trial balance from Xero: %s", exc)
+        await client.send_message(
+            chat_id,
+            "⚠️ Unable to fetch Trial Balance from Xero at this moment. Please try again later.",
+            reply_markup=keyboards.finance_menu_keyboard,
         )
-        logger.debug(f"get_finance_trial_balance: Processed {len(rows)} rows.")
-        return __msg
+        return
 
-    report = xero_utils.xero_get_trial_balance(_paymentsOnly=is_income_report)['Reports'][0]['Rows']
-    report_type = 'revenue' if is_income_report else 'expense'
-    msg_rows = __get_msg(report[1 if is_income_report else 2]['Rows'], report_type)
+    # Plain text fallback generator
+    report_type_name = "REVENUE" if is_income_report else "EXPENSE"
+    val_index = 4 if is_income_report else 3
+    _title, section_rows = keyboards._get_trial_balance_section(report, is_income_report)
 
-    msg = f"**TRIAL BALANCE**\n`For Year {datetime.now().year}`\n➖➖➖➖➖➖➖\n\n{msg_rows}"
-    msg = format_telegram_message(msg)
-    await utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
+    msg_items = []
+    total_val = 0.0
+    for row in section_rows:
+        cells = row.get("Cells", [])
+        if not cells or len(cells) <= val_index:
+            continue
+        name = str(cells[0].get("Value") or "").strip()
+        if not name or row.get("RowType") == "Header":
+            continue
+        try:
+            amt = float(cells[val_index].get("Value") or 0)
+        except (ValueError, TypeError):
+            amt = 0.0
+        if row.get("RowType") in ("SummaryRow", "Total") or name.lower().startswith("total"):
+            total_val = amt
+            continue
+        if amt != 0.0:
+            msg_items.append(f"{name}\n**${amt:,.2f}**\n––––————————————————")
+
+    rows_text = "\n".join(msg_items) if msg_items else "~ No entries ~"
+    bullet = "🔹" if is_income_report else "🔸"
+    fallback_text = (
+        f"**TRIAL BALANCE — {report_type_name}**\n"
+        f"`For Year {datetime.now().year}`\n"
+        "➖➖➖➖➖➖➖\n\n"
+        f"{rows_text}\n\n"
+        f"{bullet} **Total {report_type_name.title()}: ${total_val:,.2f}**"
+    )
+    fallback_text = format_telegram_message(fallback_text)
+
+    try:
+        rich_card = keyboards.get_rich_finance_trial_balance(report, is_income_report)
+        await client.send_rich_message(
+            chat_id,
+            rich_card,
+            reply_markup=keyboards.finance_menu_keyboard,
+        )
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected the rich trial balance card; sending plain text")
+        await client.send_message(
+            chat_id,
+            fallback_text,
+            reply_markup=keyboards.finance_menu_keyboard,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
+        )
 
 
 # --------------------------------------------------

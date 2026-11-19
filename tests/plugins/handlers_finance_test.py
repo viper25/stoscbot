@@ -431,3 +431,208 @@ async def test_get_finance_latest_tx_fallback(monkeypatch, mock_bank_transaction
     assert "🔹 **Donor Alice**" in text
     assert "🔸 **Transfer Out**" in text
     assert client.send_message.await_args.kwargs["reply_markup"] is keyboards.finance_menu_keyboard
+
+
+@pytest.fixture
+def mock_trial_balance_data():
+    return {
+        "Reports": [{
+            "Rows": [
+                {
+                    "RowType": "Header",
+                    "Cells": [
+                        {"Value": "Account"},
+                        {"Value": "Debit"},
+                        {"Value": "Credit"},
+                        {"Value": "YTD Debit"},
+                        {"Value": "YTD Credit"},
+                    ],
+                },
+                {
+                    "RowType": "Section",
+                    "Title": "Revenue",
+                    "Rows": [
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {"Value": "General Subscription"},
+                                {"Value": ""},
+                                {"Value": "1000"},
+                                {"Value": ""},
+                                {"Value": "15000.00"},
+                            ],
+                        },
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {"Value": "Auction Proceeds"},
+                                {"Value": ""},
+                                {"Value": "500"},
+                                {"Value": ""},
+                                {"Value": "8500.00"},
+                            ],
+                        },
+                        {
+                            "RowType": "SummaryRow",
+                            "Cells": [
+                                {"Value": "Total Revenue"},
+                                {"Value": ""},
+                                {"Value": "1500"},
+                                {"Value": ""},
+                                {"Value": "23500.00"},
+                            ],
+                        },
+                    ],
+                },
+                {
+                    "RowType": "Section",
+                    "Title": "Operating Expenses",
+                    "Rows": [
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {"Value": "Cathedral Utilities"},
+                                {"Value": "600"},
+                                {"Value": ""},
+                                {"Value": "4200.00"},
+                                {"Value": ""},
+                            ],
+                        },
+                        {
+                            "RowType": "SummaryRow",
+                            "Cells": [
+                                {"Value": "Total Operating Expenses"},
+                                {"Value": "600"},
+                                {"Value": ""},
+                                {"Value": "4200.00"},
+                                {"Value": ""},
+                            ],
+                        },
+                    ],
+                },
+            ]
+        }]
+    }
+
+
+@pytest.mark.asyncio
+async def test_get_finance_trial_balance_revenue_rich(monkeypatch, mock_trial_balance_data):
+    monkeypatch.setattr(bot_auth, "is_mgmt_member", lambda _id: True)
+    monkeypatch.setattr(xero_utils, "xero_get_trial_balance", lambda _paymentsOnly: mock_trial_balance_data)
+
+    client = SimpleNamespace(send_rich_message=AsyncMock(), send_message=AsyncMock())
+    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="Finance Trial Balance Revenue Button")
+    monkeypatch.setattr(query, "answer", AsyncMock())
+
+    await handlers_finance.get_finance_trial_balance.__wrapped__(client, query)
+
+    query.answer.assert_awaited_once()
+    client.send_rich_message.assert_awaited_once()
+    chat_id, rich = client.send_rich_message.await_args.args
+    assert chat_id == 42
+    assert client.send_rich_message.await_args.kwargs["reply_markup"] is keyboards.finance_menu_keyboard
+
+    serialized = await rich.write(client=None)
+    assert len(serialized.blocks) == 3  # Header, Table, Footer
+    assert "Trial Balance — Revenue" in repr(serialized.blocks[0].text)
+    table_repr = repr(serialized.blocks[1])
+    assert "General Subscription" in table_repr
+    assert "15,000.00" in table_repr
+    assert "Auction Proceeds" in table_repr
+    assert "8,500.00" in table_repr
+    footer_repr = repr(serialized.blocks[2].text)
+    assert "🔹 Total Revenue: $23,500.00" in footer_repr
+
+
+@pytest.mark.asyncio
+async def test_get_finance_trial_balance_expense_rich(monkeypatch, mock_trial_balance_data):
+    monkeypatch.setattr(bot_auth, "is_mgmt_member", lambda _id: True)
+    monkeypatch.setattr(xero_utils, "xero_get_trial_balance", lambda _paymentsOnly: mock_trial_balance_data)
+
+    client = SimpleNamespace(send_rich_message=AsyncMock(), send_message=AsyncMock())
+    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="Finance Trial Balance Expense Button")
+    monkeypatch.setattr(query, "answer", AsyncMock())
+
+    await handlers_finance.get_finance_trial_balance.__wrapped__(client, query)
+
+    query.answer.assert_awaited_once()
+    client.send_rich_message.assert_awaited_once()
+    chat_id, rich = client.send_rich_message.await_args.args
+    assert chat_id == 42
+    assert client.send_rich_message.await_args.kwargs["reply_markup"] is keyboards.finance_menu_keyboard
+
+    serialized = await rich.write(client=None)
+    assert len(serialized.blocks) == 3  # Header, Table, Footer
+    assert "Trial Balance — Expense" in repr(serialized.blocks[0].text)
+    table_repr = repr(serialized.blocks[1])
+    assert "Cathedral Utilities" in table_repr
+    assert "4,200.00" in table_repr
+    footer_repr = repr(serialized.blocks[2].text)
+    assert "🔸 Total Expense: $4,200.00" in footer_repr
+
+
+@pytest.mark.asyncio
+async def test_get_finance_trial_balance_fallback(monkeypatch, mock_trial_balance_data):
+    monkeypatch.setattr(bot_auth, "is_mgmt_member", lambda _id: True)
+    monkeypatch.setattr(xero_utils, "xero_get_trial_balance", lambda _paymentsOnly: mock_trial_balance_data)
+
+    client = SimpleNamespace(
+        send_rich_message=AsyncMock(side_effect=errors.RichMessageUnsupported()),
+        send_message=AsyncMock(),
+    )
+    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="Finance Trial Balance Revenue Button")
+    monkeypatch.setattr(query, "answer", AsyncMock())
+
+    await handlers_finance.get_finance_trial_balance.__wrapped__(client, query)
+
+    client.send_message.assert_awaited_once()
+    chat_id, text = client.send_message.await_args.args
+    assert chat_id == 42
+    assert "TRIAL BALANCE — REVENUE" in text
+    assert "General Subscription" in text
+    assert "🔹 **Total Revenue: $23,500.00**" in text
+    assert client.send_message.await_args.kwargs["reply_markup"] is keyboards.finance_menu_keyboard
+
+
+@pytest.mark.asyncio
+async def test_get_finance_trial_balance_empty(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_mgmt_member", lambda _id: True)
+    empty_report = {
+        "Reports": [{
+            "Rows": [
+                {"RowType": "Header", "Cells": []},
+                {"RowType": "Section", "Title": "Revenue", "Rows": []},
+            ]
+        }]
+    }
+    monkeypatch.setattr(xero_utils, "xero_get_trial_balance", lambda _paymentsOnly: empty_report)
+
+    client = SimpleNamespace(send_rich_message=AsyncMock(), send_message=AsyncMock())
+    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="Finance Trial Balance Revenue Button")
+    monkeypatch.setattr(query, "answer", AsyncMock())
+
+    await handlers_finance.get_finance_trial_balance.__wrapped__(client, query)
+
+    client.send_rich_message.assert_awaited_once()
+    chat_id, rich = client.send_rich_message.await_args.args
+    serialized = await rich.write(client=None)
+    assert len(serialized.blocks) == 2
+    assert "No revenue account entries" in repr(serialized.blocks[1].text)
+
+
+@pytest.mark.asyncio
+async def test_get_finance_trial_balance_error(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_mgmt_member", lambda _id: True)
+    monkeypatch.setattr(xero_utils, "xero_get_trial_balance", lambda _paymentsOnly: (_ for _ in ()).throw(RuntimeError("API error")))
+
+    client = SimpleNamespace(send_rich_message=AsyncMock(), send_message=AsyncMock())
+    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="Finance Trial Balance Revenue Button")
+    monkeypatch.setattr(query, "answer", AsyncMock())
+
+    await handlers_finance.get_finance_trial_balance.__wrapped__(client, query)
+
+    client.send_message.assert_awaited_once()
+    chat_id, text = client.send_message.await_args.args
+    assert chat_id == 42
+    assert "Unable to fetch Trial Balance" in text
+    assert client.send_message.await_args.kwargs["reply_markup"] is keyboards.finance_menu_keyboard

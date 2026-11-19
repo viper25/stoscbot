@@ -99,7 +99,9 @@ All redesigned screens adhere to the following patterns established in the initi
 - [x] **`Finance Payments WTD` (`Finance Payments WTD Button` callback)**
   - *Location:* [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
   - *Design:* Compact striped table (`InputRichBlockTable`) of invoice settlements (`ACCREC` / `🔹`) and bill payments (`ACCPAY` / `🔸`) with dates, contacts, direction tags (`Receipt ⇦`, `Bill ⇨`), and total Received/Paid footer. All finance buttons kept visible in `reply_markup`.
-  - *Design:* Compact striped table (`InputRichBlockTable`) of past 7 days invoice settlements (`ACCREC` 🟢 ⇦) and bill payments (`ACCPAY` 🔴 ⇨) with total Received and Paid footer. All finance buttons kept visible in `reply_markup`.
+- [x] **`Finance Trial Balance` (Revenue & Expense) (`Finance Trial Balance Revenue Button`, `Finance Trial Balance Expense Button` callbacks)**
+  - *Location:* [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
+  - *Design:* Compact striped table (`InputRichBlockTable`) of active chart of accounts with YTD balances, year and basis subtitle (Cash basis for revenue, YTD ledger for expenses), Option 3 total footer (`🔹 Total Revenue: $...` / `🔸 Total Expense: $...`), and persistent `finance_menu_keyboard` for instant switching.
 
 ---
 
@@ -108,11 +110,6 @@ All redesigned screens adhere to the following patterns established in the initi
 ---
 
 ### Group C: Committee & Management Tools (MC / Super Admin)
-
-- [ ] **`Finance Trial Balance` (Revenue & Expense)**
-  - *Handler:* `get_finance_trial_balance` in [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py)
-  - *Current State:* Monospaced text messages with ASCII line breaks.
-  - *Proposed Redesign:* Compact striped tables for Revenue and Expense accounts with right-aligned totals and year header.
 
 - [ ] **Member Financial Search Commands (`/x`, `/xs`)**
   - *Handler:* `finance_search_member` in [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py)

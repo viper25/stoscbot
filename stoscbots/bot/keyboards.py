@@ -859,6 +859,92 @@ def get_rich_finance_latest_tx(bank_tx_data: dict) -> InputRichMessage:
     return InputRichMessage(blocks=blocks)
 
 
+def _get_trial_balance_section(report_rows: list[dict], is_income_report: bool) -> tuple[str, list[dict]]:
+    target = "REVENUE" if is_income_report else "EXPENSE"
+    for row in report_rows:
+        if row.get("RowType") == "Section":
+            title = str(row.get("Title") or "").upper()
+            if target in title or (is_income_report and "INCOME" in title):
+                return str(row.get("Title") or ("Revenue" if is_income_report else "Expense")), row.get("Rows", [])
+
+    idx = 1 if is_income_report else 2
+    if len(report_rows) > idx and report_rows[idx].get("RowType") == "Section":
+        return str(report_rows[idx].get("Title") or ("Revenue" if is_income_report else "Expense")), report_rows[idx].get("Rows", [])
+
+    if len(report_rows) > 1 and report_rows[1].get("RowType") == "Section":
+        return str(report_rows[1].get("Title") or "Trial Balance"), report_rows[1].get("Rows", [])
+
+    return ("Revenue" if is_income_report else "Expense"), []
+
+
+def get_rich_finance_trial_balance(report_rows: list[dict], is_income_report: bool) -> InputRichMessage:
+    year = datetime.now().year
+    report_type_name = "Revenue" if is_income_report else "Expense"
+    icon = "📈" if is_income_report else "📉"
+    basis_note = "Cash basis (payments only)" if is_income_report else "Year-to-Date ledger"
+
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, f"Trial Balance — {report_type_name} {icon}")),
+            "\nSt. Thomas Orthodox Syrian Cathedral, Singapore",
+            f"\nYear {year} · {basis_note}",
+        ])),
+    ]
+
+    header_cells = [
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Account")))),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "YTD Amount"))), align="right"),
+    ]
+    table_cells: list[list[RichBlockTableCell]] = [header_cells]
+
+    val_index = 4 if is_income_report else 3
+    _title, section_rows = _get_trial_balance_section(report_rows, is_income_report)
+
+    calc_total = 0.0
+    summary_total = None
+
+    for row in section_rows:
+        cells = row.get("Cells", [])
+        if not cells or len(cells) <= val_index:
+            continue
+        name = str(cells[0].get("Value") or "").strip()
+        if not name or row.get("RowType") == "Header":
+            continue
+
+        raw_val = cells[val_index].get("Value")
+        try:
+            amt = float(raw_val or 0)
+        except (ValueError, TypeError):
+            amt = 0.0
+
+        if row.get("RowType") in ("SummaryRow", "Total") or name.lower().startswith("total"):
+            summary_total = amt
+            continue
+
+        if amt == 0.0:
+            continue
+
+        calc_total += amt
+        table_cells.append([
+            RichBlockTableCell(text=cast(RichText, name)),
+            RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, f"${amt:,.2f}"))), align="right"),
+        ])
+
+    final_total = summary_total if summary_total is not None else calc_total
+
+    if len(table_cells) > 1:
+        blocks.append(InputRichBlockTable(cells=table_cells, is_striped=True, is_compact=True))
+        bullet = "🔹" if is_income_report else "🔸"
+        blocks.append(InputRichBlockFooter(text=cast(
+            RichText,
+            f"{bullet} Total {report_type_name}: ${final_total:,.2f}",
+        )))
+    else:
+        blocks.append(InputRichBlockParagraph(text=cast(RichText, f"~ No {report_type_name.lower()} account entries for Year {year} ~")))
+
+    return InputRichMessage(blocks=blocks)
+
+
 # Dynamically generate a keyboard with prayer requests
 def get_services_keyboard():
     return InlineKeyboardMarkup([[BACK_TO_MAIN_BUTTON]])
