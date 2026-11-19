@@ -772,5 +772,111 @@ async def test_send_person_profile_fallback(monkeypatch, person_row):
     assert "91234567" in text
 
 
+@pytest.fixture
+def born_member_rows():
+    return [
+        ("Mathew Thomas", "2015-05-14", "Thomas Family (T001)", "thomas@example.com", "62886147", "91234567"),
+        ("Sarah Alex", "2015-11-20", "Alex Family (A123)", "alex@example.com", None, "98765432"),
+    ]
+
+
+@pytest.mark.asyncio
+async def test_members_born_year_missing_arg(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    client = SimpleNamespace()
+    message = SimpleNamespace(
+        command=["year"],
+        from_user=SimpleNamespace(id=42, username="test", first_name="Test"),
+        reply_text=AsyncMock(),
+    )
+    await handlers_main.members_born_after_year_handler.__wrapped__(client, message)
+    message.reply_text.assert_awaited_once()
+    assert "Please enter the year" in message.reply_text.await_args.args[0]
+
+
+@pytest.mark.asyncio
+async def test_members_born_year_invalid_year(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    client = SimpleNamespace()
+    message = SimpleNamespace(
+        command=["year", "abcd"],
+        from_user=SimpleNamespace(id=42, username="test", first_name="Test"),
+        reply_text=AsyncMock(),
+    )
+    await handlers_main.members_born_after_year_handler.__wrapped__(client, message)
+    message.reply_text.assert_awaited_once()
+    assert "valid 4-digit year" in message.reply_text.await_args.args[0]
+
+
+@pytest.mark.asyncio
+async def test_members_born_year_not_found(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    monkeypatch.setattr(handlers_main.db, "get_members_born", lambda _y: [])
+    client = SimpleNamespace()
+    message = SimpleNamespace(
+        command=["year", "1905"],
+        from_user=SimpleNamespace(id=42, username="test", first_name="Test"),
+        reply_text=AsyncMock(),
+    )
+    await handlers_main.members_born_after_year_handler.__wrapped__(client, message)
+    message.reply_text.assert_awaited_once()
+    assert "No members found born in 1905" in message.reply_text.await_args.args[0]
+
+
+@pytest.mark.asyncio
+async def test_members_born_year_rich(monkeypatch, born_member_rows):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    monkeypatch.setattr(handlers_main.db, "get_members_born", lambda _y: born_member_rows)
+    client = SimpleNamespace(send_rich_message=AsyncMock(), send_message=AsyncMock())
+    message = SimpleNamespace(
+        command=["year", "2015"],
+        from_user=SimpleNamespace(id=42, username="test", first_name="Test"),
+    )
+
+    await handlers_main.members_born_after_year_handler.__wrapped__(client, message)
+
+    client.send_rich_message.assert_awaited_once()
+    chat_id, rich = client.send_rich_message.await_args.args
+    assert chat_id == 42
+    assert client.send_rich_message.await_args.kwargs["reply_markup"] is keyboards.back_to_main_keyboard
+    serialized = await rich.write(client=None)
+    assert len(serialized.blocks) == 3  # Header, Table, Footer
+    assert "Members Born in 2015" in repr(serialized.blocks[0].text)
+    table_repr = repr(serialized.blocks[1])
+    assert "Mathew Thomas" in table_repr
+    assert "14 May" in table_repr
+    assert "T001" in table_repr
+    assert "related_family:T001" in table_repr
+    assert "Sarah Alex" in table_repr
+    assert "20 Nov" in table_repr
+    assert "A123" in table_repr
+    assert "related_family:A123" in table_repr
+
+
+@pytest.mark.asyncio
+async def test_members_born_year_fallback(monkeypatch, born_member_rows):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    monkeypatch.setattr(handlers_main.db, "get_members_born", lambda _y: born_member_rows)
+    client = SimpleNamespace(
+        send_rich_message=AsyncMock(side_effect=errors.RichMessageUnsupported()),
+        send_message=AsyncMock(),
+    )
+    message = SimpleNamespace(
+        command=["year", "2015"],
+        from_user=SimpleNamespace(id=42, username="test", first_name="Test"),
+        reply_text=AsyncMock(),
+    )
+
+    await handlers_main.members_born_after_year_handler.__wrapped__(client, message)
+
+    message.reply_text.assert_awaited_once()
+    text = message.reply_text.await_args.args[0]
+    assert "Members Born in 2015" in text
+    assert "Mathew Thomas" in text
+    assert "T001" in text
+    assert message.reply_text.await_args.kwargs["reply_markup"] is keyboards.back_to_main_keyboard
+
+
+
 
 

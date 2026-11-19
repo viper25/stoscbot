@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import date, datetime
 from typing import cast
 
@@ -1361,6 +1362,70 @@ def get_rich_member_search_results(query_str: str, results: list) -> InputRichMe
     blocks.extend([
         InputRichBlockTable(cells=table_cells, is_striped=True, is_compact=True),
         InputRichBlockFooter(text=cast(RichText, "⭐ Head of Family · 🎒 Student / Child\nTap any name to view profile, or code for family card.")),
+    ])
+    return InputRichMessage(blocks=blocks)
+
+
+def get_rich_members_born_year(year: str, results: list) -> InputRichMessage:
+    count = len(results)
+    current_year = date.today().year
+    try:
+        age = current_year - int(year)
+        age_str = f" · Turning {age} yrs in {current_year}" if age >= 0 else ""
+    except ValueError:
+        age_str = ""
+
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, f"Members Born in {year} 🎂")),
+            f"\nFound {count} registered parishioner{'s' if count != 1 else ''}{age_str}.",
+        ])),
+    ]
+
+    header_cells = [
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Parishioner")))),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Birthday"))), align="center"),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Code"))), align="center"),
+    ]
+    table_cells: list[list[RichBlockTableCell]] = [header_cells]
+
+    for member in results:
+        person_name = str(member[0] or "Member").strip()
+        dob_str = str(member[1] or "").strip()
+        fam_name = str(member[2] or "").strip()
+
+        # Format birthday as e.g. "14 May"
+        bday_display = dob_str
+        try:
+            parts = dob_str.split("-")
+            if len(parts) == 3 and parts[1].isdigit() and parts[2].isdigit():
+                bday_obj = date(2000, int(parts[1]), int(parts[2]))
+                bday_display = f"{bday_obj.day} {bday_obj:%b}"
+        except (ValueError, IndexError):
+            pass
+
+        # Extract family code if present
+        fam_code_match = re.search(r"\(([A-Za-z][0-9]{3})\)", fam_name)
+        fam_code = fam_code_match.group(1).upper() if fam_code_match else ""
+
+        code_text = (
+            RichTextButton(button=RichMessageButton(
+                text=cast(RichText, fam_code),
+                style=ButtonStyle.LINK,
+                callback_data=f"related_family:{fam_code}",
+            ))
+            if fam_code else cast(RichText, "—")
+        )
+
+        table_cells.append([
+            RichBlockTableCell(text=cast(RichText, person_name)),
+            RichBlockTableCell(text=cast(RichText, bday_display), align="center"),
+            RichBlockTableCell(text=cast(RichText, code_text), align="center"),
+        ])
+
+    blocks.extend([
+        InputRichBlockTable(cells=table_cells, is_striped=True, is_compact=True),
+        InputRichBlockFooter(text=cast(RichText, "Tap a family code to view the household profile.")),
     ])
     return InputRichMessage(blocks=blocks)
 

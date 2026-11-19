@@ -1,5 +1,7 @@
 import asyncio
+from datetime import date
 import logging
+import re
 
 import aiofiles
 from pyrogram import Client, errors, filters
@@ -166,35 +168,56 @@ async def help_handler(client: Client, message: Message):
 # -------------------------------------------------
 @Client.on_message(filters.command(["year"]))
 @loggers.async_log_access
+@bot_auth.async_member_only
 async def members_born_after_year_handler(client: Client, message: Message):
     if len(message.command) == 1:
-        msg = "Please enter the year you want to view\ne.g. '/year 2020'"
+        msg = "Please enter the year you want to view\ne.g. `/year 2015`"
         await message.reply_text(msg, reply_markup=keyboards.back_to_main_keyboard)
         return
     year = message.command[1]
-    if utils.is_valid_year(year):
-        result = db.get_members_born(year)
-        if result:
-            msg_parts = [
-                f"**Members Born on {year}** ({len(result)})\n➖➖➖➖➖➖➖➖"
-            ]
-            for member in result:
-                member_parts = [
-                    f"\n**{member[0]}**\n",
-                    f"({member[1]})\n",
-                    f"{member[2]}\n",
-                ]
-                member_parts += [f"{member[i]}\n" for i in range(3, 6) if member[i]]
-                msg_parts.append("".join(member_parts))
-            await message.reply_text(
-                "".join(msg_parts), reply_markup=keyboards.back_to_main_keyboard
-            )
-        else:
-            msg = f"No members born on {year}"
-            await message.reply_text(msg)
-    else:
-        msg = "Please enter a valid 4 digit year to search"
+    if not utils.is_valid_year(year):
+        msg = "Please enter a valid 4-digit year to search (e.g. `/year 2015`)."
         await message.reply_text(msg, quote=True)
+        return
+
+    result = db.get_members_born(year)
+    if not result:
+        await message.reply_text(f"No members found born in {year}.", reply_markup=keyboards.back_to_main_keyboard)
+        return
+
+    chat_id = message.from_user.id
+    current_year = date.today().year
+    try:
+        age = current_year - int(year)
+        age_str = f"Turning {age} yrs in {current_year}" if age >= 0 else ""
+    except ValueError:
+        age_str = ""
+
+    fallback_lines = [
+        f"**Members Born in {year}** ({len(result)})",
+    ]
+    if age_str:
+        fallback_lines.append(age_str)
+    fallback_lines.append("➖➖➖➖➖➖➖➖➖➖")
+    for member in result:
+        bday = member[1] or ""
+        fam_code_match = re.search(r"\(([A-Za-z][0-9]{3})\)", member[2] or "")
+        code_str = f" ({fam_code_match.group(1).upper()})" if fam_code_match else ""
+        fallback_lines.append(f"• **{member[0]}** - {bday}{code_str}")
+
+    try:
+        rich_card = keyboards.get_rich_members_born_year(year, result)
+        await client.send_rich_message(
+            chat_id,
+            rich_card,
+            reply_markup=keyboards.back_to_main_keyboard,
+        )
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected rich members born year; sending plain text")
+        await message.reply_text(
+            "\n".join(fallback_lines),
+            reply_markup=keyboards.back_to_main_keyboard,
+        )
 
 
 # -------------------------------------------------

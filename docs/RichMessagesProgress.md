@@ -149,6 +149,15 @@ All redesigned screens adhere to the following patterns established in the initi
 
 ---
 
+- [x] **Members Born in Year (`/year <YYYY>`)**
+  - *Location:* [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
+  - *Design:*
+    - **Header & Age Context:** Title showing birth year (`🎂`) with calculated current age (`Turning X yrs in YYYY`) and matching parishioner count.
+    - **Compact 3-Column Table:** Striped table detailing Parishioner name, Birthday (`DD Mon`), and centered interactive family code button (`related_family:<fam_code>`).
+    - **Access Control & Fallback:** Protected with `@bot_auth.async_member_only`, with clean plain text fallback for older clients and `[ 🔙 Return to Main menu ]`.
+
+---
+
 ## 3. Remaining Screens Identified for Redesign
 
 All planned core screens across Groups A, B, C, and D are now fully converted to Telegram's Rich Message format!
