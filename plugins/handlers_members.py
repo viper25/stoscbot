@@ -1,5 +1,6 @@
 import logging
 import math
+from collections.abc import Iterable
 from datetime import date
 from typing import cast
 
@@ -28,6 +29,33 @@ def dynamic_data_filter(data):
     )
 
 
+async def _send_celebration_list(
+    client: Client, chat_id: int, heading: str, rows: Iterable[tuple[str, str, str]],
+) -> None:
+    text_lines = [heading, ""]
+    rich_rows: list[str | types.RichText] = []
+    for code, name, years in rows:
+        code = code.strip()
+        name = name.strip()
+        text_lines.append(f"• {name} ({code}) - {years}")
+        if rich_rows:
+            rich_rows.append("\n")
+        rich_rows.extend([f"• {name} (", family_profile.family_code_link(code), f") - {years}"])
+
+    rich = types.InputRichMessage(blocks=[
+        types.InputRichBlockParagraph(text=types.RichTextBold(cast(types.RichText, heading))),
+        types.InputRichBlockParagraph(text=cast(types.RichText, rich_rows)),
+    ])
+    try:
+        await client.send_rich_message(chat_id, rich, reply_markup=keyboards.back_to_members_keyboard)
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected the rich celebration list; sending plain text")
+        await client.send_message(
+            chat_id, "\n".join(text_lines), parse_mode=enums.ParseMode.DISABLED,
+            reply_markup=keyboards.back_to_members_keyboard,
+        )
+
+
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Member Birthday Today Button"))
 @loggers.async_log_access
@@ -39,54 +67,33 @@ async def get_today_bdays(client: Client, query: CallbackQuery):
         await utils.edit_and_send_msg(query, "No Birthdays today", keyboards.back_to_members_keyboard)
         return
 
-    heading = "Birthdays today 🎂"
-    text_lines = [heading, ""]
-    rich_rows: list[str | types.RichText] = []
     current_year = date.today().year
+    rows = []
     for code, name, birthday, _ in result:
-        code = code.strip()
-        name = name.strip()
         parts = birthday.split("/")
         year = int(parts[2]) if len(parts) == 3 and parts[2].isdecimal() else 0
         age = str(current_year - year) if 0 < year <= current_year else "NA"
-        text_lines.append(f"• {name} ({code}) - {age}")
-        if rich_rows:
-            rich_rows.append("\n")
-        rich_rows.extend([f"• {name} (", family_profile.family_code_link(code), f") - {age}"])
-
-    rich = types.InputRichMessage(blocks=[
-        types.InputRichBlockParagraph(text=types.RichTextBold(cast(types.RichText, heading))),
-        types.InputRichBlockParagraph(text=cast(types.RichText, rich_rows)),
-    ])
-    chat_id = query.from_user.id
-    try:
-        await client.send_rich_message(chat_id, rich, reply_markup=keyboards.back_to_members_keyboard)
-    except RichMessageUnsupported:
-        logger.warning("Telegram rejected the rich birthday list; sending plain text")
-        await client.send_message(
-            chat_id, "\n".join(text_lines), parse_mode=enums.ParseMode.DISABLED,
-            reply_markup=keyboards.back_to_members_keyboard,
-        )
+        rows.append((code, name, age))
+    await _send_celebration_list(client, query.from_user.id, "Birthdays today 🎂", rows)
 
 
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Member Anniversary Today Button"))
 @loggers.async_log_access
+@bot_auth.async_member_only
 async def get_today_anniversaries(client: Client, query: CallbackQuery):
     await query.answer()
     _, _, result = db.get_anniversaries('d')
+    if not result:
+        await utils.edit_and_send_msg(query, "No Wedding Anniversary today", keyboards.back_to_members_keyboard)
+        return
+
     current_year = date.today().year
-    if len(result) == 0:
-        msg = "No Wedding Anniversary today"
-    else:
-        msg_parts = [">**Wedding Anniversary's today** 💍\n\n"]
-        for _item in result:
-            name = _item[1].strip()
-            code = _item[0].strip()
-            anniversary_years = current_year - _item[2].year
-            msg_parts.append(f"• {name} `({code})` - {anniversary_years if anniversary_years else 'NA'}\n")
-        msg = "".join(msg_parts)
-    await utils.edit_and_send_msg(query, msg, keyboards.back_to_members_keyboard)
+    rows = [
+        (code, name, str(current_year - wedding.year) if wedding.year != 1900 and wedding.year < current_year else "NA")
+        for code, name, wedding in result
+    ]
+    await _send_celebration_list(client, query.from_user.id, "Wedding anniversaries today 💍", rows)
 
 
 # --------------------------------------------------
