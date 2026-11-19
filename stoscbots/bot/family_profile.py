@@ -277,3 +277,162 @@ async def send_family_profile(
     finally:
         if photo:
             photo.close()
+
+
+def _person_photo(person_id: int | str) -> BytesIO | None:
+    """Fetch an uploadable person photo, if the CRM has one."""
+    try:
+        response = utils.fetch_crm_profile_photo(f"person/{person_id}")
+        if response.status_code in (204, 404):
+            return None
+        response.raise_for_status()
+    except RequestException as exc:
+        logger.warning("Could not fetch person profile photo: %s", type(exc).__name__)
+        return None
+
+    content = response.content
+    if content.startswith(b"\x89PNG\r\n\x1a\n"):
+        extension = "png"
+    elif content.startswith(b"\xff\xd8\xff"):
+        extension = "jpg"
+    else:
+        if content:
+            logger.warning("CRM returned an unsupported person profile photo")
+        return None
+
+    photo = BytesIO(content)
+    photo.name = f"person.{extension}"
+    return photo
+
+
+async def send_person_profile(
+    client: Client,
+    chat_id: int,
+    person_row: list,
+    person_id: int | str,
+    reply_markup: types.InlineKeyboardMarkup | None = None,
+) -> None:
+    """Build and send the rich individual member profile card."""
+    def _safe(idx: int) -> str:
+        return str(person_row[idx] or "").strip() if len(person_row) > idx and person_row[idx] is not None else ""
+
+    full_name = _safe(0) or "Member"
+    fam_name = _safe(1)
+    nickname = _safe(2)
+    profession = _safe(3)
+    email = _safe(5) or _safe(6)
+    cellphone = _safe(7)
+    dob = _safe(8)
+    fam_code = _safe(9)
+    address1 = _safe(10)
+    address2 = _safe(11)
+    zip_code = _safe(12)
+
+    title = f"{full_name} ({nickname})" if nickname else full_name
+    family_link = family_code_link(fam_code) if fam_code else _rich_text("—")
+
+    photo = await asyncio.to_thread(_person_photo, person_id)
+
+    header_parts: list[str | types.RichText] = [
+        types.RichTextBold(text=_rich_text(title)),
+    ]
+    if fam_name or fam_code:
+        header_parts.append("\nMember profile · Family: ")
+        if fam_name:
+            header_parts.append(types.RichTextBold(text=_rich_text(fam_name)))
+        if fam_code:
+            header_parts.extend([" (", family_link, ")"])
+    else:
+        header_parts.append("\nMember profile")
+
+    blocks: list[types.InputRichBlock] = [
+        types.InputRichBlockParagraph(text=_rich_text(header_parts)),
+    ]
+
+    photo_block = types.InputRichBlockPhoto(photo=types.InputMediaPhoto(photo)) if photo else None
+    if photo_block:
+        blocks.append(photo_block)
+
+    # Personal info block
+    info_lines: list[str | types.RichText] = []
+    if profession:
+        info_lines.extend([types.RichTextBold(text=_rich_text("Profession: ")), profession, "\n"])
+    if cellphone:
+        wa_link = types.RichTextUrl(text=_rich_text(f"+65 {cellphone}"), url=f"https://wa.me/65{cellphone}")
+        info_lines.extend([types.RichTextBold(text=_rich_text("Mobile: ")), wa_link, "\n"])
+    if email:
+        mail_link = types.RichTextEmailAddress(text=_rich_text(email), email_address=email)
+        info_lines.extend([types.RichTextBold(text=_rich_text("Email: ")), mail_link, "\n"])
+    if dob and dob != "0000-00-00" and not dob.startswith("-"):
+        info_lines.extend([types.RichTextBold(text=_rich_text("Date of Birth: ")), dob, "\n"])
+
+    if info_lines:
+        if info_lines[-1] == "\n":
+            info_lines.pop()
+        blocks.append(types.InputRichBlockParagraph(text=_rich_text(info_lines)))
+
+    # Address & map section
+    address_parts = [part for part in (address1, address2, f"Singapore {zip_code}" if zip_code else "") if part]
+    full_address = ", ".join(address_parts)
+    address_blocks: list[types.InputRichBlock] = []
+    if full_address:
+        address_blocks.append(types.InputRichBlockParagraph(text=_rich_text([
+            types.RichTextBold(text=_rich_text("Address: ")), full_address,
+        ])))
+    if zip_code:
+        map_block = _family_map(zip_code)
+        if map_block:
+            address_blocks.append(map_block)
+
+    if address_blocks:
+        blocks.append(types.InputRichBlockDetails(
+            summary=_rich_text("Address & Location"),
+            blocks=address_blocks,
+            is_open=False,
+        ))
+
+    default_markup = types.InlineKeyboardMarkup([
+        [
+            types.InlineKeyboardButton("👨‍👩‍👧‍👦 View Family Profile", callback_data=f"{RELATED_FAMILY_PREFIX}{fam_code}"),
+            types.InlineKeyboardButton("🔙 Return to Main menu", callback_data="Main Menu"),
+        ]
+    ]) if fam_code else types.InlineKeyboardMarkup([[types.InlineKeyboardButton("🔙 Return to Main menu", callback_data="Main Menu")]])
+
+    markup = reply_markup or default_markup
+    extra: dict[str, object] = {"reply_markup": markup}
+
+    async def send_rich() -> None:
+        await client.send_rich_message(chat_id, types.InputRichMessage(blocks=blocks), **extra)
+
+    try:
+        try:
+            await send_rich()
+        except PHOTO_ERRORS:
+            if photo_block is None:
+                raise
+            logger.warning("Telegram rejected person profile photo; retrying without it")
+            blocks.remove(photo_block)
+            await send_rich()
+    except errors.RichMessageUnsupported:
+        logger.warning("Telegram rejected rich formatting; sending person profile as text")
+        fallback_lines = [title]
+        if fam_name or fam_code:
+            fallback_lines.append(f"Family: {fam_name} ({fam_code})")
+        if profession:
+            fallback_lines.append(f"Profession: {profession}")
+        if cellphone:
+            fallback_lines.append(f"Mobile: +65 {cellphone}")
+        if email:
+            fallback_lines.append(f"Email: {email}")
+        if dob:
+            fallback_lines.append(f"DOB: {dob}")
+        if full_address:
+            fallback_lines.append(f"Address: {full_address}")
+        await client.send_message(
+            chat_id, "\n".join(fallback_lines),
+            link_preview_options=types.LinkPreviewOptions(is_disabled=True),
+            **extra,
+        )
+    finally:
+        if photo:
+            photo.close()

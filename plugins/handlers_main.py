@@ -221,16 +221,29 @@ async def member_search_cmd_handler(client: Client, message: Message):
         if not result or len(result) == 0:
             await message.reply_text("No such Member", quote=True)
         elif len(result) >= 1:
-            msg = f"🔎 Search results for `{message.command[1]}`\n"
-            msg += "➖➖➖➖➖➖➖➖➖➖➖"
-            msg += "`\n⚡ = Head of Family`"
-            msg += "`\n👦🏻 = Boy   👧🏻 = Girl`"
-            msg += "`\n🧔🏻 = Man   👩🏻 = Woman`"
-            await message.reply_text(
-                msg,
-                reply_markup=keyboards.get_member_listing_keyboard(result),
-                link_preview_options=LinkPreviewOptions(is_disabled=True),
+            query_str = message.command[1]
+            chat_id = message.from_user.id
+            listing_kb = keyboards.get_member_listing_keyboard(result)
+            fallback = (
+                f"🔎 Search results for `{query_str}`\n"
+                "➖➖➖➖➖➖➖➖➖➖➖\n"
+                "`🏠 = Head of Household`\n"
+                "`🌱 = Child`"
             )
+            try:
+                rich_card = keyboards.get_rich_member_search_results(query_str, result)
+                await client.send_rich_message(
+                    chat_id,
+                    rich_card,
+                    reply_markup=keyboards.back_to_main_keyboard,
+                )
+            except RichMessageUnsupported:
+                logger.warning("Telegram rejected rich member search results; sending plain text")
+                await message.reply_text(
+                    fallback,
+                    reply_markup=listing_kb,
+                    link_preview_options=LinkPreviewOptions(is_disabled=True),
+                )
 
 
 # -------------------------------------------------
@@ -256,18 +269,8 @@ async def mobile_search_cmd_handler(client: Client, message: Message):
     if not result or len(result) == 0:
         await message.reply_text("No STOSC member has that number", quote=True)
     else:
-        if not result or len(result) == 0:
-            await message.reply_text("No such Member", quote=True)
-        elif len(result) >= 1:
-            msg = utils.generate_profile_msg_for_family(result)
-            await utils.send_profile_address_and_pic(
-                client,
-                message,
-                msg,
-                result,
-                searched_person=None,
-                searched_person_name=None,
-            )
+        for row in result:
+            await family_profile.send_family_profile(client, message.from_user.id, row)
 
 
 # ==================================================
@@ -545,16 +548,17 @@ async def show_streaming_menu(client: Client, query: CallbackQuery):
 # Handler for buttons generated from /u MyName search command
 @Client.on_callback_query(dynamic_data_filter2("Member_"))
 @loggers.async_log_access
+@bot_auth.async_member_only
 async def member_search_button_handler(client: Client, query: CallbackQuery):
     await query.answer()
     person_ID = query.data.split("_")[2]
     result = db.get_member_details(person_ID, "person")
-    msg = utils.generate_profile_msg_for_member(result)
-    await utils.send_profile_address_and_pic(
+    if not result:
+        await client.send_message(query.from_user.id, "No member details found.")
+        return
+    await family_profile.send_person_profile(
         client,
-        query,
-        msg,
-        result,
-        query.data.split("_")[2],
-        db.get_person_name(person_ID)[0][0],
+        query.from_user.id,
+        result[0],
+        person_ID,
     )

@@ -125,18 +125,30 @@ All redesigned screens adhere to the following patterns established in the initi
 
 ---
 
-## 3. Remaining Screens Identified for Redesign
+- [x] **Free Text / Name Search Results (`/u <name>`)**
+  - *Location:* [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
+  - *Design:*
+    - **Header & Match Count:** Search banner showing query and total matching parishioner count.
+    - **Interactive 2-Column Table:** Clean 2-column table (`Parishioner` and `Code`) eliminating awkward name wrapping and redundant family names.
+    - **Direct Tap Links:** Tapping any parishioner's name directly opens their individual profile (`Member_<fam>_<person_id>`); tapping the family code opens the household profile (`related_family:<fam_code>`).
+    - **Strict Left Name Alignment with Right-Side Indicators:** All names are perfectly left-aligned at column 0. Head of Household is marked with `🏠` on the right (e.g. `Anish Mathew Samuel 🏠`), and dependent children are marked with `🌱` on the right (e.g. `Annika Mathew 🌱`), completely avoiding prefix indentation jitter and ugly line wrapping.
+    - **Clean Navigation:** Streamlined bottom keyboard with only `[ 🔙 Return to Main menu ]`, removing duplicate button bloat.
+
+- [x] **Individual Member Card (`Member_<fam>_<id>` button callback)**
+  - *Location:* [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), [family_profile.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/family_profile.py)
+  - *Design:*
+    - **Header:** Member name with nickname in parenthesis and family name with tappable family code link.
+    - **Individual Photo:** CRM person photo (`InputRichBlockPhoto`) fetched dynamically with automated fallback if unsupported.
+    - **Personal & Contact Info:** Profession, WhatsApp mobile link (`https://wa.me/65...`), tap-to-email link (`mailto:`), and date of birth.
+    - **Collapsible Address & Location:** Collapsible drawer with OneMap interactive static map block and formatted address.
+    - **Action Keyboard:** Direct button to view household family profile (`[ 👨‍👩‍👧‍👦 View Family Profile ]`) and return to main menu.
+
+- [x] **Mobile Search (`/t <phone>`)**
+  - *Location:* [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), [family_profile.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/family_profile.py)
+  - *Design:* Direct lookup by Singapore telephone number rendering the rich family profile card (`send_family_profile`) with household roster, photo, and interactive location drawer.
 
 ---
 
-### Group D: Member Directory & Search
+## 3. Remaining Screens Identified for Redesign
 
-- [ ] **Free Text / Name Search Results (`/u <name>`)**
-  - *Handler:* `member_search_cmd_handler` in [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py)
-  - *Current State:* Generates individual inline keyboard buttons for each matching person.
-  - *Proposed Redesign:* When multiple matches are found, display a compact table or rich list of matching names, family codes, and prayer groups, with direct tap actions to open their profile.
-
-- [ ] **Individual Member Card (`Member_<id>` button callback)**
-  - *Handler:* `member_search_button_handler` in [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py)
-  - *Current State:* Calls `utils.generate_profile_msg_for_member()` and `utils.send_profile_address_and_pic()`.
-  - *Proposed Redesign:* Structured individual card showing person details, individual photo if available, contact info, and link to their household family card.
+All planned core screens across Groups A, B, C, and D are now fully converted to Telegram's Rich Message format!

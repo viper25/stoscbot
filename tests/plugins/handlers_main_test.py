@@ -585,4 +585,192 @@ async def test_show_services_menu_fallback():
     assert client.send_message.await_args.kwargs["reply_markup"] is keyboards.services_menu_keyboard
 
 
+@pytest.fixture
+def member_search_result_row():
+    row = [None] * 26
+    row[1] = "T001"
+    row[2] = "Thomas Family"
+    row[22] = 1  # Male
+    row[23] = 1  # Head
+    row[24] = "Thomas Mathew"
+    row[25] = 101
+    return row
+
+
+@pytest.fixture
+def person_row():
+    return [
+        "Thomas Mathew",        # 0: Name
+        "Thomas Family",        # 1: fam_Name
+        "Tom",                  # 2: Nickname
+        "Software Engineer",    # 3: Profession
+        1,                      # 4: per_Gender
+        "thomas@example.com",   # 5: per_Email
+        "family@example.com",   # 6: fam_Email
+        "91234567",             # 7: CellPhone
+        "1985-05-20",           # 8: DOB
+        "T001",                 # 9: fam_Code
+        "123 Orchard Rd",       # 10: Address1
+        "#08-01",               # 11: Address2
+        "238888",               # 12: Zip
+        "A001, B002",           # 13: Related Families
+        True,                   # 14: Electoral Roll
+    ]
+
+
+@pytest.mark.asyncio
+async def test_member_search_free_text_rich(monkeypatch, member_search_result_row):
+    child_row = list(member_search_result_row)
+    child_row[23] = 3  # Child role
+    child_row[24] = "Annika Mathew"
+    child_row[25] = 102
+
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    monkeypatch.setattr(handlers_main.db, "get_member_details", lambda _q, _t: [member_search_result_row, child_row])
+
+    client = SimpleNamespace(send_rich_message=AsyncMock(), send_message=AsyncMock())
+    message = SimpleNamespace(
+        command=["u", "Thomas"],
+        from_user=SimpleNamespace(id=42),
+        chat=SimpleNamespace(id=-100),
+    )
+
+    await handlers_main.member_search_cmd_handler.__wrapped__(client, message)
+
+    client.send_rich_message.assert_awaited_once()
+    chat_id, rich = client.send_rich_message.await_args.args
+    assert chat_id == 42
+    assert client.send_rich_message.await_args.kwargs["reply_markup"] is keyboards.back_to_main_keyboard
+    serialized = await rich.write(client=None)
+    assert len(serialized.blocks) == 3  # Header, Table, Footer
+    assert "Directory Search Results" in repr(serialized.blocks[0].text)
+    table_repr = repr(serialized.blocks[1])
+    assert "Thomas Mathew 🏠" in table_repr
+    assert "Annika Mathew 🌱" in table_repr
+    assert "T001" in table_repr
+    assert "Member_T001_101" in table_repr
+    assert "Member_T001_102" in table_repr
+    assert "related_family:T001" in table_repr
+
+
+@pytest.mark.asyncio
+async def test_member_search_free_text_fallback(monkeypatch, member_search_result_row):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    monkeypatch.setattr(handlers_main.db, "get_member_details", lambda _q, _t: [member_search_result_row])
+
+    client = SimpleNamespace(
+        send_rich_message=AsyncMock(side_effect=errors.RichMessageUnsupported()),
+        send_message=AsyncMock(),
+    )
+    message = SimpleNamespace(
+        command=["u", "Thomas"],
+        from_user=SimpleNamespace(id=42),
+        chat=SimpleNamespace(id=-100),
+        reply_text=AsyncMock(),
+    )
+
+    await handlers_main.member_search_cmd_handler.__wrapped__(client, message)
+
+    message.reply_text.assert_awaited_once()
+    text = message.reply_text.await_args.args[0]
+    assert "Search results for `Thomas`" in text
+
+
+@pytest.mark.asyncio
+async def test_mobile_search_cmd_handler(monkeypatch, family_row):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    monkeypatch.setattr(handlers_main.db, "get_member_details", lambda _q, _t: [family_row])
+    send_card = AsyncMock()
+    monkeypatch.setattr(family_profile, "send_family_profile", send_card)
+
+    client = SimpleNamespace()
+    message = SimpleNamespace(
+        command=["t", "91234567"],
+        from_user=SimpleNamespace(id=42),
+        chat=SimpleNamespace(id=-100),
+    )
+
+    await handlers_main.mobile_search_cmd_handler.__wrapped__(client, message)
+
+    send_card.assert_awaited_once_with(client, 42, family_row)
+
+
+@pytest.mark.asyncio
+async def test_member_search_button_handler(monkeypatch, person_row):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    monkeypatch.setattr(handlers_main.db, "get_member_details", lambda _id, _t: [person_row])
+    send_person = AsyncMock()
+    monkeypatch.setattr(family_profile, "send_person_profile", send_person)
+
+    client = SimpleNamespace()
+    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="Member_T001_101")
+    query.answer = AsyncMock()
+
+    await handlers_main.member_search_button_handler.__wrapped__(client, query)
+
+    query.answer.assert_awaited_once()
+    send_person.assert_awaited_once_with(client, 42, person_row, "101")
+
+
+@pytest.mark.asyncio
+async def test_send_person_profile_rich(monkeypatch, person_row):
+    monkeypatch.setattr(family_profile, "_person_photo", lambda _id: None)
+    monkeypatch.setattr(utils, "get_address_details", lambda _zip: ("1.3521", "103.8198"))
+
+    client = SimpleNamespace(send_rich_message=AsyncMock(), send_message=AsyncMock())
+    await family_profile.send_person_profile(client, 42, person_row, 101)
+
+    client.send_rich_message.assert_awaited_once()
+    chat_id, rich = client.send_rich_message.await_args.args
+    assert chat_id == 42
+    serialized = await rich.write(client=None)
+    repr_str = repr(serialized.blocks)
+    assert "Thomas Mathew" in repr_str
+    assert "Software Engineer" in repr_str
+    assert "thomas@example.com" in repr_str
+    assert "91234567" in repr_str
+    assert "123 Orchard Rd" in repr_str
+
+
+@pytest.mark.asyncio
+async def test_send_person_profile_photo_retry(monkeypatch, person_row):
+    photo = BytesIO(b"person photo")
+    monkeypatch.setattr(family_profile, "_person_photo", lambda _id: photo)
+    monkeypatch.setattr(utils, "get_address_details", lambda _zip: None)
+
+    layouts = []
+
+    async def send_rich(chat_id, rich, **kwargs):
+        layouts.append([type(block).__name__ for block in rich.blocks])
+        if len(layouts) == 1:
+            raise errors.PhotoInvalidDimensions()
+
+    client = SimpleNamespace(send_rich_message=send_rich, send_message=AsyncMock())
+    await family_profile.send_person_profile(client, 42, person_row, 101)
+
+    assert layouts[0][:2] == ["InputRichBlockParagraph", "InputRichBlockPhoto"]
+    assert layouts[1][1] != "InputRichBlockPhoto"
+    assert photo.closed
+
+
+@pytest.mark.asyncio
+async def test_send_person_profile_fallback(monkeypatch, person_row):
+    monkeypatch.setattr(family_profile, "_person_photo", lambda _id: None)
+    monkeypatch.setattr(utils, "get_address_details", lambda _zip: None)
+    client = SimpleNamespace(
+        send_rich_message=AsyncMock(side_effect=errors.RichMessageUnsupported()),
+        send_message=AsyncMock(),
+    )
+
+    await family_profile.send_person_profile(client, 42, person_row, 101)
+
+    client.send_message.assert_awaited_once()
+    chat_id, text = client.send_message.await_args.args
+    assert chat_id == 42
+    assert "Thomas Mathew" in text
+    assert "Software Engineer" in text
+    assert "91234567" in text
+
+
+
 

@@ -19,6 +19,7 @@ from pyrogram.types import (
     RichMessageButton,
     RichText,
     RichTextBold,
+    RichTextButton,
     RichTextCode,
     RichTextEmailAddress,
     WebAppInfo,
@@ -1284,6 +1285,84 @@ def get_icon(item):
     icon += gender_icon_map.get((item[22], age_group), '')
 
     return icon
+
+
+def format_search_parishioner_name(item) -> str:
+    """Format member name for search results: strictly left-aligned names with right-side status indicators."""
+    person_name = str(item[24] if len(item) > 24 and item[24] else "Member")
+    is_head = len(item) > 23 and item[23] == 1
+
+    is_kid = False
+    if len(item) > 23 and item[23] == 3:
+        is_kid = True
+    elif len(item) > 20 and item[20]:
+        try:
+            year_str = str(item[20]).split("-")[0]
+            if year_str.isdigit():
+                age = date.today().year - int(year_str)
+                if age <= 18:
+                    is_kid = True
+        except (ValueError, IndexError):
+            pass
+
+    if is_head:
+        return f"{person_name} 🏠"
+    if is_kid:
+        return f"{person_name} 🌱"
+    return person_name
+
+
+def get_rich_member_search_results(query_str: str, results: list) -> InputRichMessage:
+    count = len(results)
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Directory Search Results 🔎")),
+            "\nQuery: ", RichTextCode(cast(RichText, query_str)),
+            f" · Found {count} parishioner{'s' if count != 1 else ''}.",
+        ])),
+    ]
+
+    header_cells = [
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Parishioner")))),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Code"))), align="center"),
+    ]
+    table_cells: list[list[RichBlockTableCell]] = [header_cells]
+
+    for item in results:
+        fam_code = str(item[1] if len(item) > 1 and item[1] else "")
+        person_id = str(item[25] if len(item) > 25 and item[25] else "")
+        display_name = format_search_parishioner_name(item)
+
+        # Tap person name to view member profile
+        if person_id and fam_code:
+            member_cell_text = RichTextButton(button=RichMessageButton(
+                text=cast(RichText, display_name),
+                style=ButtonStyle.LINK,
+                callback_data=f"Member_{fam_code}_{person_id}",
+            ))
+        else:
+            member_cell_text = cast(RichText, display_name)
+
+        # Tap family code to view family profile
+        if fam_code:
+            code_cell_text = RichTextButton(button=RichMessageButton(
+                text=cast(RichText, fam_code),
+                style=ButtonStyle.LINK,
+                callback_data=f"related_family:{fam_code.upper()}",
+            ))
+        else:
+            code_cell_text = cast(RichText, "—")
+
+        table_cells.append([
+            RichBlockTableCell(text=cast(RichText, member_cell_text)),
+            RichBlockTableCell(text=cast(RichText, code_cell_text), align="center"),
+        ])
+
+    blocks.extend([
+        InputRichBlockTable(cells=table_cells, is_striped=True, is_compact=True),
+        InputRichBlockFooter(text=cast(RichText, "🏠 Head of Household · 🌱 Child\nTap any name to view profile, or code for family card.")),
+    ])
+    return InputRichMessage(blocks=blocks)
 
 
 def get_member_listing_keyboard(results):
