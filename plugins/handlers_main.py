@@ -3,6 +3,7 @@ import logging
 
 import aiofiles
 from pyrogram import Client, filters
+from pyrogram.errors import RichMessageUnsupported
 from pyrogram.types import CallbackQuery, LinkPreviewOptions, Message
 
 from stoscbots.bot import family_profile, keyboards
@@ -12,6 +13,15 @@ from stoscbots.util.loggers import LOGLEVEL
 
 logger = logging.getLogger("Handler.Main")
 logger.setLevel(LOGLEVEL)
+
+
+async def _send_home(client: Client, chat_id: int) -> None:
+    keyboard = keyboards.get_main_keyboard(chat_id)
+    try:
+        await client.send_rich_message(chat_id, keyboards.get_rich_main_menu(keyboard))
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected the rich home menu; sending the inline keyboard")
+        await client.send_message(chat_id, "What would you like to do?", reply_markup=keyboard)
 
 
 # ==================================================
@@ -88,10 +98,7 @@ async def start_handler(client: Client, message: Message):
         else:
             await message.reply_text("Sorry try again")
     else:
-        msg = "What would you like to do?\n Select an option:"
-        await message.reply_text(
-            msg, reply_markup=keyboards.get_main_keyboard(message.from_user.id)
-        )
+        await _send_home(client, message.from_user.id)
 
 
 # -------------------------------------------------
@@ -304,12 +311,10 @@ async def related_family_handler(client: Client, query: CallbackQuery):
 
 @Client.on_callback_query(dynamic_data_filter1("Main Menu"))
 @loggers.async_log_access
+@bot_auth.async_member_only
 async def show_main_menu(client: Client, query: CallbackQuery):
     await query.answer()
-    msg = "➖➖**Main Menu**➖➖"
-    await query.message.reply_text(
-        msg, reply_markup=keyboards.get_main_keyboard(query.from_user.id)
-    )
+    await _send_home(client, query.from_user.id)
 
 
 # -------------------------------------------------

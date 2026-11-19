@@ -5,36 +5,84 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 from pyrogram import enums, errors, raw
-from pyrogram.types import CallbackQuery
+from pyrogram.types import CallbackQuery, RichMessage
 
 from plugins import handlers_main
 from stoscbots.bot import family_profile
 from stoscbots.util import bot_auth, utils
-from stoscbots.util.utils import generate_profile_msg_for_family
-from tests.mocks import *
+from tests.mocks import msg, telegram_client, telegram_member_non
 
 
 @pytest.mark.asyncio
-async def test_start_handler(monkeypatch):
-    async def fake_send_message(*_args, **_kwargs):
-        return None
-
-    async def fake_send_sticker(*_args, **_kwargs):
-        return None
-
-    async def fake_reply_text(*_args, **_kwargs):
-        return None
-
-    monkeypatch.setattr(telegram_client, "send_message", fake_send_message, raising=False)
-    monkeypatch.setattr(telegram_client, "send_sticker", fake_send_sticker, raising=False)
-    monkeypatch.setattr(msg, "reply_text", fake_reply_text, raising=False)
+@pytest.mark.parametrize("role", ["member", "committee", "admin"])
+async def test_start_handler(monkeypatch, role):
     monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
-    monkeypatch.setattr(bot_auth, "get_super_admin_id", lambda: "1234")
+    monkeypatch.setattr(bot_auth, "is_mgmt_member", lambda _id: role == "committee")
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda _id: role == "admin")
+    client = SimpleNamespace(send_rich_message=AsyncMock(), send_message=AsyncMock())
+    message = SimpleNamespace(command=["start"], from_user=SimpleNamespace(id=42))
+    await handlers_main.start_handler.__wrapped__(client, message)
 
-    msg.command = ["start"]
-    msg.from_user = telegram_member_mc
-    await handlers_main.start_handler(telegram_client, msg)
-    assert 1 == 1
+    client.send_rich_message.assert_awaited_once()
+    chat_id, rich = client.send_rich_message.await_args.args
+    assert chat_id == 42
+    assert not client.send_rich_message.await_args.kwargs
+    _, shortcuts, community, *restricted = (await rich.write(client=None)).blocks
+
+    def callbacks(rows):
+        return [button.type.data for row in rows for button in row.buttons]
+
+    assert callbacks([shortcuts]) == [b"My Details Menu", b"Members Menu", b"PayNow Menu"]
+    assert shortcuts.buttons[0].style.bg_primary
+    assert community.title.text == "Community" and not community.open
+    assert callbacks(community.blocks) == [b"Prayer Groups Menu", b"My Harvest Festival Menu"]
+    if role == "member":
+        assert restricted == []
+    else:
+        (committee,) = restricted
+        assert committee.title.text == "Committee tools" and not committee.open
+        expected = [b"Services Menu", b"Finance Menu", b"Streaming Menu"]
+        assert callbacks(committee.blocks) == expected + ([b"Admin Menu"] if role == "admin" else [])
+    client.send_message.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_return_home_falls_back_to_inline_keyboard(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    monkeypatch.setattr(bot_auth, "is_mgmt_member", lambda _id: False)
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda _id: False)
+    client = SimpleNamespace(
+        send_rich_message=AsyncMock(side_effect=errors.RichMessageUnsupported()),
+        send_message=AsyncMock(),
+    )
+    query = SimpleNamespace(answer=AsyncMock(), from_user=SimpleNamespace(id=42))
+    await handlers_main.show_main_menu.__wrapped__(client, query)
+
+    query.answer.assert_awaited_once()
+    client.send_rich_message.assert_awaited_once()
+    client.send_message.assert_awaited_once()
+    assert client.send_message.await_args.args[0] == 42
+    keyboard = client.send_message.await_args.kwargs["reply_markup"]
+    assert {button.callback_data for row in keyboard.inline_keyboard for button in row} == {
+        "My Details Menu", "Members Menu", "PayNow Menu", "Prayer Groups Menu", "My Harvest Festival Menu",
+    }
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("rich_home", [True, False])
+async def test_members_submenu_preserves_rich_home(rich_home):
+    message = SimpleNamespace(
+        rich_message=RichMessage(blocks=[]) if rich_home else None,
+        reply_text=AsyncMock(),
+        edit_text=AsyncMock(),
+    )
+    query = SimpleNamespace(answer=AsyncMock(), message=message)
+    await handlers_main.show_members_menu.__wrapped__(None, query)
+
+    send, unused = (message.reply_text, message.edit_text) if rich_home else (message.edit_text, message.reply_text)
+    send.assert_awaited_once()
+    assert send.await_args.kwargs["reply_markup"] is handlers_main.keyboards.members_menu_keyboard
+    unused.assert_not_awaited()
 
 
 @pytest.mark.asyncio

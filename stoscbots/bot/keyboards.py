@@ -1,6 +1,20 @@
 from datetime import date
+from typing import cast
 
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from pyrogram.enums import ButtonStyle
+from pyrogram.types import (
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InputRichBlock,
+    InputRichBlockButtons,
+    InputRichBlockDetails,
+    InputRichBlockParagraph,
+    InputRichMessage,
+    RichMessageButton,
+    RichText,
+    RichTextBold,
+    WebAppInfo,
+)
 
 from stoscbots.util import bot_auth
 
@@ -150,6 +164,58 @@ def get_main_keyboard(telegram_id):
             [__MAIN_PAYNOW_BUTTON]
         ]
     return InlineKeyboardMarkup(buttons)
+
+
+def get_rich_main_menu(keyboard: InlineKeyboardMarkup) -> InputRichMessage:
+    """Group the same role-filtered destinations used by the legacy keyboard."""
+    available = {button.callback_data for row in keyboard.inline_keyboard for button in row}
+
+    def button_row(*actions: tuple[str, str, ButtonStyle]) -> InputRichBlockButtons:
+        return InputRichBlockButtons(
+            buttons=[
+                RichMessageButton(text=cast(RichText, label), callback_data=callback, style=style)
+                for label, callback, style in actions
+            ],
+            align="left",
+        )
+
+    default = ButtonStyle.DEFAULT
+    # Kurigram's rich-text serializer accepts strings and lists despite its annotations.
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "STOSC Bot")), "\nYour church shortcuts",
+        ])),
+        button_row(
+            ("My details", "My Details Menu", ButtonStyle.PRIMARY),
+            ("Members", "Members Menu", default),
+            ("PayNow", "PayNow Menu", default),
+        ),
+        InputRichBlockDetails(
+            summary=cast(RichText, "Community"),
+            blocks=[button_row(
+                ("Prayer groups", "Prayer Groups Menu", default),
+                ("Harvest festival", "My Harvest Festival Menu", default),
+            )],
+            is_open=False,
+        ),
+    ]
+    committee_actions = [
+        (label, callback, default)
+        for label, callback in (
+            ("Services", "Services Menu"),
+            ("Finance", "Finance Menu"),
+            ("Streaming", "Streaming Menu"),
+        )
+        if callback in available
+    ]
+    committee_rows: list[InputRichBlock] = [button_row(*committee_actions)] if committee_actions else []
+    if "Admin Menu" in available:
+        committee_rows.append(button_row(("Admin", "Admin Menu", default)))
+    if committee_rows:
+        blocks.append(InputRichBlockDetails(
+            summary=cast(RichText, "Committee tools"), blocks=committee_rows, is_open=False,
+        ))
+    return InputRichMessage(blocks=blocks)
 
 
 # Dynamically generate a keyboard with prayer requests

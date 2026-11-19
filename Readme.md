@@ -24,6 +24,13 @@ uv run python run_stoscbot.py
 
 ## Run Tests
 
+For a home screen smoke test, open `/start` in a private bot chat. **My details**,
+**Members**, and **PayNow** are visible immediately. **Community** starts
+collapsed. **Committee tools** is visible only to committee members and super
+admins; **Admin** is visible only to super admins. Open a submenu, then use
+**Return to Main menu** to get the same grouped home. If Telegram rejects the
+rich message, the bot sends the original inline keyboard.
+
 For a Telegram smoke test of the **Household first** layout, use an authorized
 account and run `/u <member code>`. A compact header and the family photo appear
 first, followed by the head, spouse, children, and other household members when listed.

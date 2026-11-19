@@ -15,7 +15,7 @@ from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
 from pyrogram.enums import ParseMode
 from pyrogram.errors import BadRequest, MessageNotModified
-from pyrogram.types import CallbackQuery, InlineKeyboardMarkup, LinkPreviewOptions
+from pyrogram.types import CallbackQuery, InlineKeyboardMarkup, LinkPreviewOptions, RichMessage
 
 from stoscbots.util.loggers import LOGLEVEL
 from stoscbots.xero import xero_utils
@@ -352,9 +352,14 @@ def generate_msg_xero_member_invoices(member_code: str, year: str):
 # ----------------------------------------------------------------------------------------------------------------------
 # Send a message to a Telegram user with an optional inline keyboard
 async def edit_and_send_msg(query: CallbackQuery, msg: str, keyboard: InlineKeyboardMarkup = None):
+    preview = LinkPreviewOptions(is_disabled=True)
+    if isinstance(getattr(query.message, "rich_message", None), RichMessage):
+        # Keep the rich home card usable when opening a legacy submenu.
+        await query.message.reply_text(msg, reply_markup=keyboard, link_preview_options=preview)
+        return
     try:
         await query.message.edit_text(text=msg, reply_markup=keyboard,
-                                      link_preview_options=LinkPreviewOptions(is_disabled=True))
+                                      link_preview_options=preview)
     except MessageNotModified as e:
         logger.warning(str(e))
     except BadRequest as e:
