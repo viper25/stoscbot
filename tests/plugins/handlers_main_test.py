@@ -27,13 +27,21 @@ async def test_start_handler(monkeypatch, role):
     chat_id, rich = client.send_rich_message.await_args.args
     assert chat_id == 42
     assert not client.send_rich_message.await_args.kwargs
-    _, shortcuts, community, *restricted = (await rich.write(client=None)).blocks
+    header, shortcuts, community, *restricted, church_links = (await rich.write(client=None)).blocks
 
     def callbacks(rows):
         return [button.type.data for row in rows for button in row.buttons]
 
     assert callbacks([shortcuts]) == [b"My Details Menu", b"Members Menu", b"PayNow Menu"]
     assert shortcuts.buttons[0].style.bg_primary
+    assert header.text.texts[0].text.text == "St. Thomas Orthodox Syrian Cathedral"
+    assert isinstance(header.text.texts[-1], raw.types.TextFixed)
+    assert header.text.texts[-1].text.text == "/u A001"
+    assert [(button.text.text, button.type.url) for button in church_links.buttons] == [
+        ("Church website", "https://stosc.com/"),
+        ("Events", "https://stosc.com/calendar/"),
+        ("Livestream", "https://stosc.com/live/"),
+    ]
     assert community.title.text == "Community" and not community.open
     assert callbacks(community.blocks) == [b"Prayer Groups Menu", b"My Harvest Festival Menu"]
     if role == "member":

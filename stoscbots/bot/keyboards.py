@@ -13,6 +13,7 @@ from pyrogram.types import (
     RichMessageButton,
     RichText,
     RichTextBold,
+    RichTextCode,
     WebAppInfo,
 )
 
@@ -183,7 +184,10 @@ def get_rich_main_menu(keyboard: InlineKeyboardMarkup) -> InputRichMessage:
     # Kurigram's rich-text serializer accepts strings and lists despite its annotations.
     blocks: list[InputRichBlock] = [
         InputRichBlockParagraph(text=cast(RichText, [
-            RichTextBold(cast(RichText, "STOSC Bot")), "\nYour church shortcuts",
+            RichTextBold(cast(RichText, "St. Thomas Orthodox Syrian Cathedral")),
+            "\nSingapore · Member services",
+            "\nFind a family by code: ",
+            RichTextCode(cast(RichText, "/u A001")),
         ])),
         button_row(
             ("My details", "My Details Menu", ButtonStyle.PRIMARY),
@@ -215,6 +219,17 @@ def get_rich_main_menu(keyboard: InlineKeyboardMarkup) -> InputRichMessage:
         blocks.append(InputRichBlockDetails(
             summary=cast(RichText, "Committee tools"), blocks=committee_rows, is_open=False,
         ))
+    blocks.append(InputRichBlockButtons(
+        buttons=[
+            RichMessageButton(text=cast(RichText, label), url=url, style=ButtonStyle.LINK)
+            for label, url in (
+                ("Church website", "https://stosc.com/"),
+                ("Events", "https://stosc.com/calendar/"),
+                ("Livestream", "https://stosc.com/live/"),
+            )
+        ],
+        align="left",
+    ))
     return InputRichMessage(blocks=blocks)
 
 

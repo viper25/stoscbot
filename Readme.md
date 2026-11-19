@@ -25,7 +25,9 @@ uv run python run_stoscbot.py
 ## Run Tests
 
 For a home screen smoke test, open `/start` in a private bot chat. **My details**,
-**Members**, and **PayNow** are visible immediately. **Community** starts
+**Members**, and **PayNow** are visible immediately. The home card also shows
+a family-search example and links to the church website, events calendar, and
+livestream. **Community** starts
 collapsed. **Committee tools** is visible only to committee members and super
 admins; **Admin** is visible only to super admins. Open a submenu, then use
 **Return to Main menu** to get the same grouped home. If Telegram rejects the
