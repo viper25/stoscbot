@@ -1254,7 +1254,7 @@ def get_rich_services_menu() -> InputRichMessage:
             ],
             align="left",
         ),
-        InputRichBlockFooter(text=cast(RichText, "Cathedral Office: +65 6288 6147 · vicar@stosc.com")),
+        InputRichBlockFooter(text=cast(RichText, "vicar@stosc.com")),
     ])
     return InputRichMessage(blocks=blocks)
 
