@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 from pyrogram import enums, errors, raw
-from pyrogram.types import CallbackQuery, RichMessage
+from pyrogram.types import CallbackQuery
 
 from plugins import handlers_main
 from stoscbots.bot import family_profile
@@ -77,20 +77,39 @@ async def test_return_home_falls_back_to_inline_keyboard(monkeypatch):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("rich_home", [True, False])
-async def test_members_submenu_preserves_rich_home(rich_home):
-    message = SimpleNamespace(
-        rich_message=RichMessage(blocks=[]) if rich_home else None,
-        reply_text=AsyncMock(),
-        edit_text=AsyncMock(),
+@pytest.mark.parametrize("rich_supported", [True, False])
+async def test_members_submenu_today_first(monkeypatch, rich_supported):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    client = SimpleNamespace(
+        send_rich_message=AsyncMock(side_effect=None if rich_supported else errors.RichMessageUnsupported()),
+        send_message=AsyncMock(),
     )
-    query = SimpleNamespace(answer=AsyncMock(), message=message)
-    await handlers_main.show_members_menu.__wrapped__(None, query)
+    query = SimpleNamespace(answer=AsyncMock(), from_user=SimpleNamespace(id=42))
+    await handlers_main.show_members_menu.__wrapped__(client, query)
 
-    send, unused = (message.reply_text, message.edit_text) if rich_home else (message.edit_text, message.reply_text)
-    send.assert_awaited_once()
-    assert send.await_args.kwargs["reply_markup"] is handlers_main.keyboards.members_menu_keyboard
-    unused.assert_not_awaited()
+    query.answer.assert_awaited_once()
+    client.send_rich_message.assert_awaited_once()
+    chat_id, rich = client.send_rich_message.await_args.args
+    assert chat_id == 42
+    if not rich_supported:
+        client.send_message.assert_awaited_once_with(
+            42, "Members", reply_markup=handlers_main.keyboards.members_menu_keyboard,
+        )
+        return
+
+    client.send_message.assert_not_awaited()
+    _, _, today, week, parish, home = (await rich.write(client=None)).blocks
+
+    def callbacks(rows):
+        return [button.type.data for row in rows for button in row.buttons]
+
+    assert callbacks([today]) == [b"Member Birthday Today Button", b"Member Anniversary Today Button"]
+    assert week.title.text == "This week" and not week.open
+    assert callbacks(week.blocks) == [b"Member Birthday Week Button", b"Member Anniversary Week Button"]
+    assert parish.title.text == "Church & membership" and not parish.open
+    assert callbacks(parish.blocks) == [b"New Members Button", b"MC", b"GB"]
+    assert parish.blocks[-1].buttons[-1].text.text == "General Body & quorum"
+    assert callbacks([home]) == [b"Main Menu"]
 
 
 @pytest.mark.asyncio

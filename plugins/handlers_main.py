@@ -332,10 +332,15 @@ async def show_services_menu(client: Client, query: CallbackQuery):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("Members Menu"))
 @loggers.async_log_access
+@bot_auth.async_member_only
 async def show_members_menu(client: Client, query: CallbackQuery):
     await query.answer()
-    msg = "➖➖**Members Menu**➖➖"
-    await utils.edit_and_send_msg(query, msg, keyboards.members_menu_keyboard)
+    chat_id = query.from_user.id
+    try:
+        await client.send_rich_message(chat_id, keyboards.get_rich_members_menu())
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected the rich members menu; sending the inline keyboard")
+        await client.send_message(chat_id, "Members", reply_markup=keyboards.members_menu_keyboard)
 
 
 # --------------------------------------------------

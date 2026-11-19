@@ -86,6 +86,10 @@ back_to_main_keyboard = InlineKeyboardMarkup([
     [BACK_TO_MAIN_BUTTON]
 ])
 
+back_to_members_keyboard = InlineKeyboardMarkup([
+    [InlineKeyboardButton("← Back to Members", callback_data="Members Menu")]
+])
+
 members_menu_keyboard = InlineKeyboardMarkup([
     [__MEMBERS_BDAY_TODAY_BUTTON, __MEMBERS_ANNIVERSARY_TODAY_BUTTON],
     [__MEMBERS_BDAY_WEEK_BUTTON, __MEMBERS_ANNIVERSARY_WEEK_BUTTON],
@@ -167,19 +171,19 @@ def get_main_keyboard(telegram_id):
     return InlineKeyboardMarkup(buttons)
 
 
+def _rich_button_row(*actions: tuple[str, str, ButtonStyle]) -> InputRichBlockButtons:
+    return InputRichBlockButtons(
+        buttons=[
+            RichMessageButton(text=cast(RichText, label), callback_data=callback, style=style)
+            for label, callback, style in actions
+        ],
+        align="left",
+    )
+
+
 def get_rich_main_menu(keyboard: InlineKeyboardMarkup) -> InputRichMessage:
     """Group the same role-filtered destinations used by the legacy keyboard."""
     available = {button.callback_data for row in keyboard.inline_keyboard for button in row}
-
-    def button_row(*actions: tuple[str, str, ButtonStyle]) -> InputRichBlockButtons:
-        return InputRichBlockButtons(
-            buttons=[
-                RichMessageButton(text=cast(RichText, label), callback_data=callback, style=style)
-                for label, callback, style in actions
-            ],
-            align="left",
-        )
-
     default = ButtonStyle.DEFAULT
     # Kurigram's rich-text serializer accepts strings and lists despite its annotations.
     blocks: list[InputRichBlock] = [
@@ -189,14 +193,14 @@ def get_rich_main_menu(keyboard: InlineKeyboardMarkup) -> InputRichMessage:
             "\nFind a family by code: ",
             RichTextCode(cast(RichText, "/u A001")),
         ])),
-        button_row(
+        _rich_button_row(
             ("My details", "My Details Menu", ButtonStyle.PRIMARY),
             ("Members", "Members Menu", default),
             ("PayNow", "PayNow Menu", default),
         ),
         InputRichBlockDetails(
             summary=cast(RichText, "Community"),
-            blocks=[button_row(
+            blocks=[_rich_button_row(
                 ("Prayer groups", "Prayer Groups Menu", default),
                 ("Harvest festival", "My Harvest Festival Menu", default),
             )],
@@ -212,9 +216,9 @@ def get_rich_main_menu(keyboard: InlineKeyboardMarkup) -> InputRichMessage:
         )
         if callback in available
     ]
-    committee_rows: list[InputRichBlock] = [button_row(*committee_actions)] if committee_actions else []
+    committee_rows: list[InputRichBlock] = [_rich_button_row(*committee_actions)] if committee_actions else []
     if "Admin Menu" in available:
-        committee_rows.append(button_row(("Admin", "Admin Menu", default)))
+        committee_rows.append(_rich_button_row(("Admin", "Admin Menu", default)))
     if committee_rows:
         blocks.append(InputRichBlockDetails(
             summary=cast(RichText, "Committee tools"), blocks=committee_rows, is_open=False,
@@ -231,6 +235,43 @@ def get_rich_main_menu(keyboard: InlineKeyboardMarkup) -> InputRichMessage:
         align="left",
     ))
     return InputRichMessage(blocks=blocks)
+
+
+def get_rich_members_menu() -> InputRichMessage:
+    default = ButtonStyle.DEFAULT
+    return InputRichMessage(blocks=[
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Members")),
+            "\nFind a family: ",
+            RichTextCode(cast(RichText, "/u A001")),
+            " (use a code or name).",
+        ])),
+        InputRichBlockParagraph(text=RichTextBold(cast(RichText, "Today’s celebrations"))),
+        _rich_button_row(
+            ("Birthdays today", "Member Birthday Today Button", ButtonStyle.PRIMARY),
+            ("Anniversaries today", "Member Anniversary Today Button", default),
+        ),
+        InputRichBlockDetails(
+            summary=cast(RichText, "This week"),
+            blocks=[_rich_button_row(
+                ("Birthdays this week", "Member Birthday Week Button", default),
+                ("Anniversaries this week", "Member Anniversary Week Button", default),
+            )],
+            is_open=False,
+        ),
+        InputRichBlockDetails(
+            summary=cast(RichText, "Church & membership"),
+            blocks=[
+                _rich_button_row(("New members · last 12 months", "New Members Button", default)),
+                _rich_button_row(
+                    ("Management committee", "MC", default),
+                    ("General Body & quorum", "GB", default),
+                ),
+            ],
+            is_open=False,
+        ),
+        _rich_button_row(("← Main menu", "Main Menu", ButtonStyle.LINK)),
+    ])
 
 
 # Dynamically generate a keyboard with prayer requests

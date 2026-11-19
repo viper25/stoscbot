@@ -124,16 +124,23 @@ def _date_field(label: str, value: object) -> Field:
     return label, text, types.RichTextDateTime(text=_rich_text(text), date=instant)
 
 
+def family_code_link(code: str) -> str | types.RichTextButton:
+    """Open the family card from a rich message, or keep an invalid code as text."""
+    if not re.fullmatch(r"[A-Za-z][0-9]{3}", code):
+        return code
+    return types.RichTextButton(button=types.RichMessageButton(
+        text=_rich_text(code),
+        style=enums.ButtonStyle.LINK,
+        callback_data=f"{RELATED_FAMILY_PREFIX}{code.upper()}",
+    ))
+
+
 def _related_families_field(value: str | None) -> Field:
     """Make each family code tappable without changing separators or notes."""
     parts: list[str | types.RichText] = []
     for index, part in enumerate(re.split(r"\b([A-Za-z][0-9]{3})\b", value or "")):
         if index % 2:
-            parts.append(types.RichTextButton(button=types.RichMessageButton(
-                text=_rich_text(part),
-                style=enums.ButtonStyle.LINK,
-                callback_data=f"{RELATED_FAMILY_PREFIX}{part.upper()}",
-            )))
+            parts.append(family_code_link(part))
         elif part:
             parts.append(part)
     return "Related families", value, _rich_text(parts) if parts else None

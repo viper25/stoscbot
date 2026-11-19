@@ -354,7 +354,7 @@ def generate_msg_xero_member_invoices(member_code: str, year: str):
 async def edit_and_send_msg(query: CallbackQuery, msg: str, keyboard: InlineKeyboardMarkup = None):
     preview = LinkPreviewOptions(is_disabled=True)
     if isinstance(getattr(query.message, "rich_message", None), RichMessage):
-        # Keep the rich home card usable when opening a legacy submenu.
+        # Keep the rich menu card usable when opening a text submenu or result.
         await query.message.reply_text(msg, reply_markup=keyboard, link_preview_options=preview)
         return
     try:
