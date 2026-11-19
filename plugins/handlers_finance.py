@@ -51,6 +51,68 @@ async def get_member_code_and_year(message: Message):
     return member_code, year
 
 
+def _format_member_name(result_row: list, member_code: str) -> str:
+    if not result_row:
+        return member_code
+    head_name = result_row[2] if len(result_row) > 2 and result_row[2] else (result_row[0] if len(result_row) > 0 and result_row[0] else member_code)
+    family_name = result_row[1] if len(result_row) > 1 and result_row[1] else ""
+    return f"{head_name} ({family_name})" if family_name else str(head_name)
+
+
+async def _send_member_payments_card(client: Client, chat_id: int, member_code: str, year: str, result_row: list):
+    name = _format_member_name(result_row, member_code)
+    try:
+        payments = utils.get_member_payments(member_code, year) or []
+    except Exception as exc:
+        logger.error("Failed to fetch payments for %s: %s", member_code, exc)
+        await client.send_message(
+            chat_id,
+            f"⚠️ Unable to fetch contributions for **{member_code}** at this moment. Please try again later.",
+        )
+        return
+
+    markup = keyboards.get_member_finance_search_keyboard(member_code, year, "payments")
+    fallback = utils.generate_msg_xero_member_payments(name, member_code, year)
+    try:
+        rich_card = keyboards.get_rich_member_payments(name, member_code, year, payments)
+        await client.send_rich_message(chat_id, rich_card, reply_markup=markup)
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected rich member payments card; sending plain text")
+        await client.send_message(
+            chat_id,
+            fallback,
+            reply_markup=markup,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
+        )
+
+
+async def _send_member_invoices_card(client: Client, chat_id: int, member_code: str, year: str, result_row: list):
+    name = _format_member_name(result_row, member_code)
+    try:
+        invoices_resp = xero_utils.get_Invoices(member_code) or {}
+    except Exception as exc:
+        logger.error("Failed to fetch invoices for %s: %s", member_code, exc)
+        await client.send_message(
+            chat_id,
+            f"⚠️ Unable to fetch invoices for **{member_code}** at this moment. Please try again later.",
+        )
+        return
+
+    markup = keyboards.get_member_finance_search_keyboard(member_code, year, "invoices")
+    fallback = utils.generate_msg_xero_member_invoices(member_code, year)
+    try:
+        rich_card = keyboards.get_rich_member_invoices(name, member_code, year, invoices_resp)
+        await client.send_rich_message(chat_id, rich_card, reply_markup=markup)
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected rich member invoices card; sending plain text")
+        await client.send_message(
+            chat_id,
+            fallback,
+            reply_markup=markup,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
+        )
+
+
 # --------------------------------------------------
 @Client.on_message(filters.command(["x", "xs"]))
 @loggers.async_log_access
@@ -66,11 +128,32 @@ async def finance_search_member(client: Client, message: Message):
         return
 
     if message.command[0] == "x":
-        msg = utils.generate_msg_xero_member_payments(result[0][2], member_code, year)
+        await _send_member_payments_card(client, message.chat.id, member_code, year, result[0])
     elif message.command[0] == "xs":
-        msg = utils.generate_msg_xero_member_invoices(member_code, year)
+        await _send_member_invoices_card(client, message.chat.id, member_code, year, result[0])
 
-    await message.reply(msg)
+
+# --------------------------------------------------
+@Client.on_callback_query(filters.regex(r"^search_xero_(payments|dues):([A-Z0-9]+):([0-9]{4})$"))
+@loggers.async_log_access
+@bot_auth.async_management_only
+async def finance_search_member_callback(client: Client, query: CallbackQuery):
+    await query.answer()
+    if not query.matches:
+        return
+    action = query.matches[0].group(1)
+    member_code = query.matches[0].group(2)
+    year = query.matches[0].group(3)
+
+    result = db.get_member_details(member_code, 'code')
+    if not result:
+        await query.answer(f"No such Member: {member_code}", show_alert=True)
+        return
+
+    if action == "payments":
+        await _send_member_payments_card(client, query.from_user.id, member_code, year, result[0])
+    elif action == "dues":
+        await _send_member_invoices_card(client, query.from_user.id, member_code, year, result[0])
 
 
 # --------------------------------------------------

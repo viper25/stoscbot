@@ -102,6 +102,12 @@ All redesigned screens adhere to the following patterns established in the initi
 - [x] **`Finance Trial Balance` (Revenue & Expense) (`Finance Trial Balance Revenue Button`, `Finance Trial Balance Expense Button` callbacks)**
   - *Location:* [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
   - *Design:* Compact striped table (`InputRichBlockTable`) of active chart of accounts with YTD balances, year and basis subtitle (Cash basis for revenue, YTD ledger for expenses), Option 3 total footer (`🔹 Total Revenue: $...` / `🔸 Total Expense: $...`), and persistent `finance_menu_keyboard` for instant switching.
+- [x] **Member Financial Search Commands (`/x`, `/xs`) & Callbacks (`search_xero_payments`, `search_xero_dues`)**
+  - *Location:* [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
+  - *Design:*
+    - **`/x <CODE> [YEAR]` (Contributions):** Compact striped table (`InputRichBlockTable`) of member accounts and amounts, total contributions footer (`🔹 Total Contributions: $...`) with Xero timestamp, and action buttons (`[ 📜 View Dues (/xs) ]`, `[ 👤 Family Profile ]`).
+    - **`/xs <CODE> [YEAR]` (Invoices & Dues):** Upfront striped table of outstanding invoices (`🔸 Due: $...`), collapsible drawer for settled receipts (`📁 Settled Invoices (N paid · $...)`), total due/settled footer, and action buttons (`[ 💳 View Contributions (/x) ]`, `[ 👤 Family Profile ]`).
+    - **Interactive Callbacks:** Seamless 1-tap switching between payments, dues, and family profile without retyping commands.
 
 ---
 
@@ -110,11 +116,6 @@ All redesigned screens adhere to the following patterns established in the initi
 ---
 
 ### Group C: Committee & Management Tools (MC / Super Admin)
-
-- [ ] **Member Financial Search Commands (`/x`, `/xs`)**
-  - *Handler:* `finance_search_member` in [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py)
-  - *Current State:* Text reply of member payments (`/x`) or invoices (`/xs`).
-  - *Proposed Redesign:* Formatted financial statement table for the searched family.
 
 - [ ] **`Streaming Menu` & Announcement Slides**
   - *Handler:* `show_streaming_menu` in [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), `handlers_streaming.py`

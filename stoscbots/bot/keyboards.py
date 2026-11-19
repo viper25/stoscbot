@@ -945,6 +945,170 @@ def get_rich_finance_trial_balance(report_rows: list[dict], is_income_report: bo
     return InputRichMessage(blocks=blocks)
 
 
+def get_member_finance_search_keyboard(member_code: str, year: str, current_view: str) -> InlineKeyboardMarkup:
+    buttons = []
+    if current_view == "payments":
+        buttons.append(InlineKeyboardButton("📜 View Dues (/xs)", callback_data=f"search_xero_dues:{member_code}:{year}"))
+    else:
+        buttons.append(InlineKeyboardButton("💳 View Contributions (/x)", callback_data=f"search_xero_payments:{member_code}:{year}"))
+    buttons.append(InlineKeyboardButton("👤 Family Profile", callback_data=f"related_family:{member_code}"))
+    return InlineKeyboardMarkup([buttons])
+
+
+def get_rich_member_payments(
+    name: str,
+    member_code: str,
+    year: str,
+    payments: list[dict],
+) -> InputRichMessage:
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Member Contributions 💳")),
+            f"\n{name} (", RichTextCode(cast(RichText, member_code)), ")",
+            f"\nYear {year} · Cathedral Parishioner Ledger",
+        ])),
+    ]
+
+    if not payments:
+        blocks.append(InputRichBlockParagraph(text=cast(
+            RichText,
+            f"~ No contributions recorded for {name} ({member_code}) in Year {year} ~",
+        )))
+        return InputRichMessage(blocks=blocks)
+
+    header_cells = [
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Account")))),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Amount ($)"))), align="right"),
+    ]
+    table_cells: list[list[RichBlockTableCell]] = [header_cells]
+
+    total = 0.0
+    for item in payments:
+        account = str(item.get("Account") or "Contribution")
+        raw_amt = item.get("LineAmount", 0)
+        try:
+            amt = float(raw_amt)
+        except (ValueError, TypeError):
+            amt = 0.0
+        total += amt
+        table_cells.append([
+            RichBlockTableCell(text=cast(RichText, account)),
+            RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, f"${amt:,.2f}"))), align="right"),
+        ])
+
+    blocks.append(InputRichBlockTable(cells=table_cells, is_striped=True, is_compact=True))
+
+    latest_ts = max((item.get("modified_ts", "") for item in payments), default="")
+    summary = f"🔹 Total Contributions: ${total:,.2f}"
+    if latest_ts:
+        summary += f" · As of {latest_ts[:16]}"
+    blocks.append(InputRichBlockFooter(text=cast(RichText, summary)))
+
+    return InputRichMessage(blocks=blocks)
+
+
+def get_rich_member_invoices(
+    name: str,
+    member_code: str,
+    year: str,
+    invoices_data: dict,
+) -> InputRichMessage:
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Member Invoices & Dues 📜")),
+            f"\n{name} (", RichTextCode(cast(RichText, member_code)), ")",
+            f"\nYear {year} · Member Invoices Ledger",
+        ])),
+    ]
+
+    all_invoices = (invoices_data or {}).get("Invoices", [])
+    filtered: list[dict] = []
+    for inv in all_invoices:
+        if (
+            inv.get("Type") == "ACCREC"
+            and not str(inv.get("InvoiceNumber", "")).endswith("-VOID")
+            and (
+                str(inv.get("InvoiceNumber", "")).startswith(f"INV-{year[2:]}")
+                or str(inv.get("InvoiceNumber", "")).startswith(f"HF-{year[2:]}")
+                or (inv.get("Status") == "AUTHORISED" and int(str(inv.get("DateString", "0")).split("-")[0]) <= int(year))
+            )
+        ):
+            filtered.append(inv)
+
+    if not filtered:
+        blocks.append(InputRichBlockParagraph(text=cast(
+            RichText,
+            f"~ No invoices found for {name} ({member_code}) in Year {year} ~",
+        )))
+        return InputRichMessage(blocks=blocks)
+
+    due_invoices = [
+        inv for inv in filtered
+        if float(inv.get("AmountDue", 0)) > 0 or inv.get("Status") == "AUTHORISED"
+    ]
+    paid_invoices = [
+        inv for inv in filtered
+        if inv not in due_invoices
+    ]
+
+    total_due = sum(float(inv.get("AmountDue", 0)) for inv in due_invoices)
+    total_paid = sum(float(inv.get("Total", 0)) for inv in paid_invoices)
+
+    if due_invoices:
+        due_cells = [
+            [
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Invoice")))),
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Description")))),
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Due ($)"))), align="right"),
+            ]
+        ]
+        for inv in due_invoices:
+            inv_num = str(inv.get("InvoiceNumber") or "—")
+            items = inv.get("LineItems") or []
+            desc = ", ".join(l.get("Description", "") for l in items if l.get("Description")) or "Subscription"
+            due_val = float(inv.get("AmountDue", 0))
+            due_cells.append([
+                RichBlockTableCell(text=cast(RichText, RichTextCode(cast(RichText, inv_num)))),
+                RichBlockTableCell(text=cast(RichText, desc)),
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, f"${due_val:,.2f}"))), align="right"),
+            ])
+        blocks.append(InputRichBlockTable(cells=due_cells, is_striped=True, is_compact=True))
+    else:
+        blocks.append(InputRichBlockParagraph(text=cast(
+            RichText,
+            f"🔹 All subscriptions and dues for Year {year} are fully settled!",
+        )))
+
+    if paid_invoices:
+        paid_cells = [
+            [
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Invoice")))),
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Description")))),
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Paid ($)"))), align="right"),
+            ]
+        ]
+        for inv in paid_invoices:
+            inv_num = str(inv.get("InvoiceNumber") or "—")
+            items = inv.get("LineItems") or []
+            desc = ", ".join(l.get("Description", "") for l in items if l.get("Description")) or "Subscription"
+            paid_val = float(inv.get("Total", 0))
+            paid_cells.append([
+                RichBlockTableCell(text=cast(RichText, RichTextCode(cast(RichText, inv_num)))),
+                RichBlockTableCell(text=cast(RichText, desc)),
+                RichBlockTableCell(text=cast(RichText, f"${paid_val:,.2f}"), align="right"),
+            ])
+        blocks.append(InputRichBlockDetails(
+            summary=cast(RichText, f"📁 Settled Invoices ({len(paid_invoices)} paid · ${total_paid:,.2f})"),
+            blocks=[InputRichBlockTable(cells=paid_cells, is_striped=True, is_compact=True)],
+            is_open=len(due_invoices) == 0,
+        ))
+
+    footer_text = f"🔸 Total Due: ${total_due:,.2f} · 🔹 Total Settled: ${total_paid:,.2f}"
+    blocks.append(InputRichBlockFooter(text=cast(RichText, footer_text)))
+
+    return InputRichMessage(blocks=blocks)
+
+
 # Dynamically generate a keyboard with prayer requests
 def get_services_keyboard():
     return InlineKeyboardMarkup([[BACK_TO_MAIN_BUTTON]])
