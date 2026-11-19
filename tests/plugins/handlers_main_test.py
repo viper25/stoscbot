@@ -1,16 +1,17 @@
-from plugins import handlers_main
-from stoscbots.util.utils import generate_profile_msg_for_family
-from tests.mocks import *
-import pytest
 from datetime import UTC, date, datetime
 from io import BytesIO
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock
 
+import pytest
 from pyrogram import enums, errors, raw
+from pyrogram.types import CallbackQuery
 
+from plugins import handlers_main
 from stoscbots.bot import family_profile
 from stoscbots.util import bot_auth, utils
+from stoscbots.util.utils import generate_profile_msg_for_family
+from tests.mocks import *
 
 
 @pytest.mark.asyncio
@@ -81,7 +82,7 @@ def family_row():
     return (
         123, "A123", "Alex <Morgan>", "alex@example.com", "Alex <Morgan>", "alex@example.com",
         "Jamie Morgan", "jamie@example.com", "Taylor Morgan", "Casey Morgan", "12 Example Lane", None,
-        "123456", "9123 4567", None, None, date(2008, 4, 5), "B245", "true", "North District",
+        "123456", "9123 4567", None, None, date(2008, 4, 5), "j073 / B245 (see notes)", "true", "North District",
         "1984-03-12", "1986-09-08", None, None, "2012-06-14",
     )
 
@@ -141,8 +142,48 @@ async def test_member_code_returns_rich_family_profile(monkeypatch, family_row):
         assert entity.text.text == expected_text
         assert entity.date == expected_date.timestamp()
     assert membership.blocks[1].text.texts[1].text == "On the roll"
+    first, separator, second, note = membership.blocks[-1].text.texts[1].texts
+    assert (first.text.text, second.text.text) == ("j073", "B245")
+    assert first.type.data == b"related_family:J073"
+    assert second.type.data == b"related_family:B245"
+    assert first.style.link and second.style.link
+    assert (separator.text, note.text) == (" / ", " (see notes)")
     client.send_venue.assert_not_called()
     client.send_message.assert_not_called()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("authorized, found", [(True, True), (True, False), (False, True)])
+async def test_related_family_tap(monkeypatch, family_row, authorized, found):
+    callback_handler = handlers_main.related_family_handler
+    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="related_family:J073")
+    answer = AsyncMock()
+    monkeypatch.setattr(query, "answer", answer)
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: authorized)
+    denied = AsyncMock()
+    monkeypatch.setattr(bot_auth, "send_access_denied_msg", denied)
+    lookup = Mock(return_value=[family_row] if found else [])
+    monkeypatch.setattr(handlers_main.db, "get_member_details", lookup)
+    send_card = AsyncMock()
+    monkeypatch.setattr(family_profile, "send_family_profile", send_card)
+    client = SimpleNamespace()
+
+    handler, _group = callback_handler.handlers[0]
+    assert await handler.filters(client, query)
+    await callback_handler.__wrapped__(client, query)
+
+    if not authorized:
+        denied.assert_awaited_once_with(client, query)
+        lookup.assert_not_called()
+        send_card.assert_not_awaited()
+    elif found:
+        lookup.assert_called_once_with("J073", "code")
+        answer.assert_awaited_once_with()
+        send_card.assert_awaited_once_with(client, 42, family_row)
+    else:
+        lookup.assert_called_once_with("J073", "code")
+        answer.assert_awaited_once_with("No such family: J073", show_alert=True)
+        send_card.assert_not_awaited()
 
 
 @pytest.mark.asyncio
@@ -184,6 +225,7 @@ async def test_unsupported_rich_family_profile_falls_back_to_text(monkeypatch, f
     assert "Address: 12 Example Lane, 123456" in text
     assert "Head DOB: Mar 12, 1984" in text
     assert "Electoral roll: On the roll" in text
+    assert "Related families: j073 / B245 (see notes)" in text
     assert client.send_message.await_args.kwargs["parse_mode"] == enums.ParseMode.DISABLED
 
 

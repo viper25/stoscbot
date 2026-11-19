@@ -14,8 +14,9 @@ from stoscbots.util import utils
 
 logger = logging.getLogger("Handler.Main")
 
-# Keep the display value separate from the optional rich link for the text fallback.
+# Keep the display value separate from its optional rich rendering for the text fallback.
 type Field = tuple[str, str | None, types.RichText | None]
+RELATED_FAMILY_PREFIX = "related_family:"
 PHOTO_ERRORS = (
     errors.MediaEmpty,
     errors.PhotoInvalid,
@@ -123,6 +124,21 @@ def _date_field(label: str, value: object) -> Field:
     return label, text, types.RichTextDateTime(text=_rich_text(text), date=instant)
 
 
+def _related_families_field(value: str | None) -> Field:
+    """Make each family code tappable without changing separators or notes."""
+    parts: list[str | types.RichText] = []
+    for index, part in enumerate(re.split(r"\b([A-Za-z][0-9]{3})\b", value or "")):
+        if index % 2:
+            parts.append(types.RichTextButton(button=types.RichMessageButton(
+                text=_rich_text(part),
+                style=enums.ButtonStyle.LINK,
+                callback_data=f"{RELATED_FAMILY_PREFIX}{part.upper()}",
+            )))
+        elif part:
+            parts.append(part)
+    return "Related families", value, _rich_text(parts) if parts else None
+
+
 async def send_family_profile(client: Client, chat_id: int, row: tuple) -> None:
     """Send a household-first profile, degrading to a photo-free or plain-text reply."""
     # Match the SELECT column order in get_member_details for a code lookup.
@@ -180,7 +196,7 @@ async def send_family_profile(client: Client, chat_id: int, row: tuple) -> None:
             ("Electoral roll", "On the roll" if str(electoral_roll).lower() in ("true", "1") else "Not on the roll", None),
             ("Home parish", parish, None),
             _date_field("Membership date", joined),
-            ("Related families", related, None),
+            _related_families_field(related),
         ]),
     ]
 

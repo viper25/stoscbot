@@ -286,6 +286,22 @@ def dynamic_data_filter2(data):
 
 # ==================================================
 # Callback Handlers (for Buttons)
+@Client.on_callback_query(filters.regex(rf"\A{family_profile.RELATED_FAMILY_PREFIX}([A-Z][0-9]{{3}})\Z"))
+@loggers.async_log_access
+@bot_auth.async_member_only
+async def related_family_handler(client: Client, query: CallbackQuery):
+    if not query.matches:
+        await query.answer("Invalid family link", show_alert=True)
+        return
+    code = query.matches[0].group(1)
+    result = db.get_member_details(code, "code")
+    if not result:
+        await query.answer(f"No such family: {code}", show_alert=True)
+        return
+    await query.answer()
+    await family_profile.send_family_profile(client, query.from_user.id, result[0])
+
+
 @Client.on_callback_query(dynamic_data_filter1("Main Menu"))
 @loggers.async_log_access
 async def show_main_menu(client: Client, query: CallbackQuery):

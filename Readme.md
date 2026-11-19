@@ -30,6 +30,7 @@ first, followed by the head, spouse, children, and other household members when 
 Contact (including the map when available), dates, and membership start
 collapsed. Birth dates, the anniversary, and the membership date use Telegram
 date entities where supported, while keeping their calendar-date labels.
+Under **Membership & prayer group**, tap a related family code to open its card.
 Check the same command with a record that has no photo. Telegram
 replies that reject rich formatting fall back to text. Name search, phone
 search, and My Details keep their existing layouts.
