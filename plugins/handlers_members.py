@@ -113,10 +113,10 @@ async def _send_members_table(
     await _send_rich_members_card(client, chat_id, types.InputRichMessage(blocks=blocks), "\n".join(fallback))
 
 
-def _birthday_age(birthday: str, current_year: int) -> str | None:
+def _birthday_age(birthday: str, current_year: int) -> str:
     parts = birthday.split("/")
     year = int(parts[2]) if len(parts) == 3 and parts[2].isdecimal() else 0
-    return str(current_year - year) if 0 < year <= current_year else None
+    return str(current_year - year) if 0 < year <= current_year else "NA"
 
 
 def _birthday_table_date(birthday: str, today: date) -> TableValue:
@@ -208,7 +208,7 @@ async def get_today_bdays(client: Client, query: CallbackQuery):
             for code, name, birthday, _ in result)
     await _send_members_table(
         client, query.from_user.id, "Birthdays today 🎂", ("Member", "Age"), rows,
-        empty="No birthdays today", right_align_last=True, missing_note="The birth year is not available.",
+        empty="No birthdays today", right_align_last=True,
     )
 
 
@@ -252,7 +252,7 @@ async def get_weeks_bdays(client: Client, query_or_msg):
         await _send_members_table(
             client, query_or_msg.from_user.id, "Birthdays this week 🎂", ("Date", "Member", "Age"), rows,
             subtitle=f"{start} – {end}", empty="No birthdays this week",
-            right_align_last=True, missing_note="The birth year is not available.",
+            right_align_last=True,
         )
         return
 

@@ -39,8 +39,10 @@ Open a result and use **Back to Members** to return to the menu.
 In the birthday, anniversary, new member, and committee cards, tap a member
 code to open its family card. **General Body & quorum** shows aggregate counts only.
 Members results use compact striped tables. Check the highlighted **Today**
-label on weekly celebration tables, the family codes inside name cells,
-and the linked missing-year note when present. Telegram controls the colors.
+label on weekly celebration tables and the family codes inside name cells.
+Birthday tables show **NA** in the Age column when the birth year
+is missing; anniversary tables use a linked missing-year note.
+Telegram controls the colors.
 The `/bday` and `/anniv` commands keep their existing text output.
 
 For a Telegram smoke test of the **Household first** layout, use an authorized

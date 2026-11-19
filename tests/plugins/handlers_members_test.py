@@ -64,9 +64,12 @@ async def test_today_celebrations_list_members_with_family_links(monkeypatch, ri
             ("B456", "Jamie Example", "19/11/0", None),
             ("C789", "Sam Example", "19/11", None),
         ]
-        expected = "• Alex Example (a123) · 53\n• Jamie Example (B456) · —\n• Sam Example (C789) · —"
+        expected = (
+            "• Alex Example (a123) · 53\n"
+            "• Jamie Example (B456) · NA\n"
+            "• Sam Example (C789) · NA"
+        )
         headers = ["Member", "Age"]
-        missing_note = "The birth year is not available."
     monkeypatch.setattr(handlers_members.db, lookup, lambda _period: (None, None, rows))
     client = SimpleNamespace(
         send_rich_message=AsyncMock(side_effect=None if rich_supported else errors.RichMessageUnsupported()),
@@ -82,21 +85,31 @@ async def test_today_celebrations_list_members_with_family_links(monkeypatch, ri
     assert client.send_rich_message.await_args.kwargs["reply_markup"] is handlers_members.keyboards.back_to_members_keyboard
     if not rich_supported:
         client.send_message.assert_awaited_once()
-        assert client.send_message.await_args.args == (42, f"{title}\n\n{expected}\n\n¹ {missing_note}")
+        if anniversaries:
+            expected += f"\n\n¹ {missing_note}"
+        assert client.send_message.await_args.args == (42, f"{title}\n\n{expected}")
         return
 
     client.send_message.assert_not_awaited()
     encoded = await rich.write(client=None)
     encoded.write()
-    heading, anchor, table, note = encoded.blocks
+    if anniversaries:
+        heading, anchor, table, note = encoded.blocks
+    else:
+        heading, table = encoded.blocks
     assert heading.text.text == title
     assert table.striped and table.compact
     assert [cell.text.text for cell in table.rows[0].cells] == headers
     first, second, third = [row.cells for row in table.rows[1:]]
     assert first[1].text.text == "53" and first[1].align_right
-    assert second[1].text.url == f"#{note.text.texts[0].name}"
-    assert note.text.texts[0].text.text == f"¹ {missing_note}"
-    assert note.text.texts[-1].url == f"#{anchor.name}"
+    if anniversaries:
+        assert second[1].text.url == f"#{note.text.texts[0].name}"
+        assert note.text.texts[0].text.text == f"¹ {missing_note}"
+        assert note.text.texts[-1].url == f"#{anchor.name}"
+    else:
+        for row in (second, third):
+            assert isinstance(row[1].text, raw.types.TextPlain)
+            assert row[1].text.text == "NA"
     assert [row[0].text.texts[2].type.data for row in (first, second, third)] == [
         b"related_family:A123", b"related_family:B456", b"related_family:C789",
     ]
@@ -106,7 +119,7 @@ async def test_today_celebrations_list_members_with_family_links(monkeypatch, ri
 @pytest.mark.parametrize(("handler", "lookup", "result", "heading", "headers", "first_row", "codes"), [
     (handlers_members.get_weeks_bdays, "get_bday", ("Nov 16", "Nov 22", [
         ("A123", "Alex Example", "19/11", None),
-    ]), "Birthdays this week 🎂", ["Date", "Member", "Age"], ["19 Nov\nToday", "Alex Example (A123)", "—¹"], ["A123"]),
+    ]), "Birthdays this week 🎂", ["Date", "Member", "Age"], ["19 Nov\nToday", "Alex Example (A123)", "NA"], ["A123"]),
     (handlers_members.get_new_members, "get_new_members", [
         ("New Example (C789)",), ("Family without a code",),
     ], "New members 🆕", ["Family"], ["New Example (C789)"], ["C789"]),
@@ -153,6 +166,7 @@ async def test_members_result_cards(monkeypatch, handler, lookup, result, headin
         assert [text(cell.text) for cell in rows[0].cells] == first_row
     if lookup == "get_bday":
         assert isinstance(rows[0].cells[0].text, raw.types.TextMarked)
+        assert isinstance(rows[0].cells[2].text, raw.types.TextPlain)
     elif lookup == "get_new_members":
         assert text(rows[1].cells[0].text) == "Family without a code"
     elif lookup == "get_gb_eligible_count":
