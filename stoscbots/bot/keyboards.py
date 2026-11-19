@@ -528,6 +528,176 @@ def get_rich_harvest_festival_menu(
     return InputRichMessage(blocks=blocks)
 
 
+def get_rich_finance_menu() -> InputRichMessage:
+    return InputRichMessage(blocks=[
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Church Finance & Accounts 💲")),
+            "\nSt. Thomas Orthodox Syrian Cathedral, Singapore",
+            "\nManagement Committee access only.",
+            "\n\n",
+            RichTextBold(cast(RichText, "Member Ledger Commands:")),
+            "\n• ", RichTextCode(cast(RichText, "/x <CODE>")), " — View member contributions & payments",
+            "\n• ", RichTextCode(cast(RichText, "/xs <CODE>")), " — View member invoices & dues",
+            "\n(e.g. ", RichTextCode(cast(RichText, "/x A001")), ")",
+        ])),
+    ])
+
+
+def get_rich_finance_bank_summary(report_rows: list[dict]) -> InputRichMessage:
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Bank Accounts Summary 🏦")),
+            "\nSt. Thomas Orthodox Syrian Cathedral, Singapore",
+            "\nLive balances and YTD cash movements",
+        ])),
+    ]
+
+    header_cells = [
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Account")))),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "In"))), align="right"),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Out"))), align="right"),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Closing"))), align="right"),
+    ]
+    table_cells: list[list[RichBlockTableCell]] = [header_cells]
+
+    all_fd_sum = 0.0
+    total_closing = 0.0
+
+    for row in report_rows:
+        if row.get("RowType") == "Header":
+            continue
+        for bank_data in row.get("Rows", []):
+            cells = bank_data.get("Cells", [])
+            if len(cells) < 5:
+                continue
+            account_name = str(cells[0].get("Value", "Account"))
+            closing_str = str(cells[4].get("Value") or "0")
+            try:
+                closing_val = float(closing_str)
+            except (ValueError, TypeError):
+                closing_val = 0.0
+
+            if account_name.startswith("DBS FD"):
+                all_fd_sum += closing_val
+                continue
+
+            try:
+                in_val = float(cells[2].get("Value") or 0)
+                in_str = f"${in_val:,.0f}" if in_val != 0 else "—"
+            except (ValueError, TypeError):
+                in_str = str(cells[2].get("Value", "—"))
+
+            try:
+                out_val = float(cells[3].get("Value") or 0)
+                out_str = f"${out_val:,.0f}" if out_val != 0 else "—"
+            except (ValueError, TypeError):
+                out_str = str(cells[3].get("Value", "—"))
+
+            if closing_val == 0.0 and in_str == "—" and out_str == "—":
+                continue
+
+            total_closing += closing_val
+
+            table_cells.append([
+                RichBlockTableCell(text=cast(RichText, account_name)),
+                RichBlockTableCell(text=cast(RichText, in_str), align="right"),
+                RichBlockTableCell(text=cast(RichText, out_str), align="right"),
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, f"${closing_val:,.2f}"))), align="right"),
+            ])
+
+    if len(table_cells) > 1:
+        blocks.append(InputRichBlockTable(cells=table_cells, is_striped=True, is_compact=True))
+
+    footer_parts = [f"Fixed Deposits (DBS FD): ${all_fd_sum:,.2f}"]
+    if total_closing > 0:
+        footer_parts.append(f"Operating Total: ${total_closing:,.2f}")
+    blocks.append(InputRichBlockFooter(text=cast(RichText, " · ".join(footer_parts))))
+
+    return InputRichMessage(blocks=blocks)
+
+
+def get_rich_finance_executive_summary(report_rows: list[dict]) -> InputRichMessage:
+    current_month_title = "Current Month"
+    previous_month_title = "Previous Month"
+
+    filtered_rows = [
+        row for row in report_rows
+        if row.get("Title", "").upper() not in ["POSITION", "PERFORMANCE", "PROFITABILITY", "INCOME"]
+    ]
+
+    for row in filtered_rows:
+        if row.get("RowType") == "Header":
+            cells = row.get("Cells", [])
+            if len(cells) > 2:
+                current_month_title = str(cells[1].get("Value") or "Current Month")
+                previous_month_title = str(cells[2].get("Value") or "Previous Month")
+
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Financial Executive Summary 📊")),
+            f"\nComparison: {current_month_title} vs {previous_month_title}",
+            "\nSt. Thomas Orthodox Syrian Cathedral, Singapore",
+        ])),
+    ]
+
+    first_section = True
+    for row in filtered_rows:
+        if row.get("RowType") == "Header":
+            continue
+        title = row.get("Title", "Section").title()
+        section_items = row.get("Rows", [])
+        if not section_items:
+            continue
+
+        s_cells = [
+            [
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Metric")))),
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, previous_month_title[:7]))), align="right"),
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, current_month_title[:7]))), align="right"),
+                RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Var"))), align="right"),
+            ]
+        ]
+
+        for s in section_items:
+            cells = s.get("Cells", [])
+            if len(cells) < 4:
+                continue
+            metric = str(cells[0].get("Value") or "")
+            curr_raw = str(cells[1].get("Value") or "")
+            prev_raw = str(cells[2].get("Value") or "")
+            var_raw = str(cells[3].get("Value") or "")
+
+            def _fmt(v: str) -> str:
+                if not v or "%" in v:
+                    return v or "—"
+                try:
+                    return f"${float(v):,.1f}"
+                except (ValueError, TypeError):
+                    return v
+
+            var_arrow = "▼" if var_raw.startswith("-") else "▲" if var_raw else ""
+            var_clean = var_raw.lstrip("-")
+            var_display = f"{var_arrow}{var_clean}" if var_clean else "—"
+
+            s_cells.append([
+                RichBlockTableCell(text=cast(RichText, metric)),
+                RichBlockTableCell(text=cast(RichText, _fmt(prev_raw)), align="right"),
+                RichBlockTableCell(text=cast(RichText, _fmt(curr_raw)), align="right"),
+                RichBlockTableCell(text=cast(RichText, var_display), align="right"),
+            ])
+
+        blocks.append(InputRichBlockDetails(
+            summary=cast(RichText, f"📌 {title}"),
+            blocks=[
+                InputRichBlockTable(cells=s_cells, is_striped=True, is_compact=True),
+            ],
+            is_open=first_section,
+        ))
+        first_section = False
+
+    return InputRichMessage(blocks=blocks)
+
+
 # Dynamically generate a keyboard with prayer requests
 def get_services_keyboard():
     return InlineKeyboardMarkup([[BACK_TO_MAIN_BUTTON]])

@@ -82,6 +82,12 @@ For a smoke test of **My Harvest Festival**, open **Community ▸ My Harvest Fes
 Check that the card presents the cathedral header, member code, live auction web portal link button (if configured),
 a compact striped table for **Auction Wins** with total spend (or friendly notice if no bids),
 and an expandable drawer for **Donated Items** with sold prices, alongside the **Main menu** return button.
+
+For a smoke test of **Church Finance & Accounts** (MC only), open **Committee tools ▸ Finance** from the home screen.
+Check that the card presents the committee header with `/x <CODE>` and `/xs <CODE>` member ledger search hints,
+paired with the full 9-button finance keyboard (`Executive Summary`, `Bank Summary`, `Trial Bal Revenue`, `Trial Bal Expense`, `Latest Transactions`, `Payments WTD`, `Outstanding`, `Projects`, and `Return to Main menu`).
+Tap **Bank Summary** to verify the compact account table with In, Out, Closing balances, and Fixed Deposits total.
+Tap **Executive Summary** to verify the expandable section accordions with comparison tables and variance indicators.
 Name and phone search keep their existing layouts.
 
 ```bash

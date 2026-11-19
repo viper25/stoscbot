@@ -84,6 +84,15 @@ All redesigned screens adhere to the following patterns established in the initi
     - *Auction Wins:* Open by default with a compact striped table (`InputRichBlockTable`) of Lot, Item name, and Winning bid with total spend footer (or friendly `~ No bids or purchases yet ~` note).
     - *Donated Items:* Expandable drawer (`InputRichBlockDetails`) titled `🎁 Donated Items (N items · $Y)` with a striped table of Lot, Item, Buyer, and Sold amount.
     - *Navigation:* Native reply markup keyboard with `[ 🔙 Return to Main menu ]`.
+- [x] **`Finance Menu` Hub (`Finance Menu` callback)**
+  - *Location:* [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
+  - *Design:* Protected with `@bot_auth.async_management_only`. Presents a rich card with cathedral committee badge and member ledger search hints (`/x <CODE>` for payments, `/xs <CODE>` for invoices). Retains all 8 finance action buttons in a balanced 2-column inline keyboard plus return to main menu.
+- [x] **`Finance Bank Summary` (`Finance Bank Summary Button` callback)**
+  - *Location:* [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py), [keyboards.py](file:///home/viper25/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
+  - *Design:* Compact striped table (`InputRichBlockTable`) listing active operating bank accounts with Inflows, Outflows, and Closing balances, plus a footer block consolidating Fixed Deposits (`DBS FD`) and operating totals. Kept all finance buttons in `reply_markup` for seamless switching.
+- [x] **`Finance Executive Summary` (`Finance Executive Summary Button` callback)**
+  - *Location:* [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py), [keyboards.py](file:///home/viper25/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
+  - *Design:* Subtitle contrasting current vs previous month. Section accordions (`InputRichBlockDetails`) for each financial section (Cash, Balance Sheet, Customers) containing compact comparison tables with formatted variance arrows (▲/▼). All finance buttons kept visible in `reply_markup`.
 
 ---
 
@@ -93,18 +102,13 @@ All redesigned screens adhere to the following patterns established in the initi
 
 ### Group C: Committee & Management Tools (MC / Super Admin)
 
-- [ ] **`Finance Menu` & Executive Reports**
-  - *Handler:* `show_finance_menu`, `get_finance_executive_summary` in [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py)
-  - *Current State:* Long text output with plain text dividers and ASCII arrows (`▲`, `▼`).
-  - *Proposed Redesign:* Collapsible `InputRichBlockDetails` per financial section (e.g. Cash Position, Performance, Profitability) with compact tables comparing Current Month vs Previous Month and variance indicators.
-
-- [ ] **`Finance Bank Summary` & `Trial Balance`**
-  - *Handler:* `get_finance_bank_summary`, `get_finance_trial_balance` in [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py)
-  - *Current State:* Monospaced code blocks and text messages.
-  - *Proposed Redesign:* Compact striped tables with right-aligned balances and total row.
+- [ ] **`Finance Trial Balance` (Revenue & Expense)**
+  - *Handler:* `get_finance_trial_balance` in [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py)
+  - *Current State:* Monospaced text messages with ASCII line breaks.
+  - *Proposed Redesign:* Compact striped tables for Revenue and Expense accounts with right-aligned totals and year header.
 
 - [ ] **`Finance Latest Transactions` & `Payments WTD`**
-  - *Handler:* `get_finance_latest_transactions`, `get_finance_payments_wtd` in [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py)
+  - *Handler:* `get_finance_latest_transactions`, `get_finance_payments_wtd_balance` in [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py)
   - *Current State:* Plain text lines of transactions.
   - *Proposed Redesign:* Compact striped table with transaction date, contact/member, account, and amount.
 

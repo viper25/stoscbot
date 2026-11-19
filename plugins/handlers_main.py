@@ -364,10 +364,30 @@ async def show_prayer_groups_menu(client: Client, query: CallbackQuery):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("Finance Menu"))
 @loggers.async_log_access
+@bot_auth.async_management_only
 async def show_finance_menu(client: Client, query: CallbackQuery):
     await query.answer()
-    msg = "➖➖**Finance Menu**➖➖"
-    await query.message.reply_text(msg, reply_markup=keyboards.finance_menu_keyboard)
+    chat_id = query.from_user.id
+    fallback_text = (
+        "➖➖**Finance Menu**➖➖\n\n"
+        "Member Ledger Commands:\n"
+        "• `/x <CODE>` — Member contributions & payments\n"
+        "• `/xs <CODE>` — Member invoices & dues"
+    )
+    try:
+        await client.send_rich_message(
+            chat_id,
+            keyboards.get_rich_finance_menu(),
+            reply_markup=keyboards.finance_menu_keyboard,
+        )
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected the rich finance menu; sending plain text")
+        await client.send_message(
+            chat_id,
+            fallback_text,
+            reply_markup=keyboards.finance_menu_keyboard,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
+        )
 
 
 # --------------------------------------------------
