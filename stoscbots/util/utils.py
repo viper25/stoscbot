@@ -62,6 +62,28 @@ S3_BUCKET = os.environ.get('STOSC_S3_BUCKET_NAME')
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+def get_all_TelegramIDs_from_MemberCode(member_code: str) -> list:
+    """
+    Fetches all Telegram IDs associated with a given member code from DynamoDB.
+
+    Args:
+    - member_code (str): The member code to search for.
+
+    Returns:
+    - list: The list of items from DynamoDB if found, otherwise empty list.
+    """
+    try:
+        response = table_stosc_bot_member_telegram.query(
+            IndexName='member_code-index',
+            KeyConditionExpression=Key('member_code').eq(member_code.upper())
+        )
+        return response.get('Items', [])
+    except Exception as e:
+        print(f"Error fetching Telegram IDs for member code {member_code}: {e}")
+        return []
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 def get_TelegramID_from_MemberCode(member_code: str):
     """
     Fetches the Telegram ID associated with a given member code from DynamoDB.

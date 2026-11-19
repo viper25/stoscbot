@@ -731,6 +731,39 @@ def test_get_telegram_id_error(mock_query, capfd):
     assert result is None
 
 
+@patch('stoscbots.util.utils.table_stosc_bot_member_telegram.query')
+def test_get_all_telegram_ids_found(mock_query):
+    mock_query.return_value = {
+        'Items': [
+            {'member_code': 'V019', 'Name': 'Vibin', 'telegram_id': '22541119'},
+            {'member_code': 'V019', 'Name': 'Family Member', 'telegram_id': '88888888'},
+        ]
+    }
+
+    result = utils.get_all_TelegramIDs_from_MemberCode('V019')
+    assert len(result) == 2
+    assert result[0]['Name'] == 'Vibin'
+    assert result[0]['telegram_id'] == '22541119'
+    assert result[1]['Name'] == 'Family Member'
+    assert result[1]['telegram_id'] == '88888888'
+
+
+@patch('stoscbots.util.utils.table_stosc_bot_member_telegram.query')
+def test_get_all_telegram_ids_not_found(mock_query):
+    mock_query.return_value = {'Items': []}
+    result = utils.get_all_TelegramIDs_from_MemberCode('NONEXISTENT')
+    assert result == []
+
+
+@patch('stoscbots.util.utils.table_stosc_bot_member_telegram.query')
+def test_get_all_telegram_ids_error(mock_query, capfd):
+    mock_query.side_effect = Exception("DynamoDB error")
+    result = utils.get_all_TelegramIDs_from_MemberCode('V019')
+    captured = capfd.readouterr()
+    assert "Error fetching Telegram IDs for member code V019: DynamoDB error" in captured.out
+    assert result == []
+
+
 # ------------------------------------------------------------
 
 def test_format_telegram_message():

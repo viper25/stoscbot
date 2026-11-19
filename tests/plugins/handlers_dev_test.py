@@ -377,3 +377,125 @@ async def test_show_error_logs_rich_and_fallback(monkeypatch):
         reply_markup=keyboards.admin_menu_keyboard,
     )
 
+
+@pytest.mark.asyncio
+async def test_get_telegram_id_handler_success(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: True)
+    monkeypatch.setattr(
+        utils,
+        "get_all_TelegramIDs_from_MemberCode",
+        lambda code: [
+            {"Name": "Vibin", "telegram_id": "22541119"},
+            {"Name": "Family Member", "telegram_id": "88888888"},
+        ],
+    )
+    client = SimpleNamespace()
+    message = SimpleNamespace(
+        from_user=_make_admin_user(),
+        command=["id", "V019"],
+        reply_text=AsyncMock(),
+        text="/id V019",
+    )
+
+    await handlers_dev.get_telegram_id_handler(client, message)
+
+    message.reply_text.assert_awaited_once()
+    reply = message.reply_text.await_args.args[0]
+    assert "**Member Details (V019)**" in reply
+    assert "Vibin: `22541119`" in reply
+    assert "Family Member: `88888888`" in reply
+
+
+@pytest.mark.asyncio
+async def test_get_telegram_id_handler_dict_fallback(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: True)
+    monkeypatch.setattr(utils, "get_all_TelegramIDs_from_MemberCode", lambda code: [])
+    monkeypatch.setattr(
+        utils,
+        "get_TelegramID_from_MemberCode",
+        lambda code: {"Name": "Vibin", "telegram_id": "22541119"},
+    )
+    client = SimpleNamespace()
+    message = SimpleNamespace(
+        from_user=_make_admin_user(),
+        command=["id", "v019"],
+        reply_text=AsyncMock(),
+        text="/id v019",
+    )
+
+    await handlers_dev.get_telegram_id_handler(client, message)
+
+    message.reply_text.assert_awaited_once()
+    reply = message.reply_text.await_args.args[0]
+    assert "**Member Details (V019)**" in reply
+    assert "Vibin: `22541119`" in reply
+
+
+@pytest.mark.asyncio
+async def test_get_telegram_id_handler_not_found(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: True)
+    monkeypatch.setattr(utils, "get_all_TelegramIDs_from_MemberCode", lambda code: [])
+    monkeypatch.setattr(utils, "get_TelegramID_from_MemberCode", lambda code: None)
+    client = SimpleNamespace()
+    message = SimpleNamespace(
+        from_user=_make_admin_user(),
+        command=["id", "Z999"],
+        reply_text=AsyncMock(),
+        text="/id Z999",
+    )
+
+    await handlers_dev.get_telegram_id_handler(client, message)
+
+    message.reply_text.assert_awaited_once_with("Member not found: `Z999`")
+
+
+@pytest.mark.asyncio
+async def test_get_telegram_id_handler_invalid_code(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: True)
+    client = SimpleNamespace()
+    message = SimpleNamespace(
+        from_user=_make_admin_user(),
+        command=["id", "INVALID_123"],
+        reply_text=AsyncMock(),
+        text="/id INVALID_123",
+    )
+
+    await handlers_dev.get_telegram_id_handler(client, message)
+
+    message.reply_text.assert_awaited_once_with("Invalid member code: `INVALID_123`")
+
+
+@pytest.mark.asyncio
+async def test_get_telegram_id_handler_missing_args(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: True)
+    client = SimpleNamespace()
+    message = SimpleNamespace(
+        from_user=_make_admin_user(),
+        command=["id"],
+        reply_text=AsyncMock(),
+        text="/id",
+    )
+
+    await handlers_dev.get_telegram_id_handler(client, message)
+
+    message.reply_text.assert_awaited_once_with(
+        "Please enter proper commands\ne.g. `/id [member_code]`"
+    )
+
+
+@pytest.mark.asyncio
+async def test_get_telegram_id_handler_unauthorized(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: False)
+    client = SimpleNamespace()
+    message = SimpleNamespace(
+        from_user=_make_non_admin_user(),
+        command=["id", "V019"],
+        reply_text=AsyncMock(),
+        text="/id V019",
+    )
+
+    await handlers_dev.get_telegram_id_handler(client, message)
+
+    message.reply_text.assert_awaited_once_with("You are not allowed to execute this command")
+
+

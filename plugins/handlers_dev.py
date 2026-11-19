@@ -98,36 +98,38 @@ async def add_user_handler(client: Client, message: Message):
 
 # -------------------------------------------------
 # Get a users Telegram ID
-# /user V019
+# /id V019
 @Client.on_message(filters.command(["id"]))
 @loggers.async_log_access
+@bot_auth.super_admin_only
 async def get_telegram_id_handler(client: Client, message: Message):
-    # Only allow the bot owner to add users
-    if bot_auth.is_super_admin(message.from_user.id) is False:
-        msg = "You are not allowed to execute this command"
-        await message.reply_text(msg)
-        return
     if len(message.command) < 2:
-        msg = "Please enter proper commands\ne.g. `/add [member_code]`"
+        msg = "Please enter proper commands\ne.g. `/id [member_code]`"
         await message.reply_text(msg)
         return
-    else:
-        member_code = message.command[1]
-        if utils.is_valid_member_code(member_code):
-            # Get the members Telegram ID by looking up in DynamoDB
-            result = utils.get_TelegramID_from_MemberCode(member_code.upper())
-            if result:
-                msg = f"**Member Details ({member_code})**\n"
-                for entry in result:
-                    msg += f"{entry['Name']}: `{entry['telegram_id']}`\n"
-                await message.reply_text(msg)
-            else:
-                msg = f"Member not found: `{member_code}`"
-                await message.reply_text(msg)
-        else:
-            msg = f"Invalid member code: `{member_code}`"
+
+    member_code = message.command[1].strip()
+    if utils.is_valid_member_code(member_code):
+        # Get the members Telegram ID by looking up in DynamoDB
+        entries = utils.get_all_TelegramIDs_from_MemberCode(member_code.upper())
+        if not entries:
+            single = utils.get_TelegramID_from_MemberCode(member_code.upper())
+            if single:
+                entries = [single] if isinstance(single, dict) else single
+
+        if entries:
+            msg = f"**Member Details ({member_code.upper()})**\n"
+            for entry in entries:
+                name = entry.get('Name', 'Unknown')
+                tid = entry.get('telegram_id', 'Unknown')
+                msg += f"{name}: `{tid}`\n"
             await message.reply_text(msg)
-            return
+        else:
+            msg = f"Member not found: `{member_code.upper()}`"
+            await message.reply_text(msg)
+    else:
+        msg = f"Invalid member code: `{member_code}`"
+        await message.reply_text(msg)
 
 
 # -------------------------------------------------
