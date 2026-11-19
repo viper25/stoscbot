@@ -2,6 +2,7 @@ from plugins import handlers_main
 from stoscbots.util.utils import generate_profile_msg_for_family
 from tests.mocks import *
 import pytest
+from datetime import UTC, date, datetime
 from io import BytesIO
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
@@ -80,8 +81,8 @@ def family_row():
     return (
         123, "A123", "Alex <Morgan>", "alex@example.com", "Alex <Morgan>", "alex@example.com",
         "Jamie Morgan", "jamie@example.com", "Taylor Morgan", "Casey Morgan", "12 Example Lane", None,
-        "123456", "9123 4567", None, None, None, "B245", "true", "North District",
-        "1984-03-12", None, None, None, "2012-06-14",
+        "123456", "9123 4567", None, None, date(2008, 4, 5), "B245", "true", "North District",
+        "1984-03-12", "1986-09-08", None, None, "2012-06-14",
     )
 
 
@@ -107,24 +108,38 @@ async def test_member_code_returns_rich_family_profile(monkeypatch, family_row):
     chat_id, rich = client.send_rich_message.await_args.args
     assert chat_id == 42
     blocks = (await rich.write(client=None)).blocks
-    assert blocks[0].text.text == "Alex <Morgan> & Jamie Morgan"
-    assert blocks[1].text.text == "Family profile (A123)"
-    assert blocks[2].text.text == "Household"
-    divider = next(i for i, block in enumerate(blocks) if isinstance(block, raw.types.PageBlockDivider))
-    assert [(block.text.texts[0].text.text, block.text.texts[1].text) for block in blocks[3:divider]] == [
-        ("Head: ", "Alex <Morgan>"),
-        ("Spouse: ", "Jamie Morgan"),
-        ("Children: ", "Taylor Morgan"),
-        ("Other family members: ", "Casey Morgan"),
+    header, household, contact, dates, membership = blocks
+    assert isinstance(header, raw.types.PageBlockParagraph)
+    assert header.text.texts[0].text.text == "Alex <Morgan> & Jamie Morgan"
+    assert header.text.texts[1].text == "\nFamily profile (A123)"
+    assert isinstance(household, raw.types.PageBlockParagraph)
+    assert household.text.texts[0].text.text == "Household"
+    rows = household.text.texts[1:]
+    assert [
+        (linebreak.text, label.text.text, value.text)
+        for linebreak, label, value in zip(rows[::3], rows[1::3], rows[2::3], strict=True)
+    ] == [
+        ("\n", "Head: ", "Alex <Morgan>"),
+        ("\n", "Spouse: ", "Jamie Morgan"),
+        ("\n", "Children: ", "Taylor Morgan"),
+        ("\n", "Other family members: ", "Casey Morgan"),
     ]
-    contact, dates, membership = blocks[divider + 1:]
     assert [block.title.text for block in (contact, dates, membership)] == [
         "Contact & address", "Birthdays & anniversary", "Membership & prayer group",
     ]
     assert all(not block.open for block in (contact, dates, membership))
     assert contact.blocks[1].text.texts[1].url == "https://wa.me/6591234567"
     assert isinstance(contact.blocks[-1], raw.types.InputPageBlockMap)
-    assert dates.blocks[0].text.texts[1].text == "Mar 12, 1984"
+    for block, expected_text, expected_date in [
+        (dates.blocks[0], "Mar 12, 1984", datetime(1984, 3, 12, tzinfo=UTC)),
+        (dates.blocks[1], "Sep 8, 1986", datetime(1986, 9, 8, tzinfo=UTC)),
+        (dates.blocks[2], "Jun 14, 2012", datetime(2012, 6, 14, tzinfo=UTC)),
+        (membership.blocks[2], "Apr 5, 2008", datetime(2008, 4, 5, tzinfo=UTC)),
+    ]:
+        entity = block.text.texts[1]
+        assert isinstance(entity, raw.types.TextDate)
+        assert entity.text.text == expected_text
+        assert entity.date == expected_date.timestamp()
     assert membership.blocks[1].text.texts[1].text == "On the roll"
     client.send_venue.assert_not_called()
     client.send_message.assert_not_called()
@@ -145,8 +160,8 @@ async def test_rejected_family_photo_retries_without_photo(monkeypatch, family_r
     client = SimpleNamespace(send_rich_message=send_rich, send_message=AsyncMock())
     await family_profile.send_family_profile(client, 42, family_row)
 
-    assert layouts[0][2] == "InputRichBlockPhoto"
-    assert layouts[1] == layouts[0][:2] + layouts[0][3:]
+    assert layouts[0][:3] == ["InputRichBlockParagraph", "InputRichBlockPhoto", "InputRichBlockParagraph"]
+    assert layouts[1] == layouts[0][:1] + layouts[0][2:]
     assert photo.closed
     client.send_message.assert_not_called()
 
@@ -186,6 +201,15 @@ async def test_household_shows_head_when_no_distinct_spouse(monkeypatch, family_
 
     _, rich = client.send_rich_message.await_args.args
     blocks = (await rich.write(client=None)).blocks
-    assert blocks[2].text.text == "Household"
-    assert blocks[3].text.texts[1].text == "Alex <Morgan>"
-    assert isinstance(blocks[4], raw.types.PageBlockDivider)
+    heading, linebreak, label, value = blocks[1].text.texts
+    assert heading.text.text == "Household"
+    assert (linebreak.text, label.text.text, value.text) == ("\n", "Head: ", "Alex <Morgan>")
+    assert isinstance(blocks[2], raw.types.PageBlockDetails)
+
+
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [(None, ""), ("1984-00-00", "1984-00-00"), ("1900-01-01", "Jan 1, 1900")],
+)
+def test_profile_dates_without_usable_timestamp_remain_text(value, expected):
+    assert family_profile._date_field("Head DOB", value) == ("Head DOB", expected, None)
