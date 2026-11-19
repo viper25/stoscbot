@@ -95,9 +95,10 @@ All redesigned screens adhere to the following patterns established in the initi
   - *Design:* Subtitle contrasting current vs previous month. Section accordions (`InputRichBlockDetails`) for each financial section (Cash, Balance Sheet, Customers) containing compact comparison tables with formatted variance arrows (▲/▼). All finance buttons kept visible in `reply_markup`.
 - [x] **`Finance Latest Transactions` (`Finance Latest Transactions Button` callback)**
   - *Location:* [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
-  - *Design:* Compact striped table (`InputRichBlockTable`) of past 7 days cash movements across Cash, DBS, and NETS with transaction dates, contact names, and total Inflow/Outflow footer. All finance buttons kept visible in `reply_markup`.
+  - *Design:* Compact striped table (`InputRichBlockTable`) of past 7 days cash movements across Cash, DBS, and NETS with transaction dates, diamond markers (`🔹` inflow, `🔸` outflow), contact names, and total Inflow/Outflow footer. All finance buttons kept visible in `reply_markup`.
 - [x] **`Finance Payments WTD` (`Finance Payments WTD Button` callback)**
   - *Location:* [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
+  - *Design:* Compact striped table (`InputRichBlockTable`) of invoice settlements (`ACCREC` / `🔹`) and bill payments (`ACCPAY` / `🔸`) with dates, contacts, direction tags (`Receipt ⇦`, `Bill ⇨`), and total Received/Paid footer. All finance buttons kept visible in `reply_markup`.
   - *Design:* Compact striped table (`InputRichBlockTable`) of past 7 days invoice settlements (`ACCREC` 🟢 ⇦) and bill payments (`ACCPAY` 🔴 ⇨) with total Received and Paid footer. All finance buttons kept visible in `reply_markup`.
 
 ---

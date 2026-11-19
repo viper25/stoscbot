@@ -727,7 +727,7 @@ def get_rich_finance_payments_wtd(payments_data: dict) -> InputRichMessage:
         inv = payment.get("Invoice") or {}
         inv_type = inv.get("Type", "")
         is_pay = inv_type == "ACCPAY"
-        icon = "🔴" if is_pay else "🟢"
+        icon = "🔸" if is_pay else "🔹"
         type_label = "Bill ⇨" if is_pay else "Receipt ⇦"
 
         date_val = payment.get("Date")
@@ -766,7 +766,7 @@ def get_rich_finance_payments_wtd(payments_data: dict) -> InputRichMessage:
         blocks.append(InputRichBlockTable(cells=table_cells, is_striped=True, is_compact=True))
         blocks.append(InputRichBlockFooter(text=cast(
             RichText,
-            f"🟢 Received: ${total_rec:,.2f} · 🔴 Paid: ${total_pay:,.2f}",
+            f"🔹 Received: ${total_rec:,.2f} · 🔸 Paid: ${total_pay:,.2f}",
         )))
     else:
         blocks.append(InputRichBlockParagraph(text=cast(RichText, "~ No invoice or bill payments in the last 7 days ~")))
@@ -811,7 +811,7 @@ def get_rich_finance_latest_tx(bank_tx_data: dict) -> InputRichMessage:
 
         tx_type = tx.get("Type", "")
         is_in = tx_type in {"RECEIVE", "RECEIVE-TRANSFER"}
-        icon = "🟢" if is_in else "🔴" if tx_type in {"SPEND", "SPEND-TRANSFER"} else "❓"
+        icon = "🔹" if is_in else "🔸" if tx_type in {"SPEND", "SPEND-TRANSFER"} else "❓"
 
         contact_name = str((tx.get("Contact") or {}).get("Name") or "General")
 
@@ -851,7 +851,7 @@ def get_rich_finance_latest_tx(bank_tx_data: dict) -> InputRichMessage:
         blocks.append(InputRichBlockTable(cells=table_cells, is_striped=True, is_compact=True))
         blocks.append(InputRichBlockFooter(text=cast(
             RichText,
-            f"🟢 Inflow: ${total_in:,.2f} · 🔴 Outflow: ${total_out:,.2f}",
+            f"🔹 Inflow: ${total_in:,.2f} · 🔸 Outflow: ${total_out:,.2f}",
         )))
     else:
         blocks.append(InputRichBlockParagraph(text=cast(RichText, "~ No non-invoice transactions in the last 7 days ~")))

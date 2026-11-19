@@ -317,8 +317,11 @@ async def test_get_finance_payments_wtd_rich(monkeypatch, mock_payments_data):
     serialized = await rich.write(client=None)
     assert len(serialized.blocks) == 3  # Header, Table, Footer
     assert "Invoice & Bill Payments" in repr(serialized.blocks[0].text)
-    assert "Received: $150.00" in repr(serialized.blocks[2].text)
-    assert "Paid: $420.50" in repr(serialized.blocks[2].text)
+    assert "🔹 Received: $150.00" in repr(serialized.blocks[2].text)
+    assert "🔸 Paid: $420.50" in repr(serialized.blocks[2].text)
+    table_repr = repr(serialized.blocks[1])
+    assert "🔹 Member John" in table_repr
+    assert "🔸 SPS Services" in table_repr
 
 
 @pytest.mark.asyncio
@@ -357,6 +360,8 @@ async def test_get_finance_payments_wtd_fallback(monkeypatch, mock_payments_data
     chat_id, text = client.send_message.await_args.args
     assert chat_id == 42
     assert "INVOICE/BILL PAYMENTS" in text
+    assert "🔹 **Member John**" in text
+    assert "🔸 **SPS Services**" in text
     assert client.send_message.await_args.kwargs["reply_markup"] is keyboards.finance_menu_keyboard
 
 
@@ -380,8 +385,11 @@ async def test_get_finance_latest_tx_rich(monkeypatch, mock_bank_transactions_da
     serialized = await rich.write(client=None)
     assert len(serialized.blocks) == 3  # Header, Table, Footer
     assert "Latest Transactions" in repr(serialized.blocks[0].text)
-    assert "Inflow: $200.00" in repr(serialized.blocks[2].text)
-    assert "Outflow: $500.00" in repr(serialized.blocks[2].text)
+    assert "🔹 Inflow: $200.00" in repr(serialized.blocks[2].text)
+    assert "🔸 Outflow: $500.00" in repr(serialized.blocks[2].text)
+    table_repr = repr(serialized.blocks[1])
+    assert "🔹 Donor Alice" in table_repr
+    assert "🔸 Transfer Out" in table_repr
 
 
 @pytest.mark.asyncio
@@ -420,4 +428,6 @@ async def test_get_finance_latest_tx_fallback(monkeypatch, mock_bank_transaction
     chat_id, text = client.send_message.await_args.args
     assert chat_id == 42
     assert "TRANSACTIONS (WTD)" in text
+    assert "🔹 **Donor Alice**" in text
+    assert "🔸 **Transfer Out**" in text
     assert client.send_message.await_args.kwargs["reply_markup"] is keyboards.finance_menu_keyboard

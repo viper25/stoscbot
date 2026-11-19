@@ -259,7 +259,7 @@ async def get_finance_payments_wtd_balance(client: Client, query: CallbackQuery)
         inv = payment.get('Invoice') or {}
         inv_type = inv.get('Type', '')
         inv_type_icon = '⇨' if inv_type == 'ACCPAY' else '⇦' if inv_type == 'ACCREC' else ''
-        icon = '🔴' if inv_type == 'ACCPAY' else '🟢' if inv_type == 'ACCREC' else ''
+        icon = '🔸' if inv_type == 'ACCPAY' else '🔹' if inv_type == 'ACCREC' else ''
         try:
             _date = xero_utils.parse_Xero_Date(payment['Date'])
             date_str = f"{_date:%Y-%m-%d}"
@@ -326,13 +326,13 @@ async def get_finance_latest_tx(client: Client, query: CallbackQuery):
         tx_type = tx.get('Type', '')
         _msg = ''
         if tx_type == 'RECEIVE':
-            icon = '🟢'
+            icon = '🔹'
         elif tx_type in {'SPEND', 'SPEND-TRANSFER'}:
-            icon = '🔴'
+            icon = '🔸'
             if tx_type == 'SPEND-TRANSFER':
                 _msg = " `(Transfer Out)`"
         elif tx_type == 'RECEIVE-TRANSFER':
-            icon = '🟢'
+            icon = '🔹'
             _msg = " `(Transfer In)`"
         else:
             icon = '❓'
