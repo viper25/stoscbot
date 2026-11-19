@@ -435,6 +435,8 @@ async def test_show_my_harvest_festival_menu_rich_with_data(monkeypatch):
     chat_id, rich = client.send_rich_message.await_args.args
     assert chat_id == 42
     assert client.send_rich_message.await_args.kwargs["reply_markup"] is keyboards.harvest_menu_keyboard
+    assert len(keyboards.harvest_menu_keyboard.inline_keyboard) == 1
+    assert keyboards.harvest_menu_keyboard.inline_keyboard[0][0].callback_data == "Main Menu"
 
     # Verify serialization of the rich message
     serialized = await rich.write(client=None)

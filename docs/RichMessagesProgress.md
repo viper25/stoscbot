@@ -83,7 +83,7 @@ All redesigned screens adhere to the following patterns established in the initi
     - *Header:* Cathedral title, member code tag (`RichTextCode`), and optional direct link button to live web auction portal (`🌐 Open Auction Portal`).
     - *Auction Wins:* Open by default with a compact striped table (`InputRichBlockTable`) of Lot, Item name, and Winning bid with total spend footer (or friendly `~ No bids or purchases yet ~` note).
     - *Donated Items:* Expandable drawer (`InputRichBlockDetails`) titled `🎁 Donated Items (N items · $Y)` with a striped table of Lot, Item, Buyer, and Sold amount.
-    - *Navigation:* Native reply markup keyboard with stacked `[ 🔃 Refresh ]` and `[ 🔙 Return to Main menu ]`.
+    - *Navigation:* Native reply markup keyboard with `[ 🔙 Return to Main menu ]`.
 
 ---
 

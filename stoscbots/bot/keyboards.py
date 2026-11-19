@@ -158,7 +158,6 @@ my_details_menu_keyboard = InlineKeyboardMarkup([
 ])
 
 harvest_menu_keyboard = InlineKeyboardMarkup([
-    [InlineKeyboardButton("🔃 Refresh", callback_data="My Harvest Festival Menu")],
     [BACK_TO_MAIN_BUTTON],
 ])
 

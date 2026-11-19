@@ -81,7 +81,7 @@ guide drawer with clickable email, and navigation to both **Back to My Details**
 For a smoke test of **My Harvest Festival**, open **Community ▸ My Harvest Festival** from the home screen.
 Check that the card presents the cathedral header, member code, live auction web portal link button (if configured),
 a compact striped table for **Auction Wins** with total spend (or friendly notice if no bids),
-and an expandable drawer for **Donated Items** with sold prices, alongside **Refresh** and **Main menu** buttons.
+and an expandable drawer for **Donated Items** with sold prices, alongside the **Main menu** return button.
 Name and phone search keep their existing layouts.
 
 ```bash
