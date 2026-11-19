@@ -1,3 +1,6 @@
+from types import SimpleNamespace
+from unittest.mock import AsyncMock
+
 from stoscbots.util import bot_auth
 from stoscbots.util.bot_auth import get_super_admin_id, VIBIN_TELEGRAM_ID, is_super_admin, get_super_admin_ids
 from tests.mocks import *
@@ -158,5 +161,48 @@ def test_non_digit_in_env_var(monkeypatch):
 def test_empty_env_var(monkeypatch):
     monkeypatch.setattr('stoscbots.util.bot_auth.get_super_admin_ids', lambda: "")
     assert is_super_admin(1234) is False
+
+
+@pytest.mark.asyncio
+async def test_decorator_super_admin_only_message(monkeypatch):
+    monkeypatch.setattr('stoscbots.util.bot_auth.get_super_admin_ids', lambda: "1234")
+
+    @bot_auth.super_admin_only
+    async def admin_cmd(client, message):
+        return "Executed"
+
+    # Authorized admin
+    msg_admin = SimpleNamespace(from_user=SimpleNamespace(id=1234), reply_text=AsyncMock())
+    result = await admin_cmd(None, msg_admin)
+    assert result == "Executed"
+    msg_admin.reply_text.assert_not_called()
+
+    # Unauthorized user
+    msg_non = SimpleNamespace(from_user=SimpleNamespace(id=9999), reply_text=AsyncMock())
+    result = await admin_cmd(None, msg_non)
+    assert result is None
+    msg_non.reply_text.assert_called_once_with("You are not allowed to execute this command")
+
+
+@pytest.mark.asyncio
+async def test_decorator_super_admin_only_callback_query(monkeypatch):
+    monkeypatch.setattr('stoscbots.util.bot_auth.get_super_admin_ids', lambda: "1234")
+
+    @bot_auth.super_admin_only
+    async def admin_callback(client, query):
+        return "Executed"
+
+    # Authorized admin
+    query_admin = SimpleNamespace(from_user=SimpleNamespace(id=1234), answer=AsyncMock())
+    result = await admin_callback(None, query_admin)
+    assert result == "Executed"
+    query_admin.answer.assert_not_called()
+
+    # Unauthorized user
+    query_non = SimpleNamespace(from_user=SimpleNamespace(id=9999), answer=AsyncMock())
+    result = await admin_callback(None, query_non)
+    assert result is None
+    query_non.answer.assert_called_once_with("You are not allowed to execute this action", show_alert=True)
+
 
 # --------------------------------------------------

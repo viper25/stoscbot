@@ -158,6 +158,30 @@ All redesigned screens adhere to the following patterns established in the initi
 
 ---
 
+- [x] **Developer & Super Admin Tools (`/version`, `/ver`, and Admin Callbacks)**
+  - *Location:* [handlers_dev.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_dev.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py), [bot_auth.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/util/bot_auth.py)
+  - *Design:*
+    - **Bot Version Card (`/version`, `/ver`):**
+      - Header with Cathedral Developer & System Info badge (`ℹ️`).
+      - Compact 2-column key-value attribute table (`Release Version`, `Release Date`, `Build SHA`, `Git Branch`, `Kurigram Engine`, `Python Runtime`, `Session Name`).
+      - Confidentiality footer with return to main menu navigation.
+    - **Admin Menu Hub (`Admin Menu` callback):**
+      - Header with Developer & Admin Hub badge (`🛠`).
+      - Collapsible drawer (`InputRichBlockDetails`) with CLI command quick reference (`/cmd logs`, `/id`, `/add`, `/send`, `/version`).
+      - Confidentiality footer and inline keyboard for Stats, Logs, and Error Logs.
+    - **Admin Stats Card (`Show Stats` callback):**
+      - Header with Top Active Parishioners title (`📊`) and audit month indicator.
+      - Compact striped table (`InputRichBlockTable`) listing Rank (`#1`, `#2`, ...), Parishioner Name (resolved from Telegram ID via DynamoDB), and Message count.
+      - Total messages footer from top users and graceful note on non-Linux hosts.
+    - **System Activity & Error Logs (`Show Logs`, `Show Error Logs` callbacks):**
+      - Header with Recent System Activity (`📜`) or System Error Diagnostics (`⚠️`).
+      - Formatted monospace code block (`RichTextCode`) with safe length truncation (capped to 3,000 chars) to prevent Telegram payload overflow.
+      - Timestamped footer and full plain text fallback.
+    - **Security & Route Protection:**
+      - Hardened `@bot_auth.super_admin_only` decorator to support both `Message` and `CallbackQuery` objects, ensuring super-admin restricted button callbacks reject unauthorized callers safely.
+
+---
+
 ## 3. Remaining Screens Identified for Redesign
 
-All planned core screens across Groups A, B, C, and D are now fully converted to Telegram's Rich Message format!
+All planned screens across Groups A, B, C, D, and Developer/Admin tools are now fully converted to Telegram's Rich Message format!

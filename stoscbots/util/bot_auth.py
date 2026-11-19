@@ -110,13 +110,15 @@ def async_area_prayer_coordinator_only(func):
 # --------------------------------------------------
 # Decorator for super admin check
 def super_admin_only(func):
-    wraps(func)
-
-    async def wrapper(client, message):
-        if not is_super_admin(message.from_user.id):
-            await message.reply_text("You are not allowed to execute this command")
+    @wraps(func)
+    async def wrapper(client, msg_or_query):
+        if not is_super_admin(msg_or_query.from_user.id):
+            if hasattr(msg_or_query, "reply_text"):
+                await msg_or_query.reply_text("You are not allowed to execute this command")
+            elif hasattr(msg_or_query, "answer"):
+                await msg_or_query.answer("You are not allowed to execute this action", show_alert=True)
             return
-        return await func(client, message)
+        return await func(client, msg_or_query)
 
     return wrapper
 

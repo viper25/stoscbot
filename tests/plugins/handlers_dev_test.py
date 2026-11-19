@@ -86,3 +86,294 @@ def test_id_to_name_uses_cache_and_handles_missing(monkeypatch):
 
     name4 = handlers_dev._id_to_name("456", cache2)
     assert name4 == "UNKNOWN"  # cached fallback retained
+
+
+# ---------------------------------------------------------------------------
+# Developer & Admin Tools Rich Message Tests
+# ---------------------------------------------------------------------------
+
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, MagicMock
+from pyrogram.errors import RichMessageUnsupported
+from stoscbots.bot import keyboards
+from stoscbots.util import bot_auth, utils
+
+
+@pytest.fixture(autouse=True)
+def neuter_metrics_and_super_admin(monkeypatch):
+    monkeypatch.setattr(handlers_dev.loggers, "update_access_metrics", lambda uid: None)
+
+
+def _make_admin_user(uid=1234):
+    return SimpleNamespace(id=uid, username="admin_user", first_name="Admin")
+
+
+def _make_non_admin_user(uid=9999):
+    return SimpleNamespace(id=uid, username="regular_user", first_name="Parishioner")
+
+
+@pytest.mark.asyncio
+async def test_version_handler_rich(monkeypatch):
+    client = SimpleNamespace(name="stoscbot", send_rich_message=AsyncMock())
+    message = SimpleNamespace(
+        from_user=_make_admin_user(),
+        _client=SimpleNamespace(APP_VERSION="1.0.0", SYSTEM_VERSION="Linux 6.0"),
+        reply_text=AsyncMock(),
+        text="/version",
+    )
+
+    await handlers_dev.version_handler(client, message)
+
+    client.send_rich_message.assert_awaited_once()
+    args, kwargs = client.send_rich_message.await_args
+    chat_id, rich_card = args
+    assert chat_id == 1234
+    assert kwargs["reply_markup"] == keyboards.back_to_main_keyboard
+
+    # Verify Kurigram page serialization
+    page = await rich_card.write(client=None)
+    assert page.blocks
+
+
+@pytest.mark.asyncio
+async def test_version_handler_fallback(monkeypatch):
+    client = SimpleNamespace(
+        name="stoscbot",
+        send_rich_message=AsyncMock(side_effect=RichMessageUnsupported()),
+    )
+    message = SimpleNamespace(
+        from_user=_make_admin_user(),
+        _client=SimpleNamespace(APP_VERSION="1.0.0", SYSTEM_VERSION="Linux 6.0"),
+        reply_text=AsyncMock(),
+        text="/version",
+    )
+
+    await handlers_dev.version_handler(client, message)
+
+    message.reply_text.assert_awaited_once()
+    fallback_text = message.reply_text.await_args.args[0]
+    assert "Telegram Version:" in fallback_text
+    assert message.reply_text.await_args.kwargs["reply_markup"] == keyboards.back_to_main_keyboard
+
+
+@pytest.mark.asyncio
+async def test_show_admin_menu_rich(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: True)
+    client = SimpleNamespace(send_rich_message=AsyncMock())
+    query = SimpleNamespace(
+        from_user=_make_admin_user(),
+        answer=AsyncMock(),
+        message=SimpleNamespace(reply_text=AsyncMock()),
+        data="Admin Menu",
+    )
+
+    await handlers_dev.show_admin_menu(client, query)
+
+    query.answer.assert_awaited_once()
+    client.send_rich_message.assert_awaited_once()
+    args, kwargs = client.send_rich_message.await_args
+    assert args[0] == 1234
+    assert kwargs["reply_markup"] == keyboards.admin_menu_keyboard
+
+    page = await args[1].write(client=None)
+    assert page.blocks
+
+
+@pytest.mark.asyncio
+async def test_show_admin_menu_fallback(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: True)
+    client = SimpleNamespace(send_rich_message=AsyncMock(side_effect=RichMessageUnsupported()))
+    query = SimpleNamespace(
+        from_user=_make_admin_user(),
+        answer=AsyncMock(),
+        message=SimpleNamespace(reply_text=AsyncMock()),
+        data="Admin Menu",
+    )
+    mock_edit = AsyncMock()
+    monkeypatch.setattr(utils, "edit_and_send_msg", mock_edit)
+
+    await handlers_dev.show_admin_menu(client, query)
+
+    mock_edit.assert_awaited_once()
+    assert "Admin Menu" in mock_edit.await_args.args[1]
+
+
+@pytest.mark.asyncio
+async def test_show_admin_menu_unauthorized(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: False)
+    client = SimpleNamespace(send_rich_message=AsyncMock())
+    query = SimpleNamespace(
+        from_user=_make_non_admin_user(),
+        answer=AsyncMock(),
+        message=SimpleNamespace(reply_text=AsyncMock()),
+        data="Admin Menu",
+    )
+
+    await handlers_dev.show_admin_menu(client, query)
+
+    query.answer.assert_awaited_once_with("You are not allowed to execute this action", show_alert=True)
+    client.send_rich_message.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_show_stats_linux_rich(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: True)
+    monkeypatch.setattr(handlers_dev.platform, "system", lambda: "Linux")
+    mock_run = MagicMock(return_value=SimpleNamespace(stdout=" 15 1234\n  5 5678\n"))
+    monkeypatch.setattr(handlers_dev.subprocess, "run", mock_run)
+    monkeypatch.setattr(handlers_dev, "_replace_ids_with_names", lambda res: "15 John Doe\n5 Jane Smith")
+
+    client = SimpleNamespace(send_rich_message=AsyncMock())
+    query = SimpleNamespace(
+        from_user=_make_admin_user(),
+        answer=AsyncMock(),
+        message=SimpleNamespace(reply_text=AsyncMock()),
+        data="Show Stats",
+    )
+
+    await handlers_dev.show_stats(client, query)
+
+    query.answer.assert_awaited_once()
+    client.send_rich_message.assert_awaited_once()
+    args, kwargs = client.send_rich_message.await_args
+    assert args[0] == 1234
+    assert kwargs["reply_markup"] == keyboards.admin_menu_keyboard
+
+    page = await args[1].write(client=None)
+    assert page.blocks
+
+
+@pytest.mark.asyncio
+async def test_show_stats_linux_fallback(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: True)
+    monkeypatch.setattr(handlers_dev.platform, "system", lambda: "Linux")
+    mock_run = MagicMock(return_value=SimpleNamespace(stdout=" 15 1234\n"))
+    monkeypatch.setattr(handlers_dev.subprocess, "run", mock_run)
+    monkeypatch.setattr(handlers_dev, "_replace_ids_with_names", lambda res: "15 John Doe")
+
+    client = SimpleNamespace(send_rich_message=AsyncMock(side_effect=RichMessageUnsupported()))
+    query = SimpleNamespace(
+        from_user=_make_admin_user(),
+        answer=AsyncMock(),
+        message=SimpleNamespace(reply_text=AsyncMock()),
+        data="Show Stats",
+    )
+    mock_edit = AsyncMock()
+    monkeypatch.setattr(utils, "edit_and_send_msg", mock_edit)
+
+    await handlers_dev.show_stats(client, query)
+
+    mock_edit.assert_awaited_once()
+    assert "Top users by messages" in mock_edit.await_args.args[1]
+
+
+@pytest.mark.asyncio
+async def test_show_stats_non_linux(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: True)
+    monkeypatch.setattr(handlers_dev.platform, "system", lambda: "Windows")
+
+    client = SimpleNamespace(send_rich_message=AsyncMock())
+    query = SimpleNamespace(
+        from_user=_make_admin_user(),
+        answer=AsyncMock(),
+        message=SimpleNamespace(reply_text=AsyncMock()),
+        data="Show Stats",
+    )
+
+    await handlers_dev.show_stats(client, query)
+
+    client.send_rich_message.assert_awaited_once()
+    args, kwargs = client.send_rich_message.await_args
+    page = await args[1].write(client=None)
+    assert page.blocks
+
+
+@pytest.mark.asyncio
+async def test_show_logs_rich_and_fallback(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: True)
+    monkeypatch.setattr(handlers_dev.platform, "system", lambda: "Linux")
+    mock_run = MagicMock(return_value=SimpleNamespace(stdout="2026-11-19 User action\n2026-11-19 Another action\n"))
+    monkeypatch.setattr(handlers_dev.subprocess, "run", mock_run)
+
+    # Test rich success
+    client = SimpleNamespace(send_rich_message=AsyncMock())
+    query = SimpleNamespace(
+        from_user=_make_admin_user(),
+        answer=AsyncMock(),
+        message=SimpleNamespace(reply_text=AsyncMock()),
+        data="Show Logs",
+    )
+
+    await handlers_dev.show_logs(client, query)
+
+    client.send_rich_message.assert_awaited_once()
+    page = await client.send_rich_message.await_args.args[1].write(client=None)
+    assert page.blocks
+
+    # Test rich fallback
+    client_fallback = SimpleNamespace(send_rich_message=AsyncMock(side_effect=RichMessageUnsupported()))
+    mock_edit = AsyncMock()
+    monkeypatch.setattr(utils, "edit_and_send_msg", mock_edit)
+
+    await handlers_dev.show_logs(client_fallback, query)
+    mock_edit.assert_awaited_once()
+
+    # Test non-linux
+    monkeypatch.setattr(handlers_dev.platform, "system", lambda: "Windows")
+    query_win = SimpleNamespace(
+        from_user=_make_admin_user(),
+        answer=AsyncMock(),
+        message=SimpleNamespace(reply_text=AsyncMock()),
+        data="Show Logs",
+    )
+    await handlers_dev.show_logs(client, query_win)
+    query_win.message.reply_text.assert_awaited_once_with(
+        "This action is only available when the bot runs on Linux.",
+        reply_markup=keyboards.admin_menu_keyboard,
+    )
+
+
+@pytest.mark.asyncio
+async def test_show_error_logs_rich_and_fallback(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_super_admin", lambda uid: True)
+    monkeypatch.setattr(handlers_dev.platform, "system", lambda: "Linux")
+    mock_run = MagicMock(return_value=SimpleNamespace(stdout="2026-11-19 ERROR Exception detail\n"))
+    monkeypatch.setattr(handlers_dev.subprocess, "run", mock_run)
+
+    # Test rich success
+    client = SimpleNamespace(send_rich_message=AsyncMock())
+    query = SimpleNamespace(
+        from_user=_make_admin_user(),
+        answer=AsyncMock(),
+        message=SimpleNamespace(reply_text=AsyncMock()),
+        data="Show Error Logs",
+    )
+
+    await handlers_dev.show_error_logs(client, query)
+
+    client.send_rich_message.assert_awaited_once()
+    page = await client.send_rich_message.await_args.args[1].write(client=None)
+    assert page.blocks
+
+    # Test rich fallback
+    client_fallback = SimpleNamespace(send_rich_message=AsyncMock(side_effect=RichMessageUnsupported()))
+    mock_edit = AsyncMock()
+    monkeypatch.setattr(utils, "edit_and_send_msg", mock_edit)
+
+    await handlers_dev.show_error_logs(client_fallback, query)
+    mock_edit.assert_awaited_once()
+
+    # Test non-linux
+    monkeypatch.setattr(handlers_dev.platform, "system", lambda: "Windows")
+    query_win = SimpleNamespace(
+        from_user=_make_admin_user(),
+        answer=AsyncMock(),
+        message=SimpleNamespace(reply_text=AsyncMock()),
+        data="Show Error Logs",
+    )
+    await handlers_dev.show_error_logs(client, query_win)
+    query_win.message.reply_text.assert_awaited_once_with(
+        "This action is only available when the bot runs on Linux.",
+        reply_markup=keyboards.admin_menu_keyboard,
+    )
+

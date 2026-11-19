@@ -1430,6 +1430,136 @@ def get_rich_members_born_year(year: str, results: list) -> InputRichMessage:
     return InputRichMessage(blocks=blocks)
 
 
+def get_rich_version_card(version_info: dict, runtime_info: dict) -> InputRichMessage:
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "STOSCBot Version & Runtime 🤖")),
+            "\nSt. Thomas Orthodox Syrian Cathedral, Singapore",
+        ])),
+    ]
+
+    header_cells = [
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Attribute")))),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Details")))),
+    ]
+    table_cells: list[list[RichBlockTableCell]] = [header_cells]
+
+    rows = [
+        ("Release Version", version_info.get("version", "Unknown")),
+        ("Release Date", version_info.get("release_date", "Unknown")),
+        ("Build SHA", version_info.get("build", "Unknown")),
+        ("Git Branch", version_info.get("branch", "Unknown")),
+        ("Telegram Runtime", str(runtime_info.get("app_version", "Unknown"))),
+        ("Python Engine", str(runtime_info.get("python_version", "Unknown"))),
+        ("Bot Session", str(runtime_info.get("session_name", "stoscbot"))),
+    ]
+
+    for label, val in rows:
+        table_cells.append([
+            RichBlockTableCell(text=cast(RichText, label)),
+            RichBlockTableCell(text=cast(RichText, RichTextCode(cast(RichText, val)))),
+        ])
+
+    blocks.extend([
+        InputRichBlockTable(cells=table_cells, is_striped=True, is_compact=True),
+        InputRichBlockFooter(text=cast(RichText, "Singapore Standard Time (UTC+8) · Production Bot")),
+    ])
+    return InputRichMessage(blocks=blocks)
+
+
+def get_rich_admin_menu() -> InputRichMessage:
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Cathedral Developer & Admin Hub 🛠")),
+            "\nSystem telemetry, diagnostic utilities, and audit tools for Super Administrators.",
+        ])),
+        InputRichBlockDetails(
+            summary=cast(RichText, "CLI Commands Quick Reference"),
+            blocks=[
+                InputRichBlockParagraph(text=cast(RichText, [
+                    RichTextBold(cast(RichText, "Available Super Admin Commands:\n")),
+                    "• ", RichTextCode(cast(RichText, "/cmd logs [filter]")), " - Tail audit logs with optional filter\n",
+                    "• ", RichTextCode(cast(RichText, "/id [member_code]")), " - Lookup Telegram ID from Member Code\n",
+                    "• ", RichTextCode(cast(RichText, "/add [tg_id] [code] [name]")), " - Register user Telegram ID\n",
+                    "• ", RichTextCode(cast(RichText, "/send [id|ALL] [msg]")), " - Broadcast message to recent users\n",
+                    "• ", RichTextCode(cast(RichText, "/version")), " - Display bot version and runtime stats",
+                ])),
+            ],
+            is_open=False,
+        ),
+        InputRichBlockFooter(text=cast(RichText, "Confidential · Authorized super admin access only")),
+    ]
+    return InputRichMessage(blocks=blocks)
+
+
+def get_rich_admin_stats(month_name: str, cmd_result: str, host_supported: bool = True) -> InputRichMessage:
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Top Active Parishioners 📊")),
+            f"\nAudit Period: {month_name} · Top users by message volume",
+        ])),
+    ]
+
+    if not host_supported:
+        blocks.append(InputRichBlockParagraph(text=cast(RichText, "⚠️ Telemetry log analysis is only available on the Linux production host.")))
+        blocks.append(InputRichBlockFooter(text=cast(RichText, "Audit telemetry · St. Thomas Orthodox Syrian Cathedral")))
+        return InputRichMessage(blocks=blocks)
+
+    lines = [line.strip() for line in cmd_result.strip().splitlines() if line.strip()]
+    if not lines:
+        blocks.append(InputRichBlockParagraph(text=cast(RichText, "~ No user activity telemetry recorded for this month ~")))
+        blocks.append(InputRichBlockFooter(text=cast(RichText, "Audit telemetry · St. Thomas Orthodox Syrian Cathedral")))
+        return InputRichMessage(blocks=blocks)
+
+    header_cells = [
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Rank"))), align="center"),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Parishioner")))),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Messages"))), align="right"),
+    ]
+    table_cells: list[list[RichBlockTableCell]] = [header_cells]
+
+    total_msgs = 0
+    for idx, line in enumerate(lines, start=1):
+        parts = line.split(maxsplit=1)
+        count_str = parts[0] if len(parts) >= 1 else "0"
+        name_str = parts[1] if len(parts) >= 2 else "Unknown"
+        if count_str.isdigit():
+            total_msgs += int(count_str)
+
+        table_cells.append([
+            RichBlockTableCell(text=cast(RichText, f"#{idx}"), align="center"),
+            RichBlockTableCell(text=cast(RichText, name_str)),
+            RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, count_str))), align="right"),
+        ])
+
+    blocks.extend([
+        InputRichBlockTable(cells=table_cells, is_striped=True, is_compact=True),
+        InputRichBlockFooter(text=cast(RichText, f"Total messages from top users: {total_msgs:,}")),
+    ])
+    return InputRichMessage(blocks=blocks)
+
+
+def get_rich_admin_logs(title: str, log_text: str, is_error: bool = False) -> InputRichMessage:
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, title)),
+            f"\nHost: Linux · {'Error diagnostics' if is_error else 'Activity telemetry'}",
+        ])),
+    ]
+
+    cleaned_text = log_text.strip()
+    if not cleaned_text:
+        blocks.append(InputRichBlockParagraph(text=cast(RichText, "~ No matching log entries found ~")))
+    else:
+        # Cap log text length to prevent exceeding Telegram block limits
+        if len(cleaned_text) > 3000:
+            cleaned_text = cleaned_text[-3000:]
+        blocks.append(InputRichBlockParagraph(text=cast(RichText, RichTextCode(cast(RichText, cleaned_text)))))
+
+    blocks.append(InputRichBlockFooter(text=cast(RichText, f"Generated at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} SGT")))
+    return InputRichMessage(blocks=blocks)
+
+
 def get_member_listing_keyboard(results):
     keyboard = []
     keyboard_rows = []

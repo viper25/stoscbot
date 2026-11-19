@@ -11,6 +11,7 @@ from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
 from pyrogram import Client, filters
+from pyrogram.errors import RichMessageUnsupported
 from pyrogram.types import CallbackQuery, Message
 
 from stoscbots.bot import keyboards
@@ -37,15 +38,34 @@ def dynamic_data_filter(data):
 async def version_handler(client: Client, message: Message):
     config = configparser.ConfigParser()
     config.read(r'.VERSION')
-    msg = f"Telegram Version: **{message._client.APP_VERSION}** on **{message._client.SYSTEM_VERSION}**"
-    msg += f"\nSession Name: **{client.name}**\n"
-    msg += "-------------"
-    msg += f"\nRelease Version: `{config.get('version', 'VERSION')}`"
-    msg += f"\nRelease Date: `{config.get('version', 'RELEASE_DATE')}`"
-    msg += f"\nBuild SHA: `{config.get('version', 'BUILD')[:7]}`"
-    msg += f"\nBranch: `{config.get('version', 'BRANCH')}`"
-
-    await message.reply_text(msg)
+    version_info = {
+        "version": config.get("version", "VERSION", fallback="Unknown"),
+        "release_date": config.get("version", "RELEASE_DATE", fallback="Unknown"),
+        "build": config.get("version", "BUILD", fallback="Unknown")[:7],
+        "branch": config.get("version", "BRANCH", fallback="Unknown"),
+    }
+    runtime_info = {
+        "app_version": getattr(message._client, "APP_VERSION", "Unknown"),
+        "system_version": getattr(message._client, "SYSTEM_VERSION", platform.system()),
+        "python_version": platform.python_version(),
+        "session_name": client.name or "stoscbot",
+    }
+    fallback = (
+        f"Telegram Version: **{runtime_info['app_version']}** on **{runtime_info['system_version']}**\n"
+        f"Session Name: **{runtime_info['session_name']}**\n"
+        "-------------\n"
+        f"Release Version: `{version_info['version']}`\n"
+        f"Release Date: `{version_info['release_date']}`\n"
+        f"Build SHA: `{version_info['build']}`\n"
+        f"Branch: `{version_info['branch']}`"
+    )
+    chat_id = message.from_user.id
+    try:
+        rich_card = keyboards.get_rich_version_card(version_info, runtime_info)
+        await client.send_rich_message(chat_id, rich_card, reply_markup=keyboards.back_to_main_keyboard)
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected rich version card; sending plain text")
+        await message.reply_text(fallback, reply_markup=keyboards.back_to_main_keyboard)
 
 
 # -------------------------------------------------
@@ -188,7 +208,7 @@ async def handle_logs_command(args, log_file_path):
 
     if args:
         if platform.system() == "Linux":
-            cmd = f"tail -{num_of_lines} {log_file_path} | grep {args[0]} | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]'"
+            cmd = rf"tail -{num_of_lines} {log_file_path} | grep {args[0]} | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]'"
             logger.info(f"Executing {cmd}")
             cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
         else:  # Windows
@@ -197,7 +217,7 @@ async def handle_logs_command(args, log_file_path):
         return '\n'.join(cmd_result)
 
     if platform.system() == "Linux":
-        cmd = f"tail -{num_of_lines} {log_file_path} | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]'"
+        cmd = rf"tail -{num_of_lines} {log_file_path} | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]'"
         logger.info(f"Executing {cmd}")
         cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
     else:  # Windows
@@ -209,11 +229,22 @@ async def handle_logs_command(args, log_file_path):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Admin Menu"))
 @loggers.async_log_access
+@bot_auth.super_admin_only
 async def show_admin_menu(client: Client, query: CallbackQuery):
     await query.answer()
-    msg = "➖➖**Admin Menu**➖➖"
-    msg += "\n‣ Commands:\n `/cmd logs` or `/cmd logs [search_string]`"
-    await query.message.reply_text(msg, reply_markup=keyboards.admin_menu_keyboard)
+    chat_id = query.from_user.id
+    fallback = (
+        "➖➖**Admin Menu**➖➖\n"
+        "‣ Commands:\n"
+        " `/cmd logs` or `/cmd logs [search_string]`"
+    )
+    try:
+        rich_card = keyboards.get_rich_admin_menu()
+        await client.send_rich_message(chat_id, rich_card, reply_markup=keyboards.admin_menu_keyboard)
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected rich admin menu; sending plain text")
+        await utils.edit_and_send_msg(query, fallback, keyboards.admin_menu_keyboard)
+
 
 # --------------------------------------------------
 # Helper: replace Telegram IDs with names using DynamoDB
@@ -231,6 +262,7 @@ def _id_to_name(telegram_id: str, cache: dict) -> str:
     cache[telegram_id] = name
     return name
 
+
 # --------------------------------------------------
 def _replace_ids_with_names(cmd_result: str) -> str:
     cache = {}
@@ -245,20 +277,22 @@ def _replace_ids_with_names(cmd_result: str) -> str:
             lines.append(line)
     return "\n".join(lines)
 
+
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Show Stats"))
 @loggers.async_log_access
+@bot_auth.super_admin_only
 async def show_stats(client: Client, query: CallbackQuery):
     await query.answer()
+    chat_id = query.from_user.id
 
     date_string = datetime.now().strftime("%Y-%m-")
+    month_name = datetime.now().strftime("%B %Y")
     log_file_path = os.path.join('/home', STOSCBOT_APP_HOME_DIR, 'bots', 'stoscbot', 'logs', 'stosc_logs.log')
 
     if platform.system() == "Linux":
-        msg = "** Top users by messages (current month) **\n"
-
         # Build pipeline: filter current-month logs, extract Telegram IDs from `[ID:...]`, count occurrences, sort desc, and take top 15.
-        cmd = f"""
+        cmd = rf"""
         grep -E '{date_string}' {log_file_path} |
         grep -oP '(?<=\[)\d+(?=:)' |
         sort |
@@ -267,56 +301,64 @@ async def show_stats(client: Client, query: CallbackQuery):
         head -n 15
         """
         cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
-
         # Replace Telegram IDs with names from DynamoDB
         cmd_result = _replace_ids_with_names(cmd_result)
 
-        msg += f"`{cmd_result}`"
-        await utils.edit_and_send_msg(query, msg, keyboards.admin_menu_keyboard)
+        fallback = f"** Top users by messages ({month_name}) **\n`{cmd_result}`"
+        try:
+            rich_card = keyboards.get_rich_admin_stats(month_name, cmd_result, host_supported=True)
+            await client.send_rich_message(chat_id, rich_card, reply_markup=keyboards.admin_menu_keyboard)
+        except RichMessageUnsupported:
+            logger.warning("Telegram rejected rich admin stats; sending plain text")
+            await utils.edit_and_send_msg(query, fallback, keyboards.admin_menu_keyboard)
     else:
-        # Optionally inform the user that this action is only available on Linux
-        await query.message.reply_text("This action is only available when the bot runs on Linux.")
+        fallback = "This action is only available when the bot runs on Linux."
+        try:
+            rich_card = keyboards.get_rich_admin_stats(month_name, "", host_supported=False)
+            await client.send_rich_message(chat_id, rich_card, reply_markup=keyboards.admin_menu_keyboard)
+        except RichMessageUnsupported:
+            await query.message.reply_text(fallback, reply_markup=keyboards.admin_menu_keyboard)
 
 
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Show Logs"))
 @loggers.async_log_access
+@bot_auth.super_admin_only
 async def show_logs(client: Client, query: CallbackQuery):
     await query.answer()
+    chat_id = query.from_user.id
 
     if platform.system() == "Linux":
-        msg = "** Last few log messages (current month) **\n"
         date_string = datetime.now().strftime("%Y-%m-")
-
-        cmd = f"grep -E '{date_string}' /home/{STOSCBOT_APP_HOME_DIR}/bots/stoscbot/logs/stosc_logs.log | grep -P '\[\d+:[^:]+:[^:\]]+\]' | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]' | tail -n 20"
+        cmd = rf"grep -E '{date_string}' /home/{STOSCBOT_APP_HOME_DIR}/bots/stoscbot/logs/stosc_logs.log | grep -P '\[\d+:[^:]+:[^:\]]+\]' | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]' | tail -n 20"
         cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
-        cmd_result = cmd_result.replace('\n', '\n\n‣')
-        # Remove the last newline
-        cmd_result = cmd_result[:-1]
-        msg += f"`{cmd_result}`"
-        await utils.edit_and_send_msg(query, msg, keyboards.admin_menu_keyboard)
+        fallback = f"** Last few log messages (current month) **\n`{cmd_result}`"
+        try:
+            rich_card = keyboards.get_rich_admin_logs("Recent System Activity 📜", cmd_result, is_error=False)
+            await client.send_rich_message(chat_id, rich_card, reply_markup=keyboards.admin_menu_keyboard)
+        except RichMessageUnsupported:
+            await utils.edit_and_send_msg(query, fallback, keyboards.admin_menu_keyboard)
     else:
-        # Optionally inform the user that this action is only available on Linux
-        await query.message.reply_text("This action is only available when the bot runs on Linux.")
+        await query.message.reply_text("This action is only available when the bot runs on Linux.", reply_markup=keyboards.admin_menu_keyboard)
 
 
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Show Error Logs"))
 @loggers.async_log_access
+@bot_auth.super_admin_only
 async def show_error_logs(client: Client, query: CallbackQuery):
     await query.answer()
+    chat_id = query.from_user.id
 
     if platform.system() == "Linux":
-        msg = "** Last few log messages (current month) **\n"
         date_string = datetime.now().strftime("%Y-")
-
-        cmd = f"grep -E '{date_string}' /home/{STOSCBOT_APP_HOME_DIR}/bots/stoscbot/logs/stosc_logs.log | grep -iE 'error|exception' | grep -v 'Telegram server could not fetch the provided URL' | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]' | tail -n 30"
+        cmd = rf"grep -E '{date_string}' /home/{STOSCBOT_APP_HOME_DIR}/bots/stoscbot/logs/stosc_logs.log | grep -iE 'error|exception' | grep -v 'Telegram server could not fetch the provided URL' | grep -v '\[{VIBIN_TELEGRAM_ID}:vibinjk:Vibin\]' | tail -n 30"
         cmd_result = subprocess.run(cmd, shell=True, capture_output=True, text=True).stdout
-        cmd_result = cmd_result.replace('\n', '\n\n‣')
-        # Remove the last newline
-        cmd_result = cmd_result[:-1]
-        msg += f"`{cmd_result}`"
-        await utils.edit_and_send_msg(query, msg, keyboards.admin_menu_keyboard)
+        fallback = f"** Last few error logs **\n`{cmd_result}`"
+        try:
+            rich_card = keyboards.get_rich_admin_logs("System Error Diagnostics ⚠️", cmd_result, is_error=True)
+            await client.send_rich_message(chat_id, rich_card, reply_markup=keyboards.admin_menu_keyboard)
+        except RichMessageUnsupported:
+            await utils.edit_and_send_msg(query, fallback, keyboards.admin_menu_keyboard)
     else:
-        # Optionally inform the user that this action is only available on Linux
-        await query.message.reply_text("This action is only available when the bot runs on Linux.")
+        await query.message.reply_text("This action is only available when the bot runs on Linux.", reply_markup=keyboards.admin_menu_keyboard)
