@@ -2,8 +2,8 @@ import asyncio
 import logging
 
 import aiofiles
-from pyrogram import Client, filters
-from pyrogram.errors import RichMessageUnsupported
+from pyrogram import Client, errors, filters
+from pyrogram.errors import BadRequest, RichMessageUnsupported
 from pyrogram.types import CallbackQuery, LinkPreviewOptions, Message
 
 from stoscbots.bot import family_profile, keyboards
@@ -409,26 +409,41 @@ async def show_my_harvest_festival_menu(client: Client, query: CallbackQuery):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("PayNow Menu"))
 @loggers.async_log_access
+@bot_auth.async_member_only
 async def show_paynow_menu(client: Client, query: CallbackQuery):
     await query.answer()
-    msg = """
-**Payment Options**
-➖➖➖➖➖➖
-You may pay by one of these ways:
-    • PayNow to UEN: `S79SS0001L`
-    • PayNow to QR code shown above
-    • Bank transfer to DBS: `0480155596`
-    • Cash or Cheque (payable to `St. Thomas Orthodox Syrian Cathedral`) at the church office
-
-`Please mention your family code and purpose of contribution.`
-`For multiple payments, you can make one transfer and email the breakdown to` accounts@stosc.com
-"""
-    await client.send_photo(
-        chat_id=query.from_user.id,
-        photo="https://stosc.com/paynow/img/QR.png",
-        caption=msg,
-        reply_markup=keyboards.back_to_main_keyboard,
+    chat_id = query.from_user.id
+    fallback_text = (
+        "**Payment Options**\n➖➖➖➖➖➖\n"
+        "You may pay by one of these ways:\n"
+        "• PayNow to UEN: `S79SS0001L`\n"
+        "• Bank transfer to DBS: `0480155596`\n"
+        "• Cash or Cheque (payable to `St. Thomas Orthodox Syrian Cathedral`) at the church office\n\n"
+        "`Please mention your family code and purpose of contribution.`\n"
+        "For multiple payments, email the breakdown to accounts@stosc.com"
     )
+
+    async def send_rich(include_photo: bool) -> None:
+        await client.send_rich_message(
+            chat_id,
+            keyboards.get_rich_paynow_menu(include_photo=include_photo),
+            reply_markup=keyboards.paynow_keyboard,
+        )
+
+    try:
+        try:
+            await send_rich(include_photo=True)
+        except family_profile.PHOTO_ERRORS as exc:
+            logger.warning("Telegram could not process PayNow photo (%s); retrying without it", type(exc).__name__)
+            await send_rich(include_photo=False)
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected the rich PayNow card; sending plain text")
+        await client.send_message(
+            chat_id,
+            fallback_text,
+            reply_markup=keyboards.paynow_keyboard,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
+        )
 
 
 # --------------------------------------------------

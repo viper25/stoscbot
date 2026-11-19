@@ -1,3 +1,4 @@
+import os
 from datetime import date
 from typing import cast
 
@@ -5,15 +6,18 @@ from pyrogram.enums import ButtonStyle
 from pyrogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    InputMediaPhoto,
     InputRichBlock,
     InputRichBlockButtons,
     InputRichBlockDetails,
     InputRichBlockParagraph,
+    InputRichBlockPhoto,
     InputRichMessage,
     RichMessageButton,
     RichText,
     RichTextBold,
     RichTextCode,
+    RichTextEmailAddress,
     WebAppInfo,
 )
 
@@ -101,6 +105,11 @@ dues_payment_keyboard = InlineKeyboardMarkup([
 
 back_to_prayer_groups_keyboard = InlineKeyboardMarkup([
     [InlineKeyboardButton("← Back to Prayer Groups", callback_data="Prayer Groups Menu")]
+])
+
+paynow_keyboard = InlineKeyboardMarkup([
+    [InlineKeyboardButton("← Back to My Details", callback_data="My Details Menu")],
+    [BACK_TO_MAIN_BUTTON],
 ])
 
 members_menu_keyboard = InlineKeyboardMarkup([
@@ -330,6 +339,67 @@ def get_rich_my_details_menu() -> InputRichMessage:
         ),
         _rich_button_row(("← Main menu", "Main Menu", ButtonStyle.LINK)),
     ])
+
+
+DEFAULT_PAYNOW_QR_PATH = os.path.join(os.path.dirname(__file__), "assets", "paynow_qr.jpg")
+PAYNOW_QR_MEDIA = os.environ.get(
+    "PAYNOW_QR_PATH",
+    DEFAULT_PAYNOW_QR_PATH if os.path.exists(DEFAULT_PAYNOW_QR_PATH) else os.environ.get(
+        "PAYNOW_QR_URL",
+        "https://stosc.com/wp-content/uploads/2026/08/giving1.webp",
+    ),
+)
+PAYNOW_QR_URL = PAYNOW_QR_MEDIA
+
+
+def get_rich_paynow_menu(
+    include_photo: bool = True,
+    photo_media: str | None = None,
+) -> InputRichMessage:
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Payment Options 💵")),
+            "\nSt. Thomas Orthodox Syrian Cathedral, Singapore",
+        ])),
+    ]
+    if include_photo:
+        media = photo_media or PAYNOW_QR_MEDIA
+        blocks.append(InputRichBlockPhoto(photo=InputMediaPhoto(media)))
+
+    blocks.extend([
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "1. PayNow (UEN)")),
+            "\n• UEN: ", RichTextCode(cast(RichText, "S79SS0001L")), " (tap to copy)",
+            "\n• Entity: St. Thomas Orthodox Syrian Cathedral",
+            "\n\n",
+            RichTextBold(cast(RichText, "2. Bank Transfer (DBS)")),
+            "\n• Account: ", RichTextCode(cast(RichText, "0480155596")), " (tap to copy)",
+            "\n• Bank: DBS Bank Ltd (Code: 7171, Branch: 048)",
+            "\n• Name: St. Thomas Orthodox Syrian Cathedral",
+            "\n\n",
+            RichTextBold(cast(RichText, "3. Cash or Cheque")),
+            "\n• Payable to: St. Thomas Orthodox Syrian Cathedral",
+            "\n• Venue: Cathedral church office",
+        ])),
+        InputRichBlockDetails(
+            summary=cast(RichText, "Reference & receipt guide"),
+            blocks=[
+                InputRichBlockParagraph(text=cast(RichText, [
+                    RichTextBold(cast(RichText, "Payment Reference:")),
+                    "\nPlease enter your family code and purpose in the transfer description (e.g. ",
+                    RichTextCode(cast(RichText, "A001 Subscription")),
+                    ").",
+                    "\n\n",
+                    RichTextBold(cast(RichText, "Multiple Contributions:")),
+                    "\nFor combined transfers, email the itemized breakdown to ",
+                    RichTextEmailAddress(text=cast(RichText, "accounts@stosc.com"), email_address="accounts@stosc.com"),
+                    ".",
+                ]))
+            ],
+            is_open=True,
+        ),
+    ])
+    return InputRichMessage(blocks=blocks)
 
 
 # Dynamically generate a keyboard with prayer requests

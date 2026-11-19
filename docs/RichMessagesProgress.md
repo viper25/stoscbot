@@ -72,8 +72,11 @@ All redesigned screens adhere to the following patterns established in the initi
 - [x] **`Area Prayer Groups Menu` & Member List (`Prayer Groups Menu`, `Area Prayer Group`)**
   - *Location:* [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), [handlers_area_prayer_groups.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_area_prayer_groups.py), [keyboards.py](file:///home/viper25/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
   - *Design:*
-    - *Menu:* Clean rich card displaying all 7 area buttons and a link back to the main menu.
+    - *Menu:* Clean rich card header with a balanced, full-width 2-column grid keyboard for all 7 areas and main menu return.
     - *Roster:* Compact striped table of registered families with parsed tappable family codes (`related_family:<CODE>`), family count subtitle, footer tip, and `← Back to Prayer Groups` navigation button.
+- [x] **`PayNow Menu` (`PayNow Menu` callback)**
+  - *Location:* [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
+  - *Design:* Rich payment card with optional QR photo (`InputRichBlockPhoto`), tap-to-copy monospace code blocks for UEN (`S79SS0001L`) and DBS Account (`0480155596`), cash/cheque instructions, collapsible reference and receipt guide with email link, and dual navigation (`← Back to My Details`, `🔙 Return to Main menu`).
 
 ---
 
@@ -82,11 +85,6 @@ All redesigned screens adhere to the following patterns established in the initi
 ---
 
 ### Group B: Community & Church Life
-
-- [ ] **`PayNow Menu`**
-  - *Handler:* `show_paynow_menu` in [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py)
-  - *Current State:* Sends standalone QR image with payment instructions in the photo caption.
-  - *Proposed Redesign:* Rich card embedding the QR photo (`InputRichBlockPhoto`), preformatted code blocks for UEN (`S79SS0001L`) and DBS Account (`0480155596`), copyable payment reference guide, and `accounts@stosc.com` email entity.
 
 - [ ] **`My Harvest Festival Menu`**
   - *Handler:* `show_my_harvest_festival_menu` in [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py)

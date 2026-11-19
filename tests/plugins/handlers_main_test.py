@@ -1,3 +1,4 @@
+import os
 from datetime import UTC, date, datetime
 from io import BytesIO
 from types import SimpleNamespace
@@ -8,7 +9,7 @@ from pyrogram import enums, errors, raw
 from pyrogram.types import CallbackQuery
 
 from plugins import handlers_main
-from stoscbots.bot import family_profile
+from stoscbots.bot import family_profile, keyboards
 from stoscbots.util import bot_auth, utils
 from tests.mocks import msg, telegram_client, telegram_member_non
 
@@ -330,3 +331,79 @@ async def test_household_shows_head_when_no_distinct_spouse(monkeypatch, family_
 )
 def test_profile_dates_without_usable_timestamp_remain_text(value, expected):
     assert family_profile._date_field("Head DOB", value) == ("Head DOB", expected, None)
+
+
+@pytest.mark.asyncio
+async def test_show_paynow_menu_rich(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    client = SimpleNamespace(send_rich_message=AsyncMock(), send_message=AsyncMock())
+    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="PayNow Menu")
+    monkeypatch.setattr(query, "answer", AsyncMock())
+
+    handler, _group = handlers_main.show_paynow_menu.handlers[0]
+    assert handler.filters(client, query)
+    await handlers_main.show_paynow_menu.__wrapped__(client, query)
+
+    query.answer.assert_awaited_once()
+    client.send_rich_message.assert_awaited_once()
+    chat_id, rich = client.send_rich_message.await_args.args
+    assert chat_id == 42
+    assert client.send_rich_message.await_args.kwargs["reply_markup"] is keyboards.paynow_keyboard
+    assert rich.blocks[1].photo.media == keyboards.PAYNOW_QR_MEDIA
+    assert os.path.exists(keyboards.PAYNOW_QR_MEDIA)
+
+    # Test the rich blocks when serialized (without photo to avoid un-mocked client upload)
+    blocks = (await keyboards.get_rich_paynow_menu(include_photo=False).write(client=None)).blocks
+    assert len(blocks) == 3
+    header, methods, guide = blocks
+    assert "Payment Options" in header.text.texts[0].text.text
+    method_texts = [t.text.text for t in methods.text.texts if hasattr(t, "text") and hasattr(t.text, "text")]
+    assert "S79SS0001L" in method_texts
+    assert "0480155596" in method_texts
+    assert guide.title.text == "Reference & receipt guide"
+    client.send_message.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_show_paynow_menu_photo_error_retries_without_photo(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    calls = []
+
+    async def fake_send_rich(_chat, rich, **kwargs):
+        calls.append(len(rich.blocks))
+        if len(calls) == 1:
+            raise errors.PhotoInvalid()
+
+    client = SimpleNamespace(send_rich_message=fake_send_rich, send_message=AsyncMock())
+    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="PayNow Menu")
+    monkeypatch.setattr(query, "answer", AsyncMock())
+
+    await handlers_main.show_paynow_menu.__wrapped__(client, query)
+
+    assert len(calls) == 2
+    # First call had 4 blocks (with photo), second call had 3 blocks (without photo)
+    assert calls[0] == 4
+    assert calls[1] == 3
+    client.send_message.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_show_paynow_menu_fallback(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    client = SimpleNamespace(
+        send_rich_message=AsyncMock(side_effect=errors.RichMessageUnsupported()),
+        send_message=AsyncMock(),
+    )
+    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="PayNow Menu")
+    monkeypatch.setattr(query, "answer", AsyncMock())
+
+    await handlers_main.show_paynow_menu.__wrapped__(client, query)
+
+    query.answer.assert_awaited_once()
+    client.send_rich_message.assert_awaited_once()
+    client.send_message.assert_awaited_once()
+    chat_id, text = client.send_message.await_args.args
+    assert chat_id == 42
+    assert "S79SS0001L" in text
+    assert client.send_message.await_args.kwargs["reply_markup"] is keyboards.paynow_keyboard
+

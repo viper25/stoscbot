@@ -72,6 +72,11 @@ For a smoke test of **Area Prayer Groups**, open **Community ▸ Prayer groups**
 Check that the 7 area buttons appear on the rich card. Tap an area (e.g. **East Coast**) to check
 that its registered families render in a compact striped table with a family count subtitle, tappable
 family codes, and a **Back to Prayer Groups** button. Tap a family code to open its family card.
+
+For a smoke test of **PayNow**, tap **PayNow** from the home screen or from **My Dues**.
+Check that the card presents the payment options with tap-to-copy code blocks for the UEN
+(`S79SS0001L`) and DBS account number (`0480155596`), cash/cheque instructions, a reference and receipt
+guide drawer with clickable email, and navigation to both **Back to My Details** and **Main menu**.
 Name and phone search keep their existing layouts.
 
 ```bash
