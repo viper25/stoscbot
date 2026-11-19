@@ -88,6 +88,8 @@ Check that the card presents the committee header with `/x <CODE>` and `/xs <COD
 paired with the full 9-button finance keyboard (`Executive Summary`, `Bank Summary`, `Trial Bal Revenue`, `Trial Bal Expense`, `Latest Transactions`, `Payments WTD`, `Outstanding`, `Projects`, and `Return to Main menu`).
 Tap **Bank Summary** to verify the compact account table with In, Out, Closing balances, and Fixed Deposits total.
 Tap **Executive Summary** to verify the expandable section accordions with comparison tables and variance indicators.
+Tap **Latest Transactions** to verify the striped table of past 7 days bank and cash movements with inflow/outflow totals.
+Tap **Payments WTD** to verify invoice settlements and bill payments with directional indicators (⇨/⇦) and receipt totals.
 Name and phone search keep their existing layouts.
 
 ```bash

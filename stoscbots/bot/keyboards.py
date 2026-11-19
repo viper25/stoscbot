@@ -1,5 +1,5 @@
 import os
-from datetime import date
+from datetime import date, datetime
 from typing import cast
 
 from pyrogram.enums import ButtonStyle
@@ -25,6 +25,7 @@ from pyrogram.types import (
 )
 
 from stoscbots.util import bot_auth
+from stoscbots.xero import xero_utils
 
 WEB_APP_PR = WebAppInfo(
     url="https://stosc.com/pr")
@@ -694,6 +695,166 @@ def get_rich_finance_executive_summary(report_rows: list[dict]) -> InputRichMess
             is_open=first_section,
         ))
         first_section = False
+
+    return InputRichMessage(blocks=blocks)
+
+
+def get_rich_finance_payments_wtd(payments_data: dict) -> InputRichMessage:
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Invoice & Bill Payments (WTD) 💳")),
+            "\nSt. Thomas Orthodox Syrian Cathedral, Singapore",
+            "\nPast 7 days settlements",
+        ])),
+    ]
+
+    header_cells = [
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Date")))),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Contact")))),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Type")))),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Amount"))), align="right"),
+    ]
+    table_cells: list[list[RichBlockTableCell]] = [header_cells]
+
+    total_rec = 0.0
+    total_pay = 0.0
+    count = 0
+
+    for payment in (payments_data or {}).get("Payments", []):
+        if payment.get("Status") == "DELETED":
+            continue
+
+        inv = payment.get("Invoice") or {}
+        inv_type = inv.get("Type", "")
+        is_pay = inv_type == "ACCPAY"
+        icon = "🔴" if is_pay else "🟢"
+        type_label = "Bill ⇨" if is_pay else "Receipt ⇦"
+
+        date_val = payment.get("Date")
+        if isinstance(date_val, datetime):
+            _date = date_val
+        else:
+            try:
+                _date = xero_utils.parse_Xero_Date(str(date_val))
+            except Exception:
+                _date = datetime.now()
+
+        contact_name = str((inv.get("Contact") or {}).get("Name") or "Contact")
+        raw_amt = payment.get("Amount", 0)
+        try:
+            amt_val = float(raw_amt)
+        except (ValueError, TypeError):
+            amt_val = 0.0
+
+        if is_pay:
+            total_pay += amt_val
+        else:
+            total_rec += amt_val
+        count += 1
+
+        date_str = f"{_date:%m-%d}"
+        contact_display = f"{icon} {contact_name}"
+
+        table_cells.append([
+            RichBlockTableCell(text=cast(RichText, RichTextCode(cast(RichText, date_str)))),
+            RichBlockTableCell(text=cast(RichText, contact_display)),
+            RichBlockTableCell(text=cast(RichText, type_label)),
+            RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, f"${amt_val:,.2f}"))), align="right"),
+        ])
+
+    if count > 0:
+        blocks.append(InputRichBlockTable(cells=table_cells, is_striped=True, is_compact=True))
+        blocks.append(InputRichBlockFooter(text=cast(
+            RichText,
+            f"🟢 Received: ${total_rec:,.2f} · 🔴 Paid: ${total_pay:,.2f}",
+        )))
+    else:
+        blocks.append(InputRichBlockParagraph(text=cast(RichText, "~ No invoice or bill payments in the last 7 days ~")))
+
+    return InputRichMessage(blocks=blocks)
+
+
+def get_rich_finance_latest_tx(bank_tx_data: dict) -> InputRichMessage:
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Latest Transactions (WTD) 🏦")),
+            "\nSt. Thomas Orthodox Syrian Cathedral, Singapore",
+            "\nCash, DBS & NETS movements (excluding invoices/bills)",
+        ])),
+    ]
+
+    header_cells = [
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Date")))),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Contact")))),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Account")))),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Amount"))), align="right"),
+    ]
+    table_cells: list[list[RichBlockTableCell]] = [header_cells]
+
+    total_in = 0.0
+    total_out = 0.0
+    count = 0
+    now = datetime.now()
+
+    for tx in (bank_tx_data or {}).get("BankTransactions", []):
+        date_val = tx.get("Date")
+        if isinstance(date_val, datetime):
+            tx_date = date_val
+        else:
+            try:
+                tx_date = xero_utils.parse_Xero_Date(str(date_val))
+            except Exception:
+                tx_date = now
+
+        if tx_date > now:
+            continue
+
+        tx_type = tx.get("Type", "")
+        is_in = tx_type in {"RECEIVE", "RECEIVE-TRANSFER"}
+        icon = "🟢" if is_in else "🔴" if tx_type in {"SPEND", "SPEND-TRANSFER"} else "❓"
+
+        contact_name = str((tx.get("Contact") or {}).get("Name") or "General")
+
+        acct_raw = str((tx.get("BankAccount") or {}).get("Name", "")).upper()
+        if acct_raw == "CASH":
+            acct_display = "💵 CASH"
+        elif "DBS" in acct_raw:
+            acct_display = "🏦 DBS"
+        elif "NETS" in acct_raw:
+            acct_display = "💳 NETS"
+        else:
+            acct_display = acct_raw[:8] if acct_raw else "Bank"
+
+        raw_amt = tx.get("Total", 0)
+        try:
+            amt_val = float(raw_amt)
+        except (ValueError, TypeError):
+            amt_val = 0.0
+
+        if is_in:
+            total_in += amt_val
+        else:
+            total_out += amt_val
+        count += 1
+
+        date_str = f"{tx_date:%m-%d}"
+        contact_display = f"{icon} {contact_name}"
+
+        table_cells.append([
+            RichBlockTableCell(text=cast(RichText, RichTextCode(cast(RichText, date_str)))),
+            RichBlockTableCell(text=cast(RichText, contact_display)),
+            RichBlockTableCell(text=cast(RichText, acct_display)),
+            RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, f"${amt_val:,.2f}"))), align="right"),
+        ])
+
+    if count > 0:
+        blocks.append(InputRichBlockTable(cells=table_cells, is_striped=True, is_compact=True))
+        blocks.append(InputRichBlockFooter(text=cast(
+            RichText,
+            f"🟢 Inflow: ${total_in:,.2f} · 🔴 Outflow: ${total_out:,.2f}",
+        )))
+    else:
+        blocks.append(InputRichBlockParagraph(text=cast(RichText, "~ No non-invoice transactions in the last 7 days ~")))
 
     return InputRichMessage(blocks=blocks)
 

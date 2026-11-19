@@ -238,32 +238,58 @@ async def get_finance_trial_balance(client: Client, query: CallbackQuery):
 @bot_auth.async_management_only
 async def get_finance_payments_wtd_balance(client: Client, query: CallbackQuery):
     await query.answer()
-    payments = xero_utils.xero_get_payments()
+    chat_id = query.from_user.id
+    try:
+        payments = xero_utils.xero_get_payments()
+    except Exception as exc:
+        logger.error("Failed to fetch payments from Xero: %s", exc)
+        await client.send_message(
+            chat_id,
+            "⚠️ Unable to fetch Payments from Xero at this moment. Please try again later.",
+            reply_markup=keyboards.finance_menu_keyboard,
+        )
+        return
 
     msg_list = ["➖**INVOICE/BILL PAYMENTS**➖\n\n"]
 
-    for payment in payments.get('Payments', []):
-        if payment['Status'] == 'DELETED':
+    for payment in (payments or {}).get('Payments', []):
+        if payment.get('Status') == 'DELETED':
             continue
 
-        inv_type_icon = '⇨' if payment['Invoice']['Type'] == 'ACCPAY' else '⇦' if payment['Invoice'][
-                                                                                      'Type'] == 'ACCREC' else ''
-        icon = '🔴' if payment['Invoice']['Type'] == 'ACCPAY' else '🟢' if payment['Invoice']['Type'] == 'ACCREC' else ''
-        _date = xero_utils.parse_Xero_Date(payment['Date'])
-        contact_name = payment['Invoice']['Contact']['Name']
-        invoice_number = payment['Invoice'].get('InvoiceNumber', '-NA-')
-        if invoice_number == '':
-            invoice_number = '-NA-'
-        amount = payment['Amount']
+        inv = payment.get('Invoice') or {}
+        inv_type = inv.get('Type', '')
+        inv_type_icon = '⇨' if inv_type == 'ACCPAY' else '⇦' if inv_type == 'ACCREC' else ''
+        icon = '🔴' if inv_type == 'ACCPAY' else '🟢' if inv_type == 'ACCREC' else ''
+        try:
+            _date = xero_utils.parse_Xero_Date(payment['Date'])
+            date_str = f"{_date:%Y-%m-%d}"
+        except Exception:
+            date_str = str(payment.get('Date', ''))
+        contact_name = (inv.get('Contact') or {}).get('Name', 'Contact')
+        invoice_number = inv.get('InvoiceNumber') or '-NA-'
+        amount = payment.get('Amount', 0)
 
         msg_list.append(f"\n{icon} **{contact_name}** ({invoice_number})\n")
-        msg_list.append(f"`({_date:%Y-%m-%d})` ")
+        msg_list.append(f"`({date_str})` ")
         msg_list.append(f"**${amount}** {inv_type_icon}\n")
 
-    msg = ''.join(msg_list)
-    msg = format_telegram_message(msg)
+    fallback_text = format_telegram_message(''.join(msg_list))
 
-    await utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
+    try:
+        rich_card = keyboards.get_rich_finance_payments_wtd(payments)
+        await client.send_rich_message(
+            chat_id,
+            rich_card,
+            reply_markup=keyboards.finance_menu_keyboard,
+        )
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected the rich payments WTD card; sending plain text")
+        await client.send_message(
+            chat_id,
+            fallback_text,
+            reply_markup=keyboards.finance_menu_keyboard,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
+        )
 
 
 # --------------------------------------------------
@@ -273,18 +299,32 @@ async def get_finance_payments_wtd_balance(client: Client, query: CallbackQuery)
 @bot_auth.async_management_only
 async def get_finance_latest_tx(client: Client, query: CallbackQuery):
     await query.answer()
-    bank_tx = xero_utils.xero_get_bank_transactions()
+    chat_id = query.from_user.id
+    try:
+        bank_tx = xero_utils.xero_get_bank_transactions()
+    except Exception as exc:
+        logger.error("Failed to fetch bank transactions from Xero: %s", exc)
+        await client.send_message(
+            chat_id,
+            "⚠️ Unable to fetch Bank Transactions from Xero at this moment. Please try again later.",
+            reply_markup=keyboards.finance_menu_keyboard,
+        )
+        return
+
     now = datetime.now()
     msg_parts = ["➖**TRANSACTIONS (WTD)**➖\n`No Invoice (subscription) or bill payment transactions shown`\n\n"]
 
-    for tx in bank_tx['BankTransactions']:
-        tx_date = xero_utils.parse_Xero_Date(tx['Date'])
+    for tx in (bank_tx or {}).get('BankTransactions', []):
+        try:
+            tx_date = xero_utils.parse_Xero_Date(tx['Date'])
+        except Exception:
+            tx_date = now
+
         if tx_date > now:
             continue
 
-        icon = '❓'
+        tx_type = tx.get('Type', '')
         _msg = ''
-        tx_type = tx['Type']
         if tx_type == 'RECEIVE':
             icon = '🟢'
         elif tx_type in {'SPEND', 'SPEND-TRANSFER'}:
@@ -294,11 +334,14 @@ async def get_finance_latest_tx(client: Client, query: CallbackQuery):
         elif tx_type == 'RECEIVE-TRANSFER':
             icon = '🟢'
             _msg = " `(Transfer In)`"
+        else:
+            icon = '❓'
 
-        if 'Contact' in tx:
-            msg_parts.append(f"{icon} **{tx['Contact']['Name']}** ")
+        contact_name = (tx.get('Contact') or {}).get('Name')
+        if contact_name:
+            msg_parts.append(f"{icon} **{contact_name}** ")
 
-        bank_account_name = tx['BankAccount']['Name'].upper()
+        bank_account_name = str((tx.get('BankAccount') or {}).get('Name', '')).upper()
         if bank_account_name == 'CASH':
             msg_parts.append(f"💵 CASH {_msg}\n")
         elif 'DBS' in bank_account_name:
@@ -306,14 +349,28 @@ async def get_finance_latest_tx(client: Client, query: CallbackQuery):
         elif bank_account_name == 'NETS':
             msg_parts.append(f"💳 NETS {_msg}\n")
         else:
-            msg_parts.append(f"\n\n{icon} **{tx['BankAccount']['Name']}** {_msg}\n")
+            msg_parts.append(f"\n\n{icon} **{bank_account_name}** {_msg}\n")
 
         msg_parts.append(f"`{tx_date:%Y-%m-%d}`\n")
-        msg_parts.append(f"**${tx['Total']}**\n\n")
+        msg_parts.append(f"**${tx.get('Total', 0)}**\n\n")
 
-    msg = ''.join(msg_parts)
-    msg = format_telegram_message(msg)
-    await utils.edit_and_send_msg(query, msg, keyboards.finance_menu_keyboard)
+    fallback_text = format_telegram_message(''.join(msg_parts))
+
+    try:
+        rich_card = keyboards.get_rich_finance_latest_tx(bank_tx)
+        await client.send_rich_message(
+            chat_id,
+            rich_card,
+            reply_markup=keyboards.finance_menu_keyboard,
+        )
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected the rich latest transactions card; sending plain text")
+        await client.send_message(
+            chat_id,
+            fallback_text,
+            reply_markup=keyboards.finance_menu_keyboard,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
+        )
 
 
 # --------------------------------------------------

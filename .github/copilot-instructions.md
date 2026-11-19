@@ -144,4 +144,4 @@ stoscbot/
   - Do **NOT** use conventional commit prefixes such as `feat:`, `docs:`, `fix:`, `chore:`, or `refactor:`.
   - Write clear, direct commit messages in the imperative mood starting with a capital letter (e.g., `Add mock for requests.get in test_get_address_details`, `Fix VIBIN_TELEGRAM_ID assignment`, `Refactor member authentication checks`).
   - For semantic version bumping via CI, include `(MAJOR)` or `(MINOR)` in the commit message or body where appropriate.
-
+  - Do not commit any code without explicit approval.

@@ -91,8 +91,14 @@ All redesigned screens adhere to the following patterns established in the initi
   - *Location:* [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py), [keyboards.py](file:///home/viper25/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
   - *Design:* Compact striped table (`InputRichBlockTable`) listing active operating bank accounts with Inflows, Outflows, and Closing balances, plus a footer block consolidating Fixed Deposits (`DBS FD`) and operating totals. Kept all finance buttons in `reply_markup` for seamless switching.
 - [x] **`Finance Executive Summary` (`Finance Executive Summary Button` callback)**
-  - *Location:* [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py), [keyboards.py](file:///home/viper25/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
+  - *Location:* [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
   - *Design:* Subtitle contrasting current vs previous month. Section accordions (`InputRichBlockDetails`) for each financial section (Cash, Balance Sheet, Customers) containing compact comparison tables with formatted variance arrows (▲/▼). All finance buttons kept visible in `reply_markup`.
+- [x] **`Finance Latest Transactions` (`Finance Latest Transactions Button` callback)**
+  - *Location:* [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
+  - *Design:* Compact striped table (`InputRichBlockTable`) of past 7 days cash movements across Cash, DBS, and NETS with transaction dates, contact names, and total Inflow/Outflow footer. All finance buttons kept visible in `reply_markup`.
+- [x] **`Finance Payments WTD` (`Finance Payments WTD Button` callback)**
+  - *Location:* [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
+  - *Design:* Compact striped table (`InputRichBlockTable`) of past 7 days invoice settlements (`ACCREC` 🟢 ⇦) and bill payments (`ACCPAY` 🔴 ⇨) with total Received and Paid footer. All finance buttons kept visible in `reply_markup`.
 
 ---
 
@@ -106,11 +112,6 @@ All redesigned screens adhere to the following patterns established in the initi
   - *Handler:* `get_finance_trial_balance` in [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py)
   - *Current State:* Monospaced text messages with ASCII line breaks.
   - *Proposed Redesign:* Compact striped tables for Revenue and Expense accounts with right-aligned totals and year header.
-
-- [ ] **`Finance Latest Transactions` & `Payments WTD`**
-  - *Handler:* `get_finance_latest_transactions`, `get_finance_payments_wtd_balance` in [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py)
-  - *Current State:* Plain text lines of transactions.
-  - *Proposed Redesign:* Compact striped table with transaction date, contact/member, account, and amount.
 
 - [ ] **Member Financial Search Commands (`/x`, `/xs`)**
   - *Handler:* `finance_search_member` in [handlers_finance.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_finance.py)
