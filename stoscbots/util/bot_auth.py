@@ -36,7 +36,7 @@ async def send_access_denied_msg(client, msg_or_query):
         # For Commands not buttons
         await msg_or_query.reply_sticker(
             sticker='CAACAgIAAxkBAAIFJV-X6UKaAAEDx4Nqup6acSBW6DlThgACoAMAAvoLtgj5yjtMiAXK4hsE')
-        await msg_or_query.reply_text(text=ACCESS_DENIED_MEMBERS_TEXT, quote=True,
+        await msg_or_query.reply_text(text=ACCESS_DENIED_MEMBERS_TEXT,
                                       link_preview_options=LinkPreviewOptions(is_disabled=True))
         arg_msg = f"'{msg_or_query.text}'"
         # arg_msg=f" with args={message.command[0]}"

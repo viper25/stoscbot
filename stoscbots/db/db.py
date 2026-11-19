@@ -236,6 +236,7 @@ def get_member_details(search: str, search_type: str):
                 f.fam_Address1,
                 f.fam_Address2,
                 f.fam_Zip,
+                pp.per_cellphone,
                 f.fam_HomePhone,
                 IFNULL(fc.c1, '') as 'Home Parish',
                 IFNULL(fc.c2, '') as 'Membership Date',
@@ -245,7 +246,8 @@ def get_member_details(search: str, search_type: str):
                 Husband_DOB,
                 Wife_DOB,
                 pp.per_Gender,
-                pp.per_fmr_ID
+                pp.per_fmr_ID,
+                IFNULL(f.fam_WeddingDate, '') as 'Wedding Anniv'
             from
                 family_fam f
             inner join family_custom fc on

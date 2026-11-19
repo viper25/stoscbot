@@ -43,7 +43,7 @@ async def get_member_code_and_year(message: Message):
     Utility function to get member code and year from message command
     """
     if len(message.command) < 2 or not utils.is_valid_member_code(message.command[1].upper()):
-        await message.reply("Please enter a valid Member Code to search", quote=True)
+        await message.reply("Please enter a valid Member Code to search")
         return None, None
 
     member_code = message.command[1].upper()

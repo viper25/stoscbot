@@ -177,7 +177,7 @@ async def members_born_after_year_handler(client: Client, message: Message):
     year = message.command[1]
     if not utils.is_valid_year(year):
         msg = "Please enter a valid 4-digit year to search (e.g. `/year 2015`)."
-        await message.reply_text(msg, quote=True)
+        await message.reply_text(msg)
         return
 
     result = db.get_members_born(year)
@@ -228,21 +228,21 @@ async def members_born_after_year_handler(client: Client, message: Message):
 async def member_search_cmd_handler(client: Client, message: Message):
     if len(message.command) != 2:
         msg = "Please enter a Member Code or Name to search\n e.g. `/u A001`"
-        await message.reply_text(msg, quote=True)
+        await message.reply_text(msg)
         return
     # Match member codes such as V019. One char followed by 2 or 3 digits
     if utils.is_valid_member_code(message.command[1]):
         # A member code has been sent
         result = db.get_member_details(message.command[1], "code")
         if not result:
-            await message.reply_text("No such Member", quote=True)
+            await message.reply_text("No such Member")
             return
         await family_profile.send_family_profile(client, message.from_user.id, result[0])
     else:
         # A search string and not member code
         result = db.get_member_details(message.command[1], "free_text")
         if not result or len(result) == 0:
-            await message.reply_text("No such Member", quote=True)
+            await message.reply_text("No such Member")
         elif len(result) >= 1:
             query_str = message.command[1]
             chat_id = message.from_user.id
@@ -276,23 +276,40 @@ async def member_search_cmd_handler(client: Client, message: Message):
 @bot_auth.async_member_only
 async def mobile_search_cmd_handler(client: Client, message: Message):
     if len(message.command) != 2:
-        msg = "Please enter a Singapore Telephone to search\n e.g. `/u 99999999`"
-        await message.reply_text(msg, quote=True)
+        msg = "Please enter a Singapore Telephone to search\n e.g. `/t 99999999`"
+        await message.reply_text(msg)
         return
 
     # Normalize the telephone number i.e. remove spaces and hyphens and international codes if any
-    mobile_number = utils.normalize_telephone(message.command[1])
+    raw_phone = message.command[1].strip()
+    mobile_number = utils.normalize_telephone(raw_phone)
+    if mobile_number.startswith("65") and len(mobile_number) == 10 and mobile_number[2] in "689":
+        mobile_number = mobile_number[2:]
+
     if not utils.valid_telephone(mobile_number):
-        await message.reply_text("Invalid Singapore Number", quote=True)
+        await message.reply_text("Invalid Singapore Number\ne.g. `/t 91234567` or `+65 91234567`")
         return
 
     # Search for a member by telephone number
     result = db.get_member_details(mobile_number, "mobile")
 
     if not result or len(result) == 0:
-        await message.reply_text("No STOSC member has that number", quote=True)
+        await message.reply_text(f"No STOSC member found with telephone number `{mobile_number}`")
     else:
+        seen_fams = set()
         for row in result:
+            fam_id = row[0]
+            fam_code = row[1] if len(row) > 1 else None
+            if fam_id in seen_fams:
+                continue
+            seen_fams.add(fam_id)
+
+            # Fall back to code query if row structure is non-standard
+            if len(row) != 25 and fam_code:
+                code_result = db.get_member_details(fam_code, "code")
+                if code_result:
+                    row = code_result[0]
+
             await family_profile.send_family_profile(client, message.from_user.id, row)
 
 

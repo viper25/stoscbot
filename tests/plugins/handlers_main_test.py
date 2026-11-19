@@ -696,6 +696,89 @@ async def test_mobile_search_cmd_handler(monkeypatch, family_row):
 
 
 @pytest.mark.asyncio
+async def test_mobile_search_cmd_handler_country_code_and_dedup(monkeypatch, family_row):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    queried = []
+
+    def mock_get_member(query, search_type):
+        queried.append((query, search_type))
+        # Return duplicate rows to test deduplication
+        return [family_row, family_row]
+
+    monkeypatch.setattr(handlers_main.db, "get_member_details", mock_get_member)
+    send_card = AsyncMock()
+    monkeypatch.setattr(family_profile, "send_family_profile", send_card)
+
+    client = SimpleNamespace()
+    message = SimpleNamespace(
+        command=["t", "+65 9123 4567"],
+        from_user=SimpleNamespace(id=42),
+        chat=SimpleNamespace(id=-100),
+    )
+
+    await handlers_main.mobile_search_cmd_handler.__wrapped__(client, message)
+
+    assert queried == [("91234567", "mobile")]
+    # Deduplication ensures send_family_profile is only called once per family
+    send_card.assert_awaited_once_with(client, 42, family_row)
+
+
+@pytest.mark.asyncio
+async def test_mobile_search_cmd_handler_not_found(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+    monkeypatch.setattr(handlers_main.db, "get_member_details", lambda _q, _t: [])
+
+    client = SimpleNamespace()
+    message = SimpleNamespace(
+        command=["t", "99999999"],
+        from_user=SimpleNamespace(id=42),
+        chat=SimpleNamespace(id=-100),
+        reply_text=AsyncMock(),
+    )
+
+    await handlers_main.mobile_search_cmd_handler.__wrapped__(client, message)
+
+    message.reply_text.assert_awaited_once()
+    assert "No STOSC member found" in message.reply_text.await_args.args[0]
+
+
+@pytest.mark.asyncio
+async def test_mobile_search_cmd_handler_invalid_phone(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+
+    client = SimpleNamespace()
+    message = SimpleNamespace(
+        command=["t", "12345"],
+        from_user=SimpleNamespace(id=42),
+        chat=SimpleNamespace(id=-100),
+        reply_text=AsyncMock(),
+    )
+
+    await handlers_main.mobile_search_cmd_handler.__wrapped__(client, message)
+
+    message.reply_text.assert_awaited_once()
+    assert "Invalid Singapore Number" in message.reply_text.await_args.args[0]
+
+
+@pytest.mark.asyncio
+async def test_mobile_search_cmd_handler_missing_args(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
+
+    client = SimpleNamespace()
+    message = SimpleNamespace(
+        command=["t"],
+        from_user=SimpleNamespace(id=42),
+        chat=SimpleNamespace(id=-100),
+        reply_text=AsyncMock(),
+    )
+
+    await handlers_main.mobile_search_cmd_handler.__wrapped__(client, message)
+
+    message.reply_text.assert_awaited_once()
+    assert "Please enter a Singapore Telephone" in message.reply_text.await_args.args[0]
+
+
+@pytest.mark.asyncio
 async def test_member_search_button_handler(monkeypatch, person_row):
     monkeypatch.setattr(bot_auth, "is_member", lambda _id: True)
     monkeypatch.setattr(handlers_main.db, "get_member_details", lambda _id, _t: [person_row])
