@@ -81,6 +81,10 @@ __WHO_IS_MY_MC_BUTTON = InlineKeyboardButton("👥 Management Committee", callba
 __MAIN_STREAMING_BUTTON = InlineKeyboardButton("📡 Streaming", callback_data="Streaming Menu")
 __STREAMING_GEN_ANNOUNCEMENT_SLIDES_BUTTON = InlineKeyboardButton("📺 Generate Announcement Slides",
                                                                   callback_data="Generate Announcement Slides")
+__STREAMING_GDRIVE_BUTTON = InlineKeyboardButton("📂 Google Drive Slides",
+                                                 url="https://drive.google.com/drive/folders/13YnRvL9JZoGbeMXQ1T9E7vhaEZEFfUK8")
+__STREAMING_LIVE_BUTTON = InlineKeyboardButton("▶️ Live Broadcast",
+                                               url="https://stosc.com/live/")
 
 __MAIN_ADMIN_BUTTON = InlineKeyboardButton("🔐 Admin", callback_data="Admin Menu")
 __SHOW_STATS_BUTTON = InlineKeyboardButton("📊 Show Stats", callback_data="Show Stats")
@@ -164,6 +168,7 @@ harvest_menu_keyboard = InlineKeyboardMarkup([
 
 streaming_menu_keyboard = InlineKeyboardMarkup([
     [__STREAMING_GEN_ANNOUNCEMENT_SLIDES_BUTTON],
+    [__STREAMING_GDRIVE_BUTTON, __STREAMING_LIVE_BUTTON],
     [BACK_TO_MAIN_BUTTON]
 ])
 
@@ -1106,6 +1111,79 @@ def get_rich_member_invoices(
     footer_text = f"🔸 Total Due: ${total_due:,.2f} · 🔹 Total Settled: ${total_paid:,.2f}"
     blocks.append(InputRichBlockFooter(text=cast(RichText, footer_text)))
 
+    return InputRichMessage(blocks=blocks)
+
+
+def get_rich_streaming_menu() -> InputRichMessage:
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Cathedral Media & Streaming 📡")),
+            "\nSt. Thomas Orthodox Syrian Cathedral, Singapore",
+            "\nManagement Committee & Media Ministry tools.",
+        ])),
+        InputRichBlockDetails(
+            summary=cast(RichText, "Announcement Slides & Media Guide"),
+            blocks=[
+                InputRichBlockParagraph(text=cast(RichText, [
+                    RichTextBold(cast(RichText, "1. Weekly Announcement Slides 📺")),
+                    "\nTap ", RichTextBold(cast(RichText, "Generate Announcement Slides")),
+                    " below to build this week's slides. Processed slides are published directly to Google Drive.",
+                    "\n\n",
+                    RichTextBold(cast(RichText, "2. Photo & Flyer URL Generator 🖼")),
+                    "\nSend any announcement flyer or photo directly to this bot chat. It will be uploaded to AWS S3, returning a public URL for announcements.",
+                ])),
+            ],
+            is_open=True,
+        ),
+        InputRichBlockButtons(
+            buttons=[
+                RichMessageButton(
+                    text=cast(RichText, "📂 Google Drive Slides"),
+                    url="https://drive.google.com/drive/folders/13YnRvL9JZoGbeMXQ1T9E7vhaEZEFfUK8",
+                    style=ButtonStyle.LINK,
+                ),
+                RichMessageButton(
+                    text=cast(RichText, "▶️ Live Broadcast"),
+                    url="https://stosc.com/live/",
+                    style=ButtonStyle.LINK,
+                ),
+            ],
+            align="left",
+        ),
+    ]
+    return InputRichMessage(blocks=blocks)
+
+
+def get_rich_slide_generation_result(is_linux: bool, returncode: int | None = None) -> InputRichMessage:
+    if not is_linux:
+        return InputRichMessage(blocks=[
+            InputRichBlockParagraph(text=cast(RichText, [
+                RichTextBold(cast(RichText, "Slide Generator Unavailable ⚠️")),
+                "\nThis action is only available when STOSCBot runs in a Linux production environment.",
+            ]))
+        ])
+
+    is_success = returncode == 0 if returncode is not None else True
+    status_emoji = "✅" if is_success else "⚠️"
+    status_text = "Announcement slides generated successfully!" if is_success else "Slides generation completed with non-zero status code."
+
+    blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, f"Announcement Slides Generation {status_emoji}")),
+            f"\n{status_text}",
+            "\n\nGenerated slides are synced to the Cathedral Google Drive folder.",
+        ])),
+        InputRichBlockButtons(
+            buttons=[
+                RichMessageButton(
+                    text=cast(RichText, "📂 Open Google Drive"),
+                    url="https://drive.google.com/drive/folders/13YnRvL9JZoGbeMXQ1T9E7vhaEZEFfUK8",
+                    style=ButtonStyle.LINK,
+                )
+            ],
+            align="left",
+        ),
+    ]
     return InputRichMessage(blocks=blocks)
 
 

@@ -493,10 +493,31 @@ async def show_paynow_menu(client: Client, query: CallbackQuery):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("Streaming Menu"))
 @loggers.async_log_access
+@bot_auth.async_management_only
 async def show_streaming_menu(client: Client, query: CallbackQuery):
     await query.answer()
-    msg = "➖➖**Streaming Menu**➖➖"
-    await utils.edit_and_send_msg(query, msg, keyboards.streaming_menu_keyboard)
+    chat_id = query.from_user.id
+    fallback = (
+        "➖➖**Streaming Menu**➖➖\n\n"
+        "• Weekly Announcement Slides: Tap button below to generate\n"
+        "• [Google Drive Slides](https://drive.google.com/drive/folders/13YnRvL9JZoGbeMXQ1T9E7vhaEZEFfUK8)\n"
+        "• [Cathedral Livestream](https://stosc.com/live/)"
+    )
+    try:
+        rich_card = keyboards.get_rich_streaming_menu()
+        await client.send_rich_message(
+            chat_id,
+            rich_card,
+            reply_markup=keyboards.streaming_menu_keyboard,
+        )
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected rich streaming menu; sending plain text")
+        await client.send_message(
+            chat_id,
+            fallback,
+            reply_markup=keyboards.streaming_menu_keyboard,
+            link_preview_options=LinkPreviewOptions(is_disabled=True),
+        )
 
 
 # --------------------------------------------------

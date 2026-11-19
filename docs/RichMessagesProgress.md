@@ -109,6 +109,12 @@ All redesigned screens adhere to the following patterns established in the initi
     - **`/xs <CODE> [YEAR]` (Invoices & Dues):** Upfront striped table of outstanding invoices (`🔸 Due: $...`), collapsible drawer for settled receipts (`📁 Settled Invoices (N paid · $...)`), total due/settled footer, and action buttons (`[ 💳 View Contributions (/x) ]`, `[ 👤 Family Profile ]`).
     - **Interactive Callbacks:** Seamless 1-tap switching between payments, dues, and family profile without retyping commands.
 
+- [x] **`Streaming Menu` & Announcement Slides (`Streaming Menu`, `Generate Announcement Slides` callbacks)**
+  - *Location:* [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), [handlers_streaming.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_streaming.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
+  - *Design:*
+    - **Menu Card (`get_rich_streaming_menu`):** Cathedral Media & Streaming title, collapsible guide drawer explaining slide generation and flyer image URL generation (via photo uploads), in-card link buttons to Google Drive slides and live broadcast, plus updated inline keyboard (`[ 📺 Generate Announcement Slides ]`, `[ 📂 Google Drive Slides ]`, `[ 🔙 Return to Main menu ]`).
+    - **Trigger Feedback (`get_rich_slide_generation_result`):** Rich card indicating generation status (`✅` success on Linux, `⚠️` non-zero code or OS restriction) with direct link button to view synced output on Google Drive.
+
 ---
 
 ## 3. Remaining Screens Identified for Redesign
@@ -116,11 +122,6 @@ All redesigned screens adhere to the following patterns established in the initi
 ---
 
 ### Group C: Committee & Management Tools (MC / Super Admin)
-
-- [ ] **`Streaming Menu` & Announcement Slides**
-  - *Handler:* `show_streaming_menu` in [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), `handlers_streaming.py`
-  - *Current State:* Text menu with slide generation trigger.
-  - *Proposed Redesign:* Rich card with slide generation action button, Google Drive folder link, and recent status.
 
 - [ ] **`Services Menu`**
   - *Handler:* `show_services_menu` in [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py)

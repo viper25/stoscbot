@@ -207,15 +207,6 @@ async def handle_logs_command(args, log_file_path):
 
 
 # --------------------------------------------------
-@Client.on_callback_query(dynamic_data_filter("Streaming Menu"))
-@loggers.async_log_access
-async def show_streaming_menu(client: Client, query: CallbackQuery):
-    await query.answer()
-    msg = "➖➖**Streaming Menu**➖➖"
-    await utils.edit_and_send_msg(query, msg, keyboards.streaming_menu_keyboard)
-
-
-# --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter("Admin Menu"))
 @loggers.async_log_access
 async def show_admin_menu(client: Client, query: CallbackQuery):

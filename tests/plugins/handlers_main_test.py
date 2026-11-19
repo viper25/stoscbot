@@ -498,3 +498,42 @@ async def test_show_my_harvest_festival_menu_fallback(monkeypatch):
     assert client.send_message.await_args.kwargs["reply_markup"] is keyboards.harvest_menu_keyboard
 
 
+@pytest.mark.asyncio
+async def test_show_streaming_menu_rich(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_mgmt_member", lambda _id: True)
+    client = SimpleNamespace(send_rich_message=AsyncMock(), send_message=AsyncMock())
+    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="Streaming Menu")
+    monkeypatch.setattr(query, "answer", AsyncMock())
+
+    await handlers_main.show_streaming_menu.__wrapped__(client, query)
+
+    query.answer.assert_awaited_once()
+    client.send_rich_message.assert_awaited_once()
+    chat_id, rich = client.send_rich_message.await_args.args
+    assert chat_id == 42
+    assert client.send_rich_message.await_args.kwargs["reply_markup"] is keyboards.streaming_menu_keyboard
+
+    serialized = await rich.write(client=None)
+    assert len(serialized.blocks) == 3  # Header, Guide Details, Buttons
+    assert "Cathedral Media & Streaming" in repr(serialized.blocks[0].text)
+
+
+@pytest.mark.asyncio
+async def test_show_streaming_menu_fallback(monkeypatch):
+    monkeypatch.setattr(bot_auth, "is_mgmt_member", lambda _id: True)
+    client = SimpleNamespace(
+        send_rich_message=AsyncMock(side_effect=errors.RichMessageUnsupported()),
+        send_message=AsyncMock(),
+    )
+    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="Streaming Menu")
+    monkeypatch.setattr(query, "answer", AsyncMock())
+
+    await handlers_main.show_streaming_menu.__wrapped__(client, query)
+
+    client.send_message.assert_awaited_once()
+    chat_id, text = client.send_message.await_args.args
+    assert chat_id == 42
+    assert "Streaming Menu" in text
+    assert client.send_message.await_args.kwargs["reply_markup"] is keyboards.streaming_menu_keyboard
+
+
