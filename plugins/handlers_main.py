@@ -346,10 +346,15 @@ async def show_members_menu(client: Client, query: CallbackQuery):
 # --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("Prayer Groups Menu"))
 @loggers.async_log_access
+@bot_auth.async_member_only
 async def show_prayer_groups_menu(client: Client, query: CallbackQuery):
     await query.answer()
-    msg = "➖➖**Area Prayer Group Menu**➖➖"
-    await utils.edit_and_send_msg(query, msg, keyboards.area_prayer_groups_keyboard)
+    chat_id = query.from_user.id
+    try:
+        await client.send_rich_message(chat_id, keyboards.get_rich_prayer_groups_menu())
+    except RichMessageUnsupported:
+        logger.warning("Telegram rejected the rich prayer groups menu; sending the inline keyboard")
+        await client.send_message(chat_id, "Area Prayer Groups", reply_markup=keyboards.area_prayer_groups_keyboard)
 
 
 # --------------------------------------------------

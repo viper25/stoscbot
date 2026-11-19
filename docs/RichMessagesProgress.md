@@ -69,6 +69,11 @@ All redesigned screens adhere to the following patterns established in the initi
 - [x] **`List of Accounts` (`List of Accounts` callback)**
   - *Location:* [handlers_my_details.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_my_details.py)
   - *Design:* Compact striped table showing all eligible church contribution heads, with contributed accounts and amounts highlighted in bold.
+- [x] **`Area Prayer Groups Menu` & Member List (`Prayer Groups Menu`, `Area Prayer Group`)**
+  - *Location:* [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), [handlers_area_prayer_groups.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_area_prayer_groups.py), [keyboards.py](file:///home/viper25/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
+  - *Design:*
+    - *Menu:* Clean rich card displaying all 7 area buttons and a link back to the main menu.
+    - *Roster:* Compact striped table of registered families with parsed tappable family codes (`related_family:<CODE>`), family count subtitle, footer tip, and `← Back to Prayer Groups` navigation button.
 
 ---
 
@@ -77,13 +82,6 @@ All redesigned screens adhere to the following patterns established in the initi
 ---
 
 ### Group B: Community & Church Life
-
-- [ ] **`Area Prayer Groups Menu` & Member List**
-  - *Handler:* `show_prayer_groups_menu` in [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), `get_area_prayer_group_members` in [handlers_area_prayer_groups.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_area_prayer_groups.py)
-  - *Current State:* Text header with 2-column inline keyboard for areas. Clicking an area outputs a plain bulleted text list of members.
-  - *Proposed Redesign:*
-    - *Menu:* Clean rich card grouped by region (Central, North, East, West).
-    - *Roster:* Compact striped table of members with tappable family codes, member count badge, and a back-to-areas button.
 
 - [ ] **`PayNow Menu`**
   - *Handler:* `show_paynow_menu` in [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py)

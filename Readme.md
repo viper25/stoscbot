@@ -66,8 +66,13 @@ striped table with right-aligned amounts, a total footer, and the Xero timestamp
 Tap **Dues** to check that outstanding subscription invoices display with invoice numbers,
 line item descriptions, due balances, and a direct **PayNow** shortcut.
 Tap **List of accounts** to check that eligible contribution heads are listed in a compact
-table with bold formatting for contributed heads. Name and phone search keep their
-existing layouts.
+table with bold formatting for contributed heads.
+
+For a smoke test of **Area Prayer Groups**, open **Community ▸ Prayer groups** from the home screen.
+Check that the 7 area buttons appear on the rich card. Tap an area (e.g. **East Coast**) to check
+that its registered families render in a compact striped table with a family count subtitle, tappable
+family codes, and a **Back to Prayer Groups** button. Tap a family code to open its family card.
+Name and phone search keep their existing layouts.
 
 ```bash
 uv sync --group test

@@ -99,6 +99,10 @@ dues_payment_keyboard = InlineKeyboardMarkup([
     [InlineKeyboardButton("← Back to My Details", callback_data="My Details Menu")],
 ])
 
+back_to_prayer_groups_keyboard = InlineKeyboardMarkup([
+    [InlineKeyboardButton("← Back to Prayer Groups", callback_data="Prayer Groups Menu")]
+])
+
 members_menu_keyboard = InlineKeyboardMarkup([
     [__MEMBERS_BDAY_TODAY_BUTTON, __MEMBERS_ANNIVERSARY_TODAY_BUTTON],
     [__MEMBERS_BDAY_WEEK_BUTTON, __MEMBERS_ANNIVERSARY_WEEK_BUTTON],
@@ -278,6 +282,32 @@ def get_rich_members_menu() -> InputRichMessage:
                 ),
             ],
             is_open=False,
+        ),
+        _rich_button_row(("← Main menu", "Main Menu", ButtonStyle.LINK)),
+    ])
+
+
+def get_rich_prayer_groups_menu() -> InputRichMessage:
+    default = ButtonStyle.DEFAULT
+    return InputRichMessage(blocks=[
+        InputRichBlockParagraph(text=cast(RichText, [
+            RichTextBold(cast(RichText, "Area Prayer Groups")),
+            "\nSelect an area to view its parish directory and member list:",
+        ])),
+        _rich_button_row(
+            ("East Coast", "Area Prayer Group 1", default),
+            ("Houg | Seng | Pung", "Area Prayer Group 2", default),
+        ),
+        _rich_button_row(
+            ("Choa Chu Kang", "Area Prayer Group 3", default),
+            ("Jurong", "Area Prayer Group 4", default),
+        ),
+        _rich_button_row(
+            ("Woodlands", "Area Prayer Group 5", default),
+            ("Central", "Area Prayer Group 6", default),
+        ),
+        _rich_button_row(
+            ("Church Area", "Area Prayer Group 7", default),
         ),
         _rich_button_row(("← Main menu", "Main Menu", ButtonStyle.LINK)),
     ])
