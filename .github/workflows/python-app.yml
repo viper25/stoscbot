@@ -119,7 +119,7 @@ jobs:
 
       - name: Application Versioning
         id: versioning
-        uses: paulhatch/semantic-version@v5.4.0
+        uses: paulhatch/semantic-version@v6.0.7
         with:
           tag_prefix: "v"
           major_pattern: "(MAJOR)"
