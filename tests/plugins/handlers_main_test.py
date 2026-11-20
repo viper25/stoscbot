@@ -28,30 +28,53 @@ async def test_start_handler(monkeypatch, role):
     chat_id, rich = client.send_rich_message.await_args.args
     assert chat_id == 42
     assert not client.send_rich_message.await_args.kwargs
-    header, shortcuts, community, *restricted, church_links = (await rich.write(client=None)).blocks
+    blocks = (await rich.write(client=None)).blocks
 
-    def callbacks(rows):
-        return [button.type.data for row in rows for button in row.buttons]
+    def callbacks(button_blocks):
+        return [button.type.data for b in button_blocks for button in b.buttons]
 
-    assert callbacks([shortcuts]) == [b"My Details Menu", b"Members Menu", b"PayNow Menu"]
-    assert shortcuts.buttons[0].style.bg_primary
-    assert header.text.texts[0].text.text == "St. Thomas Orthodox Syrian Cathedral"
-    assert isinstance(header.text.texts[-1], raw.types.TextFixed)
-    assert header.text.texts[-1].text.text == "/u A001"
-    assert [(button.text.text, button.type.url) for button in church_links.buttons] == [
-        ("Church website", "https://stosc.com/"),
-        ("Events", "https://stosc.com/calendar/"),
-        ("Livestream", "https://stosc.com/live/"),
-    ]
-    assert community.title.text == "Community" and not community.open
-    assert callbacks(community.blocks) == [b"Prayer Groups Menu", b"My Harvest Festival Menu"]
+    # Block 0: Header
+    header = blocks[0]
+    assert "St. Thomas Orthodox Syrian Cathedral" in header.text.texts[0].text.text
+    assert isinstance(blocks[1], raw.types.PageBlockDivider)
+
+    # Block 2 & 3: Personal & Giving
+    assert blocks[2].text.text.text == "👤 Personal & Giving"
+    assert callbacks([blocks[3]]) == [b"My Details Menu", b"PayNow Menu"]
+    assert blocks[3].buttons[0].style is None
+    assert isinstance(blocks[4], raw.types.PageBlockDivider)
+
+    # Block 5 & 6: Parish Community
+    assert blocks[5].text.text.text == "👥 Parish Community"
+    assert callbacks([blocks[6]]) == [b"Members Menu", b"Prayer Groups Menu", b"My Harvest Festival Menu"]
+
     if role == "member":
-        assert restricted == []
-    else:
-        (committee,) = restricted
-        assert committee.title.text == "Committee tools" and not committee.open
-        expected = [b"Services Menu", b"Finance Menu", b"Streaming Menu"]
-        assert callbacks(committee.blocks) == expected + ([b"Admin Menu"] if role == "admin" else [])
+        assert isinstance(blocks[7], raw.types.PageBlockDivider)
+        church_links = blocks[8]
+        commands_doc = blocks[9]
+    elif role == "committee":
+        assert isinstance(blocks[7], raw.types.PageBlockDivider)
+        assert blocks[8].text.text.text == "🏛️ Committee & Ministry"
+        assert callbacks([blocks[9]]) == [b"Services Menu", b"Finance Menu", b"Streaming Menu"]
+        assert isinstance(blocks[10], raw.types.PageBlockDivider)
+        church_links = blocks[11]
+        commands_doc = blocks[12]
+    else:  # admin
+        assert isinstance(blocks[7], raw.types.PageBlockDivider)
+        assert blocks[8].text.text.text == "🏛️ Committee & Ministry"
+        assert callbacks([blocks[9]]) == [b"Services Menu", b"Finance Menu", b"Streaming Menu"]
+        assert isinstance(blocks[10], raw.types.PageBlockDivider)
+        church_links = blocks[11]
+        commands_doc = blocks[12]
+        assert callbacks([commands_doc.blocks[0]]) == [b"Admin Menu"]
+
+    assert [(button.text.text, button.type.url) for button in church_links.buttons] == [
+        ("🌐 Website", "https://stosc.com/"),
+        ("📅 Calendar", "https://stosc.com/calendar/"),
+        ("📺 Livestream", "https://stosc.com/live/"),
+    ]
+    assert commands_doc.title.text == "📖 Commands & Documentation"
+    assert not commands_doc.open
     client.send_message.assert_not_awaited()
 
 

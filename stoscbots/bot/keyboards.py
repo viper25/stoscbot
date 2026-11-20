@@ -11,6 +11,7 @@ from pyrogram.types import (
     InputRichBlock,
     InputRichBlockButtons,
     InputRichBlockDetails,
+    InputRichBlockDivider,
     InputRichBlockFooter,
     InputRichBlockParagraph,
     InputRichBlockPhoto,
@@ -219,31 +220,33 @@ def _rich_button_row(*actions: tuple[str, str, ButtonStyle]) -> InputRichBlockBu
 
 
 def get_rich_main_menu(keyboard: InlineKeyboardMarkup) -> InputRichMessage:
-    """Group the same role-filtered destinations used by the legacy keyboard."""
+    """Group role-filtered destinations in a categorized dashboard."""
     available = {button.callback_data for row in keyboard.inline_keyboard for button in row}
     default = ButtonStyle.DEFAULT
-    # Kurigram's rich-text serializer accepts strings and lists despite its annotations.
+
     blocks: list[InputRichBlock] = [
         InputRichBlockParagraph(text=cast(RichText, [
-            RichTextBold(cast(RichText, "St. Thomas Orthodox Syrian Cathedral")),
-            "\nSingapore · Member services",
-            "\nFind a family by code: ",
-            RichTextCode(cast(RichText, "/u A001")),
+            RichTextBold(cast(RichText, "⛪ St. Thomas Orthodox Syrian Cathedral")),
+            "\nSingapore · Parishioner Portal",
         ])),
+        InputRichBlockDivider(),
+        # Section 1: Personal & Giving
+        InputRichBlockParagraph(text=cast(RichText, RichTextBold(cast(RichText, "👤 Personal & Giving")))),
         _rich_button_row(
-            ("My details", "My Details Menu", ButtonStyle.PRIMARY),
-            ("Members", "Members Menu", default),
+            ("My Details", "My Details Menu", default),
             ("PayNow", "PayNow Menu", default),
         ),
-        InputRichBlockDetails(
-            summary=cast(RichText, "Community"),
-            blocks=[_rich_button_row(
-                ("Prayer groups", "Prayer Groups Menu", default),
-                ("Harvest festival", "My Harvest Festival Menu", default),
-            )],
-            is_open=False,
+        InputRichBlockDivider(),
+        # Section 2: Parish Community
+        InputRichBlockParagraph(text=cast(RichText, RichTextBold(cast(RichText, "👥 Parish Community")))),
+        _rich_button_row(
+            ("Directory", "Members Menu", default),
+            ("Prayer Groups", "Prayer Groups Menu", default),
+            ("Harvest Festival", "My Harvest Festival Menu", default),
         ),
     ]
+
+    # Section 3: Committee & Ministry (if committee or admin)
     committee_actions = [
         (label, callback, default)
         for label, callback in (
@@ -253,23 +256,67 @@ def get_rich_main_menu(keyboard: InlineKeyboardMarkup) -> InputRichMessage:
         )
         if callback in available
     ]
-    committee_rows: list[InputRichBlock] = [_rich_button_row(*committee_actions)] if committee_actions else []
-    if "Admin Menu" in available:
-        committee_rows.append(_rich_button_row(("Admin", "Admin Menu", default)))
-    if committee_rows:
-        blocks.append(InputRichBlockDetails(
-            summary=cast(RichText, "Committee tools"), blocks=committee_rows, is_open=False,
-        ))
+    if committee_actions:
+        blocks.append(InputRichBlockDivider())
+        blocks.append(InputRichBlockParagraph(text=cast(RichText, RichTextBold(cast(RichText, "🏛️ Committee & Ministry")))))
+        blocks.append(_rich_button_row(*committee_actions))
+
+    # Section 4: Cathedral Links
+    blocks.append(InputRichBlockDivider())
     blocks.append(InputRichBlockButtons(
         buttons=[
             RichMessageButton(text=cast(RichText, label), url=url, style=ButtonStyle.LINK)
             for label, url in (
-                ("Church website", "https://stosc.com/"),
-                ("Events", "https://stosc.com/calendar/"),
-                ("Livestream", "https://stosc.com/live/"),
+                ("🌐 Website", "https://stosc.com/"),
+                ("📅 Calendar", "https://stosc.com/calendar/"),
+                ("📺 Livestream", "https://stosc.com/live/"),
             )
         ],
         align="left",
+    ))
+
+    # Section 5: Commands & Documentation (collapsible drawer at the bottom)
+    doc_blocks: list[InputRichBlock] = []
+    if "Admin Menu" in available:
+        doc_blocks.append(_rich_button_row(("Admin Console", "Admin Menu", default)))
+
+    doc_text: list[RichText | str] = [
+        RichTextBold(cast(RichText, "🔍 Quick Directory Search:\n")),
+        "• By Name/Code: ", RichTextCode(cast(RichText, "/u A001")), " or ", RichTextCode(cast(RichText, "/u Thomas")), "\n",
+        "• By Mobile: ", RichTextCode(cast(RichText, "/t 91234567")), "\n",
+        "• By Birth Year: ", RichTextCode(cast(RichText, "/year 2010")), "\n\n",
+        RichTextBold(cast(RichText, "ℹ️ Helpful Commands:\n")),
+        "• ", RichTextCode(cast(RichText, "/help")), " - Video guide & instructions\n",
+        "• ", RichTextCode(cast(RichText, "/privacy")), " - Cathedral data privacy policy\n",
+        "• ", RichTextCode(cast(RichText, "/start")), " - Return to portal home",
+    ]
+
+    if committee_actions:
+        doc_text.extend([
+            "\n\n",
+            RichTextBold(cast(RichText, "🏛️ Committee Commands:\n")),
+            "• ", RichTextCode(cast(RichText, "/x [code]")), " - Member contributions\n",
+            "• ", RichTextCode(cast(RichText, "/xs [code]")), " - Member subscriptions\n",
+            "• ", RichTextCode(cast(RichText, "/ver")), " - Bot version & runtime stats\n",
+            "• ", RichTextCode(cast(RichText, "/bday")), " - Weekly birthdays (private)\n",
+            "• ", RichTextCode(cast(RichText, "/anniv")), " - Weekly anniversaries (private)",
+        ])
+
+    if "Admin Menu" in available:
+        doc_text.extend([
+            "\n\n",
+            RichTextBold(cast(RichText, "👑 Super Admin Commands:\n")),
+            "• ", RichTextCode(cast(RichText, "/id [code]")), " - Telegram ID lookup\n",
+            "• ", RichTextCode(cast(RichText, "/cmd logs")), " - Audit telemetry logs\n",
+            "• ", RichTextCode(cast(RichText, "/send [id|ALL] [msg]")), " - Broadcast message",
+        ])
+
+    doc_blocks.append(InputRichBlockParagraph(text=cast(RichText, doc_text)))
+
+    blocks.append(InputRichBlockDetails(
+        summary=cast(RichText, "📖 Commands & Documentation"),
+        blocks=doc_blocks,
+        is_open=False,
     ))
     return InputRichMessage(blocks=blocks)
 
