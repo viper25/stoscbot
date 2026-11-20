@@ -55,14 +55,14 @@ async def test_start_handler(monkeypatch, role):
     elif role == "committee":
         assert isinstance(blocks[7], raw.types.PageBlockDivider)
         assert blocks[8].text.text.text == "🏛️ Committee & Ministry"
-        assert callbacks([blocks[9]]) == [b"Services Menu", b"Finance Menu", b"Streaming Menu"]
+        assert callbacks([blocks[9]]) == [b"Finance Menu", b"Streaming Menu"]
         assert isinstance(blocks[10], raw.types.PageBlockDivider)
         church_links = blocks[11]
         commands_doc = blocks[12]
     else:  # admin
         assert isinstance(blocks[7], raw.types.PageBlockDivider)
         assert blocks[8].text.text.text == "🏛️ Committee & Ministry"
-        assert callbacks([blocks[9]]) == [b"Services Menu", b"Finance Menu", b"Streaming Menu"]
+        assert callbacks([blocks[9]]) == [b"Finance Menu", b"Streaming Menu"]
         assert isinstance(blocks[10], raw.types.PageBlockDivider)
         church_links = blocks[11]
         commands_doc = blocks[12]
@@ -72,6 +72,7 @@ async def test_start_handler(monkeypatch, role):
         ("🌐 Website", "https://stosc.com/"),
         ("📅 Calendar", "https://stosc.com/calendar/"),
         ("📺 Livestream", "https://stosc.com/live/"),
+        ("🙏 Prayer Requests", "https://stosc.com/pr"),
     ]
     assert commands_doc.title.text == "📖 Commands & Documentation"
     assert not commands_doc.open
@@ -558,54 +559,6 @@ async def test_show_streaming_menu_fallback(monkeypatch):
     assert chat_id == 42
     assert "Streaming Menu" in text
     assert client.send_message.await_args.kwargs["reply_markup"] is keyboards.streaming_menu_keyboard
-
-
-@pytest.mark.asyncio
-async def test_show_services_menu_rich():
-    client = SimpleNamespace(send_rich_message=AsyncMock(), send_message=AsyncMock())
-    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="Services Menu")
-    query.answer = AsyncMock()
-
-    await handlers_main.show_services_menu.__wrapped__(client, query)
-
-    query.answer.assert_awaited_once()
-    client.send_rich_message.assert_awaited_once()
-    chat_id, rich = client.send_rich_message.await_args.args
-    assert chat_id == 42
-    assert client.send_rich_message.await_args.kwargs["reply_markup"] is keyboards.services_menu_keyboard
-
-    serialized = await rich.write(client=None)
-    assert len(serialized.blocks) == 5  # Header, Table, Details, Buttons, Footer
-    assert "Cathedral Worship & Services" in repr(serialized.blocks[0].text)
-    table_repr = repr(serialized.blocks[1])
-    assert "Holy Qurbana" in table_repr
-    assert "8:00 AM" in table_repr
-    button_repr = repr(serialized.blocks[3].buttons)
-    assert "Prayer Request" in button_repr
-    assert "Liturgical Calendar" in button_repr
-    assert "Live Broadcast" in button_repr
-    # Ensure bottom keyboard is only the return button, no redundant link duplicates
-    assert len(keyboards.services_menu_keyboard.inline_keyboard) == 1
-    assert keyboards.services_menu_keyboard.inline_keyboard[0][0] is keyboards.BACK_TO_MAIN_BUTTON
-
-
-@pytest.mark.asyncio
-async def test_show_services_menu_fallback():
-    client = SimpleNamespace(
-        send_rich_message=AsyncMock(side_effect=errors.RichMessageUnsupported()),
-        send_message=AsyncMock(),
-    )
-    query = CallbackQuery(id="tap", from_user=SimpleNamespace(id=42), data="Services Menu")
-    query.answer = AsyncMock()
-
-    await handlers_main.show_services_menu.__wrapped__(client, query)
-
-    client.send_message.assert_awaited_once()
-    chat_id, text = client.send_message.await_args.args
-    assert chat_id == 42
-    assert "Services Menu" in text
-    assert "Holy Qurbana" in text
-    assert client.send_message.await_args.kwargs["reply_markup"] is keyboards.services_menu_keyboard
 
 
 @pytest.fixture

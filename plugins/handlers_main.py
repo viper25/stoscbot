@@ -362,38 +362,6 @@ async def show_main_menu(client: Client, query: CallbackQuery):
 
 # -------------------------------------------------
 # Callback Handlers (for Buttons)
-@Client.on_callback_query(dynamic_data_filter1("Services Menu"))
-@loggers.async_log_access
-async def show_services_menu(client: Client, query: CallbackQuery):
-    await query.answer()
-    chat_id = query.from_user.id
-    fallback = (
-        "➖➖**Services Menu**➖➖\n\n"
-        "• Sunday Holy Qurbana: 8:00 AM (Matins), 9:00 AM (Qurbana)\n"
-        "• Saturday Evening Prayer: 6:30 PM\n"
-        "• Wednesday Intercession: 7:30 PM\n\n"
-        "📜 [Liturgical Calendar](https://stosc.com/calendar/)\n"
-        "🙏 [Submit Prayer Request](https://stosc.com/pr)\n"
-        "▶️ [Cathedral Livestream](https://stosc.com/live/)"
-    )
-    try:
-        rich_card = keyboards.get_rich_services_menu()
-        await client.send_rich_message(
-            chat_id,
-            rich_card,
-            reply_markup=keyboards.services_menu_keyboard,
-        )
-    except RichMessageUnsupported:
-        logger.warning("Telegram rejected rich services menu; sending plain text")
-        await client.send_message(
-            chat_id,
-            fallback,
-            reply_markup=keyboards.services_menu_keyboard,
-            link_preview_options=LinkPreviewOptions(is_disabled=True),
-        )
-
-
-# --------------------------------------------------
 @Client.on_callback_query(dynamic_data_filter1("Members Menu"))
 @loggers.async_log_access
 @bot_auth.async_member_only

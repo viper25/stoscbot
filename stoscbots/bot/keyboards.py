@@ -44,7 +44,6 @@ def create_button(text, callback_data, web_app=None):
 InlineKeyboardButton = Buttons that belong to a Keyboard
 """
 BACK_TO_MAIN_BUTTON = InlineKeyboardButton("🔙 Return to Main menu", callback_data="Main Menu")
-__MAIN_SERVICES_BUTTON = InlineKeyboardButton("✝ Services", callback_data="Services Menu")
 __MAIN_MEMBERS_BUTTON = InlineKeyboardButton("👨‍👩‍👦 Members", callback_data="Members Menu")
 __MAIN_PRAYER_GROUPS_BUTTON = InlineKeyboardButton("🤲🏻 Prayer Groups", callback_data="Prayer Groups Menu")
 __MAIN_FINANCE_BUTTON = InlineKeyboardButton("💲 Finance", callback_data="Finance Menu")
@@ -175,10 +174,6 @@ streaming_menu_keyboard = InlineKeyboardMarkup([
     [BACK_TO_MAIN_BUTTON]
 ])
 
-services_menu_keyboard = InlineKeyboardMarkup([
-    [BACK_TO_MAIN_BUTTON]
-])
-
 admin_menu_keyboard = InlineKeyboardMarkup([
     [__SHOW_STATS_BUTTON, __LOGS_BUTTON],
     [__ERROR_LOGS_BUTTON, BACK_TO_MAIN_BUTTON]
@@ -192,10 +187,10 @@ Dynamic keyboards that have to be created at runtime:
 def get_main_keyboard(telegram_id):
     if bot_auth.is_super_admin(telegram_id) or bot_auth.is_mgmt_member(telegram_id):
         buttons = [
-            [__MAIN_SERVICES_BUTTON, __MAIN_MEMBERS_BUTTON],
-            [__MAIN_PRAYER_GROUPS_BUTTON, __MAIN_FINANCE_BUTTON],
+            [__MAIN_MEMBERS_BUTTON, __MAIN_PRAYER_GROUPS_BUTTON],
             [__MAIN_MY_DETAILS_BUTTON, __MAIN_MY_HARVEST_BUTTON],
-            [__MAIN_PAYNOW_BUTTON, __MAIN_STREAMING_BUTTON]
+            [__MAIN_PAYNOW_BUTTON],
+            [__MAIN_FINANCE_BUTTON, __MAIN_STREAMING_BUTTON],
         ]
         if bot_auth.is_super_admin(telegram_id):
             buttons.append([__MAIN_ADMIN_BUTTON])
@@ -250,7 +245,6 @@ def get_rich_main_menu(keyboard: InlineKeyboardMarkup) -> InputRichMessage:
     committee_actions = [
         (label, callback, default)
         for label, callback in (
-            ("Services", "Services Menu"),
             ("Finance", "Finance Menu"),
             ("Streaming", "Streaming Menu"),
         )
@@ -270,6 +264,7 @@ def get_rich_main_menu(keyboard: InlineKeyboardMarkup) -> InputRichMessage:
                 ("🌐 Website", "https://stosc.com/"),
                 ("📅 Calendar", "https://stosc.com/calendar/"),
                 ("📺 Livestream", "https://stosc.com/live/"),
+                ("🙏 Prayer Requests", "https://stosc.com/pr"),
             )
         ],
         align="left",
@@ -1238,79 +1233,6 @@ def get_rich_slide_generation_result(is_linux: bool, returncode: int | None = No
         ),
     ]
     return InputRichMessage(blocks=blocks)
-
-
-def get_rich_services_menu() -> InputRichMessage:
-    blocks: list[InputRichBlock] = [
-        InputRichBlockParagraph(text=cast(RichText, [
-            RichTextBold(cast(RichText, "Cathedral Worship & Services ✝")),
-            "\nSt. Thomas Orthodox Syrian Cathedral, Singapore",
-            "\n114 Potong Pasir Ave 1, Singapore 358361",
-        ])),
-    ]
-
-    schedule_cells = [
-        [
-            RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Service")))),
-            RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Schedule")))),
-        ],
-        [
-            RichBlockTableCell(text=cast(RichText, "Sunday Holy Qurbana")),
-            RichBlockTableCell(text=cast(RichText, "8:00 AM (Matins) · 9:00 AM (Qurbana)")),
-        ],
-        [
-            RichBlockTableCell(text=cast(RichText, "Saturday Evening Prayer")),
-            RichBlockTableCell(text=cast(RichText, "6:30 PM (Sandhya Namaskaaram)")),
-        ],
-        [
-            RichBlockTableCell(text=cast(RichText, "Wednesday Intercession")),
-            RichBlockTableCell(text=cast(RichText, "7:30 PM (Cathedral & Online)")),
-        ],
-    ]
-
-    blocks.extend([
-        InputRichBlockTable(cells=schedule_cells, is_striped=True, is_compact=True),
-        InputRichBlockDetails(
-            summary=cast(RichText, "Liturgical Calendar & Prayer Requests"),
-            blocks=[
-                InputRichBlockParagraph(text=cast(RichText, [
-                    RichTextBold(cast(RichText, "Liturgical Observances:")),
-                    "\nFollow the Malankara Orthodox Syrian Church liturgical calendar, lectionary readings, feast days, and lenten schedules.",
-                    "\n\n",
-                    RichTextBold(cast(RichText, "Intercessory Prayer Requests:")),
-                    "\nSubmit names for prayer remembrance during the Holy Qurbana (sick, departed, birthdays, anniversaries, thanksgiving) via the interactive prayer portal.",
-                ])),
-            ],
-            is_open=False,
-        ),
-        InputRichBlockButtons(
-            buttons=[
-                RichMessageButton(
-                    text=cast(RichText, "📜 Liturgical Calendar"),
-                    url="https://stosc.com/calendar/",
-                    style=ButtonStyle.LINK,
-                ),
-                RichMessageButton(
-                    text=cast(RichText, "🙏 Prayer Request"),
-                    url="https://stosc.com/pr",
-                    style=ButtonStyle.LINK,
-                ),
-                RichMessageButton(
-                    text=cast(RichText, "▶️ Live Broadcast"),
-                    url="https://stosc.com/live/",
-                    style=ButtonStyle.LINK,
-                ),
-            ],
-            align="left",
-        ),
-        InputRichBlockFooter(text=cast(RichText, "vicar@stosc.com")),
-    ])
-    return InputRichMessage(blocks=blocks)
-
-
-# Dynamically generate a keyboard with prayer requests
-def get_services_keyboard():
-    return InlineKeyboardMarkup([[BACK_TO_MAIN_BUTTON]])
 
 
 def get_icon(item):

@@ -26,7 +26,7 @@ All redesigned screens adhere to the following patterns established in the initi
 
 - [x] **Home Screen (`/start`, `Main Menu`)**
   - *Location:* [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
-  - *Design:* Grouped Dashboard (Proposal 2): Cathedral identity header (`⛪ St. Thomas Orthodox Syrian Cathedral`), clean horizontal divider rules (`InputRichBlockDivider`) delineating each logical section (`👤 Personal & Giving`: My Details, PayNow; `👥 Parish Community`: Directory, Prayer Groups, Harvest Festival; `🏛️ Committee & Ministry` for authorized committee members: Services, Finance, Streaming; `🌐 Cathedral Links`: Website, Calendar, Livestream), and a collapsible `📖 Commands & Documentation` drawer at the bottom (collapsing Admin Console for super admins, quick search syntax `/u`, `/t`, `/year`, general bot commands, committee commands, and admin tools). Eliminates visual clutter while providing clear section separation and on-demand reference.
+  - *Design:* Grouped Dashboard (Proposal 2): Cathedral identity header (`⛪ St. Thomas Orthodox Syrian Cathedral`), clean horizontal divider rules (`InputRichBlockDivider`) delineating each logical section (`👤 Personal & Giving`: My Details, PayNow; `👥 Parish Community`: Directory, Prayer Groups, Harvest Festival; `🏛️ Committee & Ministry` for authorized committee members: Finance, Streaming; `🌐 Cathedral Links`: Website, Calendar, Livestream, Prayer Requests), and a collapsible `📖 Commands & Documentation` drawer at the bottom (collapsing Admin Console for super admins, quick search syntax `/u`, `/t`, `/year`, general bot commands, committee commands, and admin tools). Eliminates visual clutter while providing clear section separation and on-demand reference.
 - [x] **Members Menu (`Members Menu` callback)**
   - *Location:* [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
   - *Design:* "Today first" layout with search hint, today's celebration buttons, collapsed `This week` drawer, and collapsed `Church & membership` drawer.
@@ -115,13 +115,9 @@ All redesigned screens adhere to the following patterns established in the initi
     - **Menu Card (`get_rich_streaming_menu`):** Cathedral Media & Streaming title, collapsible guide drawer explaining slide generation and flyer image URL generation (via photo uploads), in-card link buttons to Google Drive slides and live broadcast, plus updated inline keyboard (`[ 📺 Generate Announcement Slides ]`, `[ 📂 Google Drive Slides ]`, `[ 🔙 Return to Main menu ]`).
     - **Trigger Feedback (`get_rich_slide_generation_result`):** Rich card indicating generation status (`✅` success on Linux, `⚠️` non-zero code or OS restriction) with direct link button to view synced output on Google Drive.
 
-- [x] **`Services Menu` (`Services Menu` callback)**
+- [x] **`Services Menu` (Retired & Streamlined)**
   - *Location:* [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
-  - *Design:*
-    - **Schedule Table:** Compact striped table (`InputRichBlockTable`) detailing regular weekly liturgical schedules (Sunday Holy Qurbana, Saturday Evening Prayer, Wednesday Intercession).
-    - **Liturgical & Prayer Guide:** Collapsible drawer (`InputRichBlockDetails`) for MOSC lectionary/calendar observances and intercessory prayer remembrance guidance.
-    - **In-Message Actions:** Native in-card link buttons for Liturgical Calendar, Prayer Request (`https://stosc.com/pr`), and Live Broadcast.
-    - **Navigation Keyboard:** Clean `[ 🔙 Return to Main menu ]` (removed redundant duplicate action buttons).
+  - *Design:* Retired dedicated services card per user request; `Prayer Requests` (`https://stosc.com/pr`) moved directly to the Cathedral Links bar on the main home screen next to `Livestream`. All leftover service schedules and COVID-era service code completely purged.
 
 ---
 

@@ -138,23 +138,3 @@ def test_get_main_keyboard():
         mock_mgmt_member.return_value = False
         keyboard = keyboards.get_main_keyboard('normal')
         assert len(keyboard.inline_keyboard) == 3  # Adjust based on the expected number of rows
-
-
-def test_get_services_keyboard():
-    keyboard = keyboards.get_services_keyboard()
-
-    assert isinstance(keyboard,
-                      keyboards.InlineKeyboardMarkup), "The return type should be an InlineKeyboardMarkup instance"
-
-    # Expect a single row with only the back button now
-    assert len(keyboard.inline_keyboard) == 1, "The keyboard should have one row"
-
-    row = keyboard.inline_keyboard[0]
-    assert len(row) == 1, "The row should have one button"
-
-    back_to_main_button = row[0]
-
-    assert isinstance(back_to_main_button,
-                      InlineKeyboardButton), "The button should be an InlineKeyboardButton instance"
-    assert back_to_main_button.callback_data == "Main Menu", "The button's callback data should be 'Main Menu'"
-    assert back_to_main_button.text == "🔙 Return to Main menu", "The button's text should be '🔙 Return to Main menu'"
