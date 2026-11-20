@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 
 import boto3
+import pendulum
 import requests
 from boto3.dynamodb.conditions import Key
 
@@ -100,7 +101,14 @@ def __xero_get(url: str, **extra_headers):
         response = requests.get(url, headers=get_headers())
 
     if response.status_code == 429:
-        LOGGER.error(f"Rate limit exceeded when calling Xero API. Status code")
+        # Refer to Xero API rate limits documentation: https://developer.xero.com/documentation/guides/oauth2/limits/#api-rate-limits
+        header = response.headers._store
+        LOGGER.error(f"Rate limit ({header['x-rate-limit-problem'][1]}) exceeded for Xero API")
+        retry_after = pendulum.duration(seconds=int(header['retry-after'][1])).in_words()
+        LOGGER.info(f"Retry After: {retry_after}")
+        LOGGER.info(f"Calls per App/min Limit Remaining: {header['x-appminlimit-remaining'][1]}")
+        LOGGER.info(f"Calls/min remaining: {header['x-minlimit-remaining'][1]}")
+        LOGGER.info(f"Calls per day Limit Remaining: {header['x-daylimit-remaining'][1]}")
         return None
     if response.status_code == 200:
         return response.json()
@@ -143,7 +151,7 @@ def get_Invoices(memberID: str):
 
 # ----------------------------------------------------------------------------------------------------------------------
 def get_executive_summary():
-    LOGGER.debug(f"Getting Executive Summary")
+    LOGGER.debug("Getting Executive Summary")
     url = construct_url('Reports/ExecutiveSummary')
     return __xero_get(url)
 
@@ -151,7 +159,7 @@ def get_executive_summary():
 # ----------------------------------------------------------------------------------------------------------------------
 # Returns the balances and cash movements for each bank account
 def get_bank_summary():
-    LOGGER.debug(f"Getting Bank Summary")
+    LOGGER.debug("Getting Bank Summary")
     url = construct_url('Reports/BankSummary', fromDatedate=utils.year_start(), toDate=utils.todays_date())
     return __xero_get(url)
 
@@ -160,14 +168,14 @@ def get_bank_summary():
 # Returns a trial balance for the current month up to the date specified. YTD values are shown too.
 # Set paymentsOnly=true to get Cash Basis (actual payments and not receivables)
 def xero_get_trial_balance(_paymentsOnly: bool = False):
-    LOGGER.debug(f"Getting Trial Balance")
+    LOGGER.debug("Getting Trial Balance")
     url = construct_url('Reports/TrialBalance', paymentsOnly=_paymentsOnly, date=utils.todays_date())
     return __xero_get(url)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 def xero_get_payments():
-    LOGGER.debug(f"xero_get_payments: Getting Payments")
+    LOGGER.debug("xero_get_payments: Getting Payments")
     _week_ago = utils.a_week_ago()
     url = construct_url('Payments',
                         where=f"Date>DateTime({_week_ago.year}, {_week_ago.month}, {_week_ago.day})",
@@ -177,7 +185,7 @@ def xero_get_payments():
 
 # -----------------------------------------------------------------------------------
 def xero_get_bank_transactions():
-    LOGGER.debug(f"Getting Bank Transactions")
+    LOGGER.debug("Getting Bank Transactions")
     _week_ago = utils.a_week_ago()
     url = construct_url('BankTransactions',
                         where=f"Date>DateTime({_week_ago.year}, {_week_ago.month}, {_week_ago.day})",
@@ -194,12 +202,13 @@ def parse_Xero_Date(_date: str):
 
 # -----------------------------------------------------------------------------------
 def get_chart_of_accounts(class_type: str = None) -> list[dict]:
-    LOGGER.info(f"Initializing Chart of Accounts")
+    LOGGER.info("Initializing Chart of Accounts")
     # https://api.xero.com/api.xro/2.0/Accounts?where=Status="ACTIVE"&&Class="REVENUE"
     # doesn't seem to filter at server side.
     url = construct_url('Accounts')
     _val = __xero_get(url)
-    if not _val:
+    if not isinstance(_val, dict):
+        LOGGER.error("Unable to get Chart of Accounts. Expected a JSON object from the Xero Accounts API")
         return []
     accounts = _val['Accounts']
     accounts = [x for x in accounts if x['Status'] == 'ACTIVE']

@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from stoscbots.xero.xero_utils import _get_refresh_token, _update_refresh_token, _get_access_token, construct_url, \
-    get_xero_ContactID, get_Invoices, get_executive_summary, parse_Xero_Date
+    get_xero_ContactID, get_Invoices, get_executive_summary, get_chart_of_accounts, parse_Xero_Date
 
 MODULE_NAME = "stoscbots.xero.xero_utils"
 
@@ -136,6 +136,25 @@ def test_get_executive_summary(xero_get_mock):
     xero_get_mock.return_value = {'some_key': 'some_value'}
     result = get_executive_summary()
     assert result == {'some_key': 'some_value'}
+
+
+@pytest.mark.parametrize("response", [None, [], "not a JSON object"])
+def test_get_chart_of_accounts_rejects_non_object_response(xero_get_mock, response, caplog):
+    xero_get_mock.return_value = response
+
+    assert get_chart_of_accounts() == []
+    assert "Expected a JSON object from the Xero Accounts API" in caplog.text
+
+
+def test_get_chart_of_accounts_filters_active_accounts(xero_get_mock):
+    xero_get_mock.return_value = {
+        "Accounts": [
+            {"Status": "ACTIVE", "Class": "REVENUE"},
+            {"Status": "ARCHIVED", "Class": "REVENUE"},
+        ]
+    }
+
+    assert get_chart_of_accounts() == [{"Status": "ACTIVE", "Class": "REVENUE"}]
 
 
 def test_parse_Xero_Date():
