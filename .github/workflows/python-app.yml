@@ -18,12 +18,12 @@ jobs:
       - uses: actions/checkout@master
       # Setup uv with Python (uv will handle toolchain + caching of interpreter)
       - name: Setup uv (Python 3.13)
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           python-version: '3.13'
 
       - name: Cache uv environments
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             .venv
@@ -158,7 +158,7 @@ jobs:
           key: ${{ runner.os }}-stoscbot-${{ github.sha }}
 
       - name: Set up uv (Python 3.13)
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           python-version: '3.13'
 
