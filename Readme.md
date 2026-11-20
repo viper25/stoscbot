@@ -84,8 +84,8 @@ a compact striped table for **Auction Wins** with total spend (or friendly notic
 and an expandable drawer for **Donated Items** with sold prices, alongside the **Main menu** return button.
 
 For a smoke test of **Church Finance & Accounts** (MC only), open **Committee tools ▸ Finance** from the home screen.
-Check that the card presents the committee header with `/x <CODE>` and `/xs <CODE>` member ledger search hints,
-paired with the full 9-button finance keyboard (`Executive Summary`, `Bank Summary`, `Trial Bal Revenue`, `Trial Bal Expense`, `Latest Transactions`, `Payments WTD`, `Outstanding`, `Projects`, and `Return to Main menu`).
+Check that the card presents the committee header and two closed help drawers for member contributions (`/x <CODE> [year]`)
+and invoices & dues (`/xs <CODE> [year]`), paired with the full 9-button finance keyboard (`Executive Summary`, `Bank Summary`, `Trial Bal Revenue`, `Trial Bal Expense`, `Latest Transactions`, `Payments WTD`, `Outstanding`, `Projects`, and `Return to Main menu`).
 Tap **Bank Summary** to verify the compact account table with In, Out, Closing balances, and Fixed Deposits total.
 Tap **Executive Summary** to verify the expandable section accordions with comparison tables and variance indicators.
 Tap **Latest Transactions** to verify the striped table of past 7 days bank and cash movements with inflow/outflow totals.

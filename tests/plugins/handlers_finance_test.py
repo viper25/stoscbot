@@ -2,7 +2,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock
 
 import pytest
-from pyrogram import errors
+from pyrogram import errors, raw
 from pyrogram.types import CallbackQuery
 
 from plugins import handlers_finance, handlers_main
@@ -127,8 +127,16 @@ async def test_show_finance_menu_rich(monkeypatch):
     assert client.send_rich_message.await_args.kwargs["reply_markup"] is keyboards.finance_menu_keyboard
 
     serialized = await rich.write(client=None)
-    assert len(serialized.blocks) == 1
+    assert len(serialized.blocks) == 3
     assert "Church Finance & Accounts" in repr(serialized.blocks[0].text)
+    help_sections = serialized.blocks[1:]
+    assert all(isinstance(block, raw.types.PageBlockDetails) for block in help_sections)
+    assert all(not block.open for block in help_sections)
+    help_text = repr(help_sections)
+    assert "/x <CODE> [year]" in help_text
+    assert "/xs <CODE> [year]" in help_text
+    assert "/x A001 2024" in help_text
+    assert "/xs A001 2024" in help_text
 
 
 @pytest.mark.asyncio
@@ -146,7 +154,9 @@ async def test_show_finance_menu_fallback(monkeypatch):
     client.send_message.assert_awaited_once()
     chat_id, text = client.send_message.await_args.args
     assert chat_id == 42
-    assert "Finance Menu" in text
+    assert "Church Finance & Accounts" in text
+    assert "/x " not in text
+    assert "/xs " not in text
     assert client.send_message.await_args.kwargs["reply_markup"] is keyboards.finance_menu_keyboard
 
 

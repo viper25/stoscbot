@@ -148,8 +148,8 @@ async def help_handler(client: Client, message: Message):
         "• /u [member code or name] - Search for a member by member code or Name e.g. `/u A001`",
         "• /year [year in YYYY] - Show members born on this year e.g. `/year 1976`",
         "\n** \U0001f6ab The below commands are for the management committee only: \U0001f6ab**",
-        "\n• /x [member code] - Show member contributions",
-        "• /xs [member code] - Show member subscriptions",
+        "\n• /x [member code] [year] - Show member contributions (defaults to current year)",
+        "• /xs [member code] [year] - Show member subscriptions & dues (defaults to current year)",
         "• /version or /ver - Show bot version",
         "• /bday  - Show this week's bday list without age",
         "• /anniv  - Show this week's anniversary list without years",
@@ -401,10 +401,9 @@ async def show_finance_menu(client: Client, query: CallbackQuery):
     await query.answer()
     chat_id = query.from_user.id
     fallback_text = (
-        "➖➖**Finance Menu**➖➖\n\n"
-        "Member Ledger Commands:\n"
-        "• `/x <CODE>` — Member contributions & payments\n"
-        "• `/xs <CODE>` — Member invoices & dues"
+        "**Church Finance & Accounts 💲**\n"
+        "St. Thomas Orthodox Syrian Cathedral, Singapore\n"
+        "Management Committee access only."
     )
     try:
         await client.send_rich_message(

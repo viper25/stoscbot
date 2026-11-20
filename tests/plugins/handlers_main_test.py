@@ -52,6 +52,10 @@ async def test_start_handler(monkeypatch, role):
         assert isinstance(blocks[7], raw.types.PageBlockDivider)
         church_links = blocks[8]
         commands_doc = blocks[9]
+        assert len(commands_doc.blocks) == 2
+        assert isinstance(commands_doc.blocks[1], raw.types.PageBlockTable)
+        assert commands_doc.blocks[1].striped and commands_doc.blocks[1].compact
+        assert len(commands_doc.blocks[1].rows) == 7
     elif role == "committee":
         assert isinstance(blocks[7], raw.types.PageBlockDivider)
         assert blocks[8].text.text.text == "🏛️ Committee & Ministry"
@@ -59,6 +63,12 @@ async def test_start_handler(monkeypatch, role):
         assert isinstance(blocks[10], raw.types.PageBlockDivider)
         church_links = blocks[11]
         commands_doc = blocks[12]
+        assert len(commands_doc.blocks) == 4
+        assert isinstance(commands_doc.blocks[1], raw.types.PageBlockTable)
+        assert isinstance(commands_doc.blocks[3], raw.types.PageBlockTable)
+        assert len(commands_doc.blocks[3].rows) == 7
+        assert commands_doc.blocks[3].rows[1].cells[0].text.text.text == "/x <code> [year]"
+        assert commands_doc.blocks[3].rows[2].cells[0].text.text.text == "/xs <code> [year]"
     else:  # admin
         assert isinstance(blocks[7], raw.types.PageBlockDivider)
         assert blocks[8].text.text.text == "🏛️ Committee & Ministry"
@@ -66,7 +76,12 @@ async def test_start_handler(monkeypatch, role):
         assert isinstance(blocks[10], raw.types.PageBlockDivider)
         church_links = blocks[11]
         commands_doc = blocks[12]
-        assert callbacks([commands_doc.blocks[0]]) == [b"Admin Menu"]
+        assert len(commands_doc.blocks) == 7
+        assert isinstance(commands_doc.blocks[1], raw.types.PageBlockTable)
+        assert isinstance(commands_doc.blocks[3], raw.types.PageBlockTable)
+        assert callbacks([commands_doc.blocks[5]]) == [b"Admin Menu"]
+        assert isinstance(commands_doc.blocks[6], raw.types.PageBlockTable)
+        assert len(commands_doc.blocks[6].rows) == 5
 
     assert [(button.text.text, button.type.url) for button in church_links.buttons] == [
         ("🌐 Website", "https://stosc.com/"),

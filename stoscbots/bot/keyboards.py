@@ -213,6 +213,20 @@ def _rich_button_row(*actions: tuple[str, str, ButtonStyle]) -> InputRichBlockBu
     )
 
 
+def _rich_command_table(rows: list[tuple[str, str]]) -> InputRichBlockTable:
+    header = [
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Command")))),
+        RichBlockTableCell(text=cast(RichText, RichTextBold(cast(RichText, "Description")))),
+    ]
+    table_cells: list[list[RichBlockTableCell]] = [header]
+    for cmd, desc in rows:
+        table_cells.append([
+            RichBlockTableCell(text=cast(RichText, RichTextCode(cast(RichText, cmd)))),
+            RichBlockTableCell(text=cast(RichText, desc)),
+        ])
+    return InputRichBlockTable(cells=table_cells, is_striped=True, is_compact=True)
+
+
 def get_rich_main_menu(keyboard: InlineKeyboardMarkup) -> InputRichMessage:
     """Group role-filtered destinations in a categorized dashboard."""
     available = {button.callback_data for row in keyboard.inline_keyboard for button in row}
@@ -270,42 +284,46 @@ def get_rich_main_menu(keyboard: InlineKeyboardMarkup) -> InputRichMessage:
     ))
 
     # Section 5: Commands & Documentation (collapsible drawer at the bottom)
-    doc_blocks: list[InputRichBlock] = []
-    if "Admin Menu" in available:
-        doc_blocks.append(_rich_button_row(("Admin Console", "Admin Menu", default)))
+    member_rows = [
+        ("/u <code or name>", "Search member or family (e.g. /u A001)"),
+        ("/t <phone>", "Search by SG mobile (e.g. /t 91234567)"),
+        ("/year <YYYY>", "List members born in year (e.g. /year 1980)"),
+        ("/start", "Portal dashboard (aliases: /hi, /hello)"),
+        ("/help", "Help overview & video guide"),
+        ("/privacy", "Cathedral data privacy policy"),
+    ]
 
-    doc_text: list[RichText | str] = [
-        RichTextBold(cast(RichText, "🔍 Quick Directory Search:\n")),
-        "• By Name/Code: ", RichTextCode(cast(RichText, "/u A001")), " or ", RichTextCode(cast(RichText, "/u Thomas")), "\n",
-        "• By Mobile: ", RichTextCode(cast(RichText, "/t 91234567")), "\n",
-        "• By Birth Year: ", RichTextCode(cast(RichText, "/year 2010")), "\n\n",
-        RichTextBold(cast(RichText, "ℹ️ Helpful Commands:\n")),
-        "• ", RichTextCode(cast(RichText, "/help")), " - Video guide & instructions\n",
-        "• ", RichTextCode(cast(RichText, "/privacy")), " - Cathedral data privacy policy\n",
-        "• ", RichTextCode(cast(RichText, "/start")), " - Return to portal home",
+    doc_blocks: list[InputRichBlock] = [
+        InputRichBlockParagraph(text=cast(RichText, RichTextBold(cast(RichText, "👥 Directory & Member Commands")))),
+        _rich_command_table(member_rows),
     ]
 
     if committee_actions:
-        doc_text.extend([
-            "\n\n",
-            RichTextBold(cast(RichText, "🏛️ Committee Commands:\n")),
-            "• ", RichTextCode(cast(RichText, "/x [code]")), " - Member contributions\n",
-            "• ", RichTextCode(cast(RichText, "/xs [code]")), " - Member subscriptions\n",
-            "• ", RichTextCode(cast(RichText, "/ver")), " - Bot version & runtime stats\n",
-            "• ", RichTextCode(cast(RichText, "/bday")), " - Weekly birthdays (private)\n",
-            "• ", RichTextCode(cast(RichText, "/anniv")), " - Weekly anniversaries (private)",
+        committee_rows = [
+            ("/x <code> [year]", "Member contributions (current or year)"),
+            ("/xs <code> [year]", "Member subscriptions & dues (current or year)"),
+            ("/ver", "Bot version & runtime (alias: /version)"),
+            ("/bday", "Weekly birthdays (for broadcast)"),
+            ("/anniv", "Weekly anniversaries (for broadcast)"),
+            ("Photo upload", "Upload flyer to generate slide URL"),
+        ]
+        doc_blocks.extend([
+            InputRichBlockParagraph(text=cast(RichText, RichTextBold(cast(RichText, "🏛️ Committee & Ministry Commands")))),
+            _rich_command_table(committee_rows),
         ])
 
     if "Admin Menu" in available:
-        doc_text.extend([
-            "\n\n",
-            RichTextBold(cast(RichText, "👑 Super Admin Commands:\n")),
-            "• ", RichTextCode(cast(RichText, "/id [code]")), " - Telegram ID lookup\n",
-            "• ", RichTextCode(cast(RichText, "/cmd logs")), " - Audit telemetry logs\n",
-            "• ", RichTextCode(cast(RichText, "/send [id|ALL] [msg]")), " - Broadcast message",
+        admin_rows = [
+            ("/id <code or name>", "Lookup Telegram IDs from DynamoDB"),
+            ("/add <id> <code> <n>", "Register user Telegram ID"),
+            ("/send <id|ALL> <msg>", "Direct message or active broadcast"),
+            ("/cmd logs [filter]", "Tail audit logs (e.g. /cmd logs Error)"),
+        ]
+        doc_blocks.extend([
+            InputRichBlockParagraph(text=cast(RichText, RichTextBold(cast(RichText, "👑 Super Admin Tools & Commands")))),
+            _rich_button_row(("Admin Console", "Admin Menu", default)),
+            _rich_command_table(admin_rows),
         ])
-
-    doc_blocks.append(InputRichBlockParagraph(text=cast(RichText, doc_text)))
 
     blocks.append(InputRichBlockDetails(
         summary=cast(RichText, "📖 Commands & Documentation"),
@@ -587,12 +605,31 @@ def get_rich_finance_menu() -> InputRichMessage:
             RichTextBold(cast(RichText, "Church Finance & Accounts 💲")),
             "\nSt. Thomas Orthodox Syrian Cathedral, Singapore",
             "\nManagement Committee access only.",
-            "\n\n",
-            RichTextBold(cast(RichText, "Member Ledger Commands:")),
-            "\n• ", RichTextCode(cast(RichText, "/x <CODE>")), " — View member contributions & payments",
-            "\n• ", RichTextCode(cast(RichText, "/xs <CODE>")), " — View member invoices & dues",
-            "\n(e.g. ", RichTextCode(cast(RichText, "/x A001")), ")",
         ])),
+        InputRichBlockDetails(
+            summary=cast(RichText, "📊 Member contributions"),
+            blocks=[InputRichBlockParagraph(text=cast(RichText, [
+                RichTextCode(cast(RichText, "/x <CODE> [year]")),
+                "\nView current-year or selected-year contributions.",
+                "\nExample: ",
+                RichTextCode(cast(RichText, "/x A001")),
+                " or ",
+                RichTextCode(cast(RichText, "/x A001 2024")),
+            ]))],
+            is_open=False,
+        ),
+        InputRichBlockDetails(
+            summary=cast(RichText, "🧾 Invoices & dues"),
+            blocks=[InputRichBlockParagraph(text=cast(RichText, [
+                RichTextCode(cast(RichText, "/xs <CODE> [year]")),
+                "\nView current-year or selected-year invoices and dues.",
+                "\nExample: ",
+                RichTextCode(cast(RichText, "/xs A001")),
+                " or ",
+                RichTextCode(cast(RichText, "/xs A001 2024")),
+            ]))],
+            is_open=False,
+        ),
     ])
 
 
