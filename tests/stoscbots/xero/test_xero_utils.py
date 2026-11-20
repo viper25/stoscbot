@@ -139,11 +139,11 @@ def test_get_executive_summary(xero_get_mock):
 
 
 @pytest.mark.parametrize("response", [None, [], "not a JSON object"])
-def test_get_chart_of_accounts_rejects_non_object_response(xero_get_mock, response):
+def test_get_chart_of_accounts_rejects_non_object_response(xero_get_mock, response, caplog):
     xero_get_mock.return_value = response
 
-    with pytest.raises(TypeError, match="Expected a JSON object"):
-        get_chart_of_accounts()
+    assert get_chart_of_accounts() == []
+    assert "Expected a JSON object from the Xero Accounts API" in caplog.text
 
 
 def test_get_chart_of_accounts_filters_active_accounts(xero_get_mock):
