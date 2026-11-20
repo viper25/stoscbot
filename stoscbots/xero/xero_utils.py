@@ -3,6 +3,7 @@ import os
 from datetime import datetime
 
 import boto3
+import pendulum
 import requests
 from boto3.dynamodb.conditions import Key
 
@@ -100,7 +101,14 @@ def __xero_get(url: str, **extra_headers):
         response = requests.get(url, headers=get_headers())
 
     if response.status_code == 429:
-        LOGGER.error("Rate limit exceeded when calling Xero API. Status code")
+        # Refer to Xero API rate limits documentation: https://developer.xero.com/documentation/guides/oauth2/limits/#api-rate-limits
+        header = response.headers._store
+        LOGGER.error(f"Rate limit ({header['x-rate-limit-problem'][1]}) exceeded for Xero API")
+        retry_after = pendulum.duration(seconds=int(header['retry-after'][1])).in_words()
+        LOGGER.info(f"Retry After: {retry_after}")
+        LOGGER.info(f"Calls per App/min Limit Remaining: {header['x-appminlimit-remaining'][1]}")
+        LOGGER.info(f"Calls/min remaining: {header['x-minlimit-remaining'][1]}")
+        LOGGER.info(f"Calls per day Limit Remaining: {header['x-daylimit-remaining'][1]}")
         return None
     if response.status_code == 200:
         return response.json()
