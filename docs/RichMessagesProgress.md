@@ -76,7 +76,7 @@ All redesigned screens adhere to the following patterns established in the initi
     - *Roster:* Compact striped table of registered families with parsed tappable family codes (`related_family:<CODE>`), family count subtitle, footer tip, and `← Back to Prayer Groups` navigation button.
 - [x] **`PayNow Menu` (`PayNow Menu` callback)**
   - *Location:* [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py)
-  - *Design:* Rich payment card with optional QR photo (`InputRichBlockPhoto`), tap-to-copy monospace code blocks for UEN (`S79SS0001L`) and DBS Account (`0480155596`), cash/cheque instructions, collapsible reference and receipt guide with email link, and dual navigation (`← Back to My Details`, `🔙 Return to Main menu`).
+  - *Design:* Rich payment card with optional QR photo (`InputRichBlockPhoto`), tap-to-copy monospace code blocks for UEN (`S79SS0001L`) and DBS Account (`0480155596`), cash/cheque instructions, collapsible reference and receipt guide with email link, and clean `[ 🔙 Return to Main menu ]` navigation.
 - [x] **`My Harvest Festival Menu` (`My Harvest Festival Menu` callback)**
   - *Location:* [handlers_main.py](file:///home/vibinjk/code/viper25/stoscbot/plugins/handlers_main.py), [keyboards.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/bot/keyboards.py), [utils.py](file:///home/vibinjk/code/viper25/stoscbot/stoscbots/util/utils.py)
   - *Design:* Option 1 clean tabular breakdown:

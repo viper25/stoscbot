@@ -118,7 +118,6 @@ back_to_prayer_groups_keyboard = InlineKeyboardMarkup([
 ])
 
 paynow_keyboard = InlineKeyboardMarkup([
-    [InlineKeyboardButton("← Back to My Details", callback_data="My Details Menu")],
     [BACK_TO_MAIN_BUTTON],
 ])
 

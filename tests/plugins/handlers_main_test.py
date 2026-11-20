@@ -373,6 +373,8 @@ async def test_show_paynow_menu_rich(monkeypatch):
     chat_id, rich = client.send_rich_message.await_args.args
     assert chat_id == 42
     assert client.send_rich_message.await_args.kwargs["reply_markup"] is keyboards.paynow_keyboard
+    assert len(keyboards.paynow_keyboard.inline_keyboard) == 1
+    assert keyboards.paynow_keyboard.inline_keyboard[0][0] is keyboards.BACK_TO_MAIN_BUTTON
     assert rich.blocks[1].photo.media == keyboards.PAYNOW_QR_MEDIA
     assert os.path.exists(keyboards.PAYNOW_QR_MEDIA)
 
